@@ -4,12 +4,9 @@ Tactic Router — Week 3 deliverable.
 ใช้ Google Gemini API (ฟรี)
 """
 import json
-import os
-import google.generativeai as genai
-from src.schemas import ParsedAlert
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-model = genai.GenerativeModel("gemini-3.5-flash")
+from src.agents.gemini_client import generate_text
+from src.schemas import ParsedAlert
 
 IN_SCOPE_TACTICS = ["initial-access", "execution", "credential-access"]
 
@@ -37,8 +34,7 @@ Actions: {alert.observed_actions}
 IOCs: {alert.iocs}
 Narrative: {alert.narrative}"""
 
-    response = model.generate_content(SYSTEM_PROMPT + "\n\nAlert:\n" + content)
-    raw = response.text.strip()
+    raw = generate_text(SYSTEM_PROMPT + "\n\nAlert:\n" + content)
     # ตัด markdown code block ออกถ้า Gemini ใส่มา
     if raw.startswith("```"):
         raw = raw.split("```")[1]
