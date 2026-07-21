@@ -1,13 +1,26 @@
 import json
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from src.api.routes import taxonomy
 from src.api.main import app
 
+pytestmark = pytest.mark.anyio
 
-client = TestClient(app)
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as test_client:
+        yield test_client
 
 
 @pytest.fixture
@@ -47,9 +60,9 @@ def candidates_file(tmp_path, monkeypatch):
     return test_file
 
 
-def test_health_endpoint():
+async def test_health_endpoint(client):
     # ตรวจว่า API หลักยังทำงานและบอก STIX version ถูกต้อง
-    response = client.get("/")
+    response = await client.get("/")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -58,18 +71,18 @@ def test_health_endpoint():
     }
 
 
-def test_response_contains_mitre_header():
+async def test_response_contains_mitre_header(client):
     # ทุก response ต้องมี MITRE attribution header
-    response = client.get("/")
+    response = await client.get("/")
 
     assert response.headers["X-MITRE-ATTaCK-Version"] == (
         "enterprise-attack-19.1"
     )
 
 
-def test_list_techniques(candidates_file):
+async def test_list_techniques(client, candidates_file):
     # ตรวจว่า endpoint คืน Technique ทั้งหมด
-    response = client.get("/taxonomy/techniques")
+    response = await client.get("/taxonomy/techniques")
 
     assert response.status_code == 200
 
@@ -81,9 +94,9 @@ def test_list_techniques(candidates_file):
     assert body["techniques"][1]["technique_id"] == "T1059.001"
 
 
-def test_list_techniques_filters_by_tactic(candidates_file):
+async def test_list_techniques_filters_by_tactic(client, candidates_file):
     # ตรวจการกรอง Technique ด้วย tactic
-    response = client.get(
+    response = await client.get(
         "/taxonomy/techniques",
         params={"tactic": "execution"},
     )
@@ -98,9 +111,9 @@ def test_list_techniques_filters_by_tactic(candidates_file):
     assert body["techniques"][0]["tactic"] == "execution"
 
 
-def test_get_technique_by_id(candidates_file):
+async def test_get_technique_by_id(client, candidates_file):
     # ตรวจการเรียก Technique รายตัว
-    response = client.get("/taxonomy/techniques/T1110")
+    response = await client.get("/taxonomy/techniques/T1110")
 
     assert response.status_code == 200
 
@@ -111,17 +124,17 @@ def test_get_technique_by_id(candidates_file):
     assert body["tactic"] == "credential-access"
 
 
-def test_get_technique_accepts_lowercase_id(candidates_file):
+async def test_get_technique_accepts_lowercase_id(client, candidates_file):
     # Route แปลง Technique ID เป็นตัวพิมพ์ใหญ่ก่อนค้นหา
-    response = client.get("/taxonomy/techniques/t1110")
+    response = await client.get("/taxonomy/techniques/t1110")
 
     assert response.status_code == 200
     assert response.json()["technique_id"] == "T1110"
 
 
-def test_get_unknown_technique_returns_404(candidates_file):
+async def test_get_unknown_technique_returns_404(client, candidates_file):
     # Technique ที่ไม่มีใน pinned subset ต้องคืน 404
-    response = client.get("/taxonomy/techniques/T9999")
+    response = await client.get("/taxonomy/techniques/T9999")
 
     assert response.status_code == 404
     assert response.json() == {
@@ -129,7 +142,8 @@ def test_get_unknown_technique_returns_404(candidates_file):
     }
 
 
-def test_list_techniques_returns_empty_when_file_missing(
+async def test_list_techniques_returns_empty_when_file_missing(
+    client,
     tmp_path,
     monkeypatch,
 ):
@@ -142,7 +156,7 @@ def test_list_techniques_returns_empty_when_file_missing(
         missing_file,
     )
 
-    response = client.get("/taxonomy/techniques")
+    response = await client.get("/taxonomy/techniques")
 
     assert response.status_code == 200
     assert response.json() == {

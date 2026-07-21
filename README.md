@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` เรียก Alert Parser และ Tactic Router จริงแล้ว แต่ผล technique inference สุดท้ายยังเป็น stub/hard-code ระหว่างรอพัฒนา retriever, inferencer, evidence linker, grounding judge และ evaluation pipeline
+> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` คืน no-match ที่ต้องให้มนุษย์ตรวจแบบ deterministic ระหว่างรอพัฒนา retriever, inferencer, evidence linker, grounding judge และ evaluation pipeline
 
 ## ขอบเขตปัจจุบัน
 
@@ -13,7 +13,7 @@ Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นส
 - Platforms: Windows และ Linux
 - วัตถุประสงค์: ให้คำแนะนำสำหรับ analyst review เท่านั้น
 
-## Environment ล่าสุดที่ตรวจ
+## Environment ที่ตรวจแล้ว
 
 ตรวจใน conda environment `sec-alert311`:
 
@@ -37,9 +37,9 @@ Library หลักที่โปรเจกต์ใช้:
 | `pydantic` | `2.13.4` | validate schema/request/response |
 | `python-dotenv` | `1.2.2` | โหลดค่า `.env` |
 | `pytest` | `9.1.1` | รัน automated tests |
-| `httpx` | `0.28.1` | dependency สำหรับ client/test และ SDK |
+| `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
 
-หมายเหตุ: env นี้ยังมี `google-generativeai` และ `httpx2` ติดตั้งอยู่จากงานก่อนหน้า แต่โค้ดล่าสุดไม่ใช้สองตัวนี้แล้ว โค้ด Gemini ใช้ `google-genai` ผ่าน `src/agents/gemini_client.py`
+ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 17 tests
 
 ## ติดตั้งจากศูนย์ด้วย Conda
 
@@ -64,6 +64,7 @@ conda activate sec-alert311
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+python -m pytest -q
 ```
 
 4. เช็คว่าใช้ environment ถูกตัว:
@@ -91,11 +92,14 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+python -m pytest -q
 ```
 
 ## ตั้งค่า Gemini API Key
 
 โปรเจกต์อ่าน key ได้จาก `GOOGLE_API_KEY` หรือ `GEMINI_API_KEY` โดยแนะนำให้ใช้ `GOOGLE_API_KEY`
+
+> API และ tests ในสถานะปัจจุบันไม่เรียก Gemini จึงไม่ต้องมี key เพื่อ install, run หรือทดสอบ `/alerts/infer` แบบ no-match. Key จะจำเป็นเมื่อเชื่อม inference pipeline จริงในภายหลัง
 
 สร้าง `.env` จากไฟล์ตัวอย่าง:
 
@@ -122,7 +126,7 @@ https://aistudio.google.com/app/apikey
 ```text
 src/
   api/                 FastAPI application และ routes
-  agents/              Alert parser และ tactic router ที่เรียก Google Gemini
+  agents/              Alert parser และ tactic router สำหรับ pipeline ในอนาคต
   rag/                 STIX ingestion และส่วน retrieval ที่กำลังพัฒนา
   schemas.py           Pydantic schemas สำหรับ request/response และ ATT&CK data
 data/
@@ -149,7 +153,7 @@ python -m src.rag.ingest_stix
 ## รัน API
 
 ```bash
-uvicorn src.api.main:app --reload
+python -m uvicorn src.api.main:app --reload
 ```
 
 จากนั้นเปิด:
@@ -200,16 +204,18 @@ curl -X POST http://127.0.0.1:8000/alerts/infer \
   }'
 ```
 
-หมายเหตุ: endpoint นี้ยังคืนผล inferred technique แบบ stub อยู่ แม้ขั้นตอน parse และ tactic routing จะเรียก Gemini จริงแล้ว
+หมายเหตุ: endpoint นี้ยังไม่เชื่อม inference pipeline จึงคืน no-match พร้อม human-review flag และไม่เรียก Gemini
+
+ผลลัพธ์ปัจจุบันจะมี `inferred_techniques` และ `candidates_considered` เป็นรายการว่าง และ `needs_human_review` เป็น `true` เสมอ จึงเป็นผลสำหรับทดสอบ API contract เท่านั้น ไม่ใช่การวิเคราะห์ ATT&CK
 
 ## Components ที่มีแล้ว
 
 - `GET /` สำหรับ health check และ STIX version
 - `GET /taxonomy/techniques` สำหรับ list technique candidates
 - `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
-- `POST /alerts/infer` สำหรับรับ alert narrative, parse alert, route tactic และคืนผล inference แบบ stub
+- `POST /alerts/infer` สำหรับรับ alert narrative และคืน no-match ที่ต้องให้มนุษย์ตรวจจนกว่าจะเชื่อม inference pipeline
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
-- `src/agents/gemini_client.py` สำหรับเรียก Google Gemini ด้วย SDK `google-genai`
+- `src/agents/gemini_client.py` สำหรับ pipeline Gemini ที่ยังไม่เชื่อมกับ endpoint
 
 ## Development และตรวจสอบ
 
@@ -228,13 +234,13 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: ผ่านทุก test ตามผลที่เจ้าของโปรเจกต์รันใน env `sec-alert311`
+- `python -m pytest -q`: `17 passed`
 
 ## Roadmap
 
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
-- เอาผล inference ที่ hard-code ออกจาก `/alerts/infer`
+- เชื่อม `/alerts/infer` กับ retrieval/inference pipeline จริง
 - ทำ retrieval จาก pinned ATT&CK subset
 - ทำ technique inferencer, evidence linker และ grounding judge
 - เพิ่ม tests ที่ mock Gemini เพื่อให้รันซ้ำได้โดยไม่ใช้ API quota
