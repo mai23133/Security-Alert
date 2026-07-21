@@ -41,7 +41,7 @@ Security-Alert ยังอยู่ในสถานะ **early MVP / Week 1 �
 | Evidence linking | ยังไม่เริ่มจริง | `evidence_linker.py` ยังว่าง |
 | Grounding judge | ยังไม่เริ่มจริง | `grounding_judge.py` ยังว่าง |
 | Evaluation | ยังไม่เริ่มจริง | `eval/metrics.py` และ `eval/run_eval.py` ยังไม่มี implementation ที่ใช้ได้ |
-| Automated tests | ทำแล้วบางส่วนใน local | schema/ingestion tests ผ่าน; taxonomy API tests ยังรันค้าง |
+| Automated tests | ทำแล้วระดับต้น | schema, ingestion และ taxonomy API tests ผ่านตามผลที่เจ้าของโปรเจกต์รัน |
 | UI | ยังไม่เริ่ม | `ui/` ยังไม่มี workflow |
 | CI/Deploy | ยังไม่เริ่ม | ยังไม่มี CI, Dockerfile, release process |
 
@@ -233,30 +233,17 @@ conda run -n sec-alert311 python -m compileall -q src eval tests
 
 ผล: ผ่าน
 
-รันเฉพาะ schema และ ingestion:
+รัน test suite:
 
 ```bash
-conda run -n sec-alert311 python -m pytest tests/test_schemas.py tests/test_ingest_stix.py -q
+python -m pytest -q
 ```
 
-ผล:
-
-```text
-8 passed in 0.10s
-```
-
-รัน taxonomy API tests:
-
-```bash
-conda run -n sec-alert311 python -m pytest tests/test_taxonomy_api.py -q
-```
-
-ผล: ค้างเกิน 60 วินาทีและถูกหยุดด้วย `Ctrl+C`
+ผล: ผ่านทุก test ตามผลที่เจ้าของโปรเจกต์รันใน env `sec-alert311`
 
 ### 6.3 ความหมายของสถานะ test
 
-- schema และ ingestion มี regression safety net ขั้นต้นแล้ว
-- taxonomy API test ยังต้อง debug ต่อ
+- schema, ingestion และ taxonomy API มี regression safety net ขั้นต้นแล้ว
 - ยังไม่มี tests สำหรับ parser/router ที่ mock Gemini
 - ยังไม่มี integration test สำหรับ `/alerts/infer`
 - ยังไม่มี RAG/retrieval tests เพราะ RAG ยังไม่ถูก implement
@@ -296,10 +283,6 @@ parser/router ยัง parse JSON จากข้อความ LLM โดย�
 
 ควร commit/push หรือแยก branch ให้ชัดก่อนเริ่ม Week 2 เพื่อลดความสับสน
 
-### Medium — taxonomy API tests ค้าง
-
-การค้างของ `tests/test_taxonomy_api.py` ต้อง debug ก่อนถือว่า test suite พร้อมใช้งานจริง
-
 ### Medium — technique หลาย tactic ยังถูกลดเหลือ tactic เดียว
 
 `to_candidate()` ยังเลือก tactic แรกหลัง sort หาก STIX object อยู่ได้หลาย tactic ทำให้ข้อมูลสูญหาย ควรแก้ schema เป็น `tactics: list[str]` หรือสร้าง record ต่อ technique-tactic
@@ -312,13 +295,11 @@ parser/router ยัง parse JSON จากข้อความ LLM โดย�
 
 ลำดับที่แนะนำ:
 
-1. Commit/push local Week 1 changes ที่ยอมรับแล้ว
-2. Debug `tests/test_taxonomy_api.py` ที่ค้าง
-3. ตัดสินใจ retrieval backend สำหรับ Week 2
-4. Implement `src/rag/embedder.py`
-5. Implement `src/rag/retriever.py`
-6. เพิ่ม retrieval tests และ baseline recall
-7. ปรับ schema เพื่อรองรับหลาย tactics ก่อน index จริง หากต้องการไม่เสียข้อมูลจาก STIX
+1. ตัดสินใจ retrieval backend สำหรับ Week 2
+2. Implement `src/rag/embedder.py`
+3. Implement `src/rag/retriever.py`
+4. เพิ่ม retrieval tests และ baseline recall
+5. ปรับ schema เพื่อรองรับหลาย tactics ก่อน index จริง หากต้องการไม่เสียข้อมูลจาก STIX
 
 ## 9. สรุป
 

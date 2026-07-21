@@ -228,7 +228,7 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: ค้างเกิน 90 วินาทีและถูกหยุดด้วย `Ctrl+C`
+- `python -m pytest -q`: ผ่านทุก test ตามผลที่เจ้าของโปรเจกต์รันใน env `sec-alert311`
 
 ## Roadmap
 
