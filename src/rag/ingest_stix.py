@@ -7,10 +7,19 @@ to the in-scope subset defined in spec section 3 and 7:
 Week 2 deliverable.
 """
 import json
+
+from pathlib import Path
 from src.schemas import TechniqueCandidate
 
-STIX_PATH = "data/raw/enterprise-attack-19.1.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+STIX_PATH = PROJECT_ROOT / "data" / "raw" / "enterprise-attack-19.1.json"
+OUTPUT_DIR = PROJECT_ROOT / "data" / "processed"
+
+TECHNIQUE_IDS_PATH = OUTPUT_DIR / "technique_ids.json"
+TECHNIQUE_CANDIDATES_PATH = OUTPUT_DIR / "technique_candidates.json"
+
 STIX_VERSION = "19.1"
+
 
 IN_SCOPE_TACTICS = {"initial-access", "execution", "credential-access"}
 IN_SCOPE_PLATFORMS = {"Windows", "Linux"}
@@ -63,29 +72,53 @@ def main():
     candidates = [to_candidate(o) for o in in_scope_objs]
 
     print(f"Total STIX objects: {len(objects)}")
-    print(f"In-scope techniques (3 tactics, Win/Linux, non-deprecated/revoked): {len(candidates)}")
+    print(
+        "In-scope techniques "
+        f"(3 tactics, Win/Linux, non-deprecated/revoked): {len(candidates)}"
+    )
 
     by_tactic = {}
-    for c in candidates:
-        by_tactic.setdefault(c.tactic, []).append(c.technique_id)
-    for tactic, ids in sorted(by_tactic.items()):
-        print(f"  {tactic}: {len(ids)} techniques")
 
-    # sanity-check the worked example from spec section 7
-    ids = {c.technique_id for c in candidates}
+    for candidate in candidates:
+        by_tactic.setdefault(candidate.tactic, []).append(
+            candidate.technique_id
+        )
+
+    for tactic, technique_ids in sorted(by_tactic.items()):
+        print(f"  {tactic}: {len(technique_ids)} techniques")
+
+    ids = {candidate.technique_id for candidate in candidates}
+
     for expected in ["T1110", "T1059.001"]:
         print(f"  {expected} present: {expected in ids}")
 
-    # write technique_ids.json manifest (spec section 7 deliverable)
-    with open("technique_ids.json", "w") as f:
-        json.dump(sorted(ids), f, indent=2)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # write the full candidate pool for the retriever to index later
-    with open("technique_candidates.json", "w") as f:
-        json.dump([c.model_dump() for c in candidates], f, indent=2)
+    with TECHNIQUE_IDS_PATH.open("w", encoding="utf-8") as file:
+        json.dump(
+            sorted(ids),
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
 
-    print("\nWrote technique_ids.json and technique_candidates.json")
+    with TECHNIQUE_CANDIDATES_PATH.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            [candidate.model_dump() for candidate in candidates],
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    print(f"\nWrote {TECHNIQUE_IDS_PATH}")
+    print(f"Wrote {TECHNIQUE_CANDIDATES_PATH}")
 
 
 if __name__ == "__main__":
     main()
+
+
+
