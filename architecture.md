@@ -4,7 +4,7 @@
 
 Security Alert รับข้อความแจ้งเตือนด้านความปลอดภัยผ่าน FastAPI แล้วส่งคืนผลการอนุมาน MITRE ATT&CK Technique ในรูปแบบ JSON ที่ตรวจสอบด้วย Pydantic
 
-ระบบมีสถานะเป็น **Iteration 1 — Walking Skeleton (`v0.1.0`)** จึงใช้ผลลัพธ์แบบ mock หรือ hard-coded เพื่อยืนยันว่า API contract, schema และลำดับการไหลของข้อมูลทำงานร่วมกันได้ ส่วน LLM, RAG, multi-agent routing และ grounding judge จริงจะพัฒนาใน iteration ถัดไป
+ระบบมีสถานะเป็น **Iteration 1 — Walking Skeleton (`v0.1.0`)** จึงคืนผล no-match แบบ deterministic พร้อมส่งต่อให้มนุษย์ตรวจ เพื่อยืนยันว่า API contract และ schema ทำงานร่วมกันได้โดยไม่สร้าง Technique ที่ไม่มีหลักฐาน ส่วน LLM, RAG, multi-agent routing และ grounding judge จริงจะพัฒนาใน iteration ถัดไป
 
 ## Iteration 1 Architecture
 
@@ -12,7 +12,7 @@ Security Alert รับข้อความแจ้งเตือนด้�
 flowchart TD
     A["Client / SOC Analyst"] -->|"POST /alerts/infer"| B["FastAPI Endpoint"]
     B --> C["Pydantic Request Validation"]
-    C --> D["Mock Inference Service"]
+    C --> D["Deterministic No-Match Service"]
     D --> E["Pydantic Response Validation"]
     E -->|"ATTACKInferenceResult JSON"| A
 ```
@@ -21,7 +21,7 @@ flowchart TD
 
 1. Client ส่ง alert ID และข้อความ security alert ไปยัง `POST /alerts/infer`
 2. FastAPI รับ request และใช้ Pydantic ตรวจสอบรูปแบบข้อมูล
-3. Mock inference service สร้าง Technique ที่กำหนดไว้ล่วงหน้าเพื่อจำลองผลจาก agent pipeline
+3. Deterministic no-match service คืนรายการ inference/candidate ว่างและตั้ง `needs_human_review=true`
 4. Pydantic ตรวจสอบผลลัพธ์ตาม `ATTACKInferenceResult`
 5. API ส่ง structured JSON กลับไปยัง client
 
@@ -40,13 +40,13 @@ flowchart TD
 
 | Component | Responsibility | Iteration 1 status |
 | --- | --- | --- |
-| FastAPI endpoint | รับ request และส่ง response ตาม API contract | Stub |
+| FastAPI endpoint | รับ request และส่ง response no-match ตาม API contract | Stub |
 | Pydantic schemas | ตรวจสอบ request และ structured response | Required |
 | Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | Planned |
 | Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | Planned |
 | Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | Planned |
-| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | Mock |
-| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | Mock |
+| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | Planned |
+| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | Planned |
 | Grounding Judge | ปฏิเสธ Technique ที่ไม่มีหลักฐานหรือไม่มีใน taxonomy | Planned |
 
 ## Main API Contract
@@ -82,5 +82,4 @@ flowchart TD
 
 ## Planned Evolution
 
-หลัง Iteration 1 จะเปลี่ยน `Mock Inference Service` เป็น agent pipeline จริงตามลำดับ Alert Parser → Tactic Router → Technique Retriever → Technique Inferencer → Evidence Linker → Grounding Judge โดยยังคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client
-
+หลัง Iteration 1 จะเปลี่ยน `Deterministic No-Match Service` เป็น agent pipeline จริงตามลำดับ Alert Parser → Tactic Router → Technique Retriever → Technique Inferencer → Evidence Linker → Grounding Judge โดยยังคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client

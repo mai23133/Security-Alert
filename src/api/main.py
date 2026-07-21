@@ -35,5 +35,5 @@ app.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
 app.include_router(taxonomy_router, prefix="/taxonomy", tags=["taxonomy"])
 
 @app.get("/")
-def health():
+async def health():
     return {"status": "ok", "stix_version": "19.1"}

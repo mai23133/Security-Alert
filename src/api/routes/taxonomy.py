@@ -25,14 +25,14 @@ def _load_candidates() -> list[TechniqueCandidate]:
     return [TechniqueCandidate(**r) for r in raw]
 
 @router.get("/techniques")
-def list_techniques(tactic: str | None = None):
+async def list_techniques(tactic: str | None = None):
     candidates = _load_candidates()
     if tactic:
         candidates = [c for c in candidates if c.tactic == tactic]
     return {"count": len(candidates), "techniques": [c.model_dump() for c in candidates]}
 
 @router.get("/techniques/{technique_id}")
-def get_technique(technique_id: str):
+async def get_technique(technique_id: str):
     candidates = _load_candidates()
     match = next((c for c in candidates if c.technique_id == technique_id.upper()), None)
     if not match:
