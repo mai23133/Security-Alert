@@ -10,7 +10,13 @@ from src.schemas import TechniqueCandidate
 
 router = APIRouter()
 
-CANDIDATES_PATH = Path("data/processed/technique_candidates.json")
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+CANDIDATES_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "processed"
+    / "technique_candidates.json"
+)
 
 def _load_candidates() -> list[TechniqueCandidate]:
     if not CANDIDATES_PATH.exists():

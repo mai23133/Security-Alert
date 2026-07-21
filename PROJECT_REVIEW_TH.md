@@ -1,218 +1,308 @@
 # รายงานรีวิวโปรเจกต์ Security-Alert
 
-วันที่ตรวจ: 18 กรกฎาคม 2026  
-Branch/Commit: `main` ที่ `331368b` (`week3_api`)
+วันที่ตรวจ: 21 กรกฎาคม 2026  
+Branch/Commit ที่ตรวจ: `mai-work` ที่ `e43cbec` (`Update setup docs and Gemini SDK`)  
+หมายเหตุ: มี local changes ที่ยังไม่ commit/push ใน `WORK_PLAN_TH.md`, `src/api/routes/taxonomy.py`, `src/rag/ingest_stix.py` และ tests บางไฟล์
 
-## 1. สรุปสำหรับผู้บริหาร
+## 1. สรุปสถานะล่าสุด
 
-โปรเจกต์นี้มีเป้าหมายรับข้อความ Security Alert แล้วแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในลักษณะ advisory เพื่อช่วยนักวิเคราะห์ SOC ไม่ใช่สั่งตอบสนองเหตุการณ์โดยอัตโนมัติ
+Security-Alert ยังอยู่ในสถานะ **early MVP / Week 1 เสร็จตามการตรวจรับของเจ้าของโปรเจกต์** และกำลังพร้อมเข้าสู่ Week 2 ซึ่งเป็นช่วงเริ่มทำ RAG/retrieval จริง
 
-สถานะปัจจุบันอยู่ประมาณ **MVP ช่วงต้น (งาน Week 2–3)** โครงข้อมูล MITRE, Pydantic schema, FastAPI, Alert Parser และ Tactic Router ถูกเริ่มทำแล้ว แต่ผลลัพธ์จาก endpoint หลักยังเป็น mock และ pipeline ส่วน RAG/inference/evidence/grounding/evaluation/UI ยังไม่ถูกพัฒนา ดังนั้นระบบยังไม่พร้อมใช้จริงหรือ deploy production
+ระบบตอนนี้ทำได้แล้วในระดับโครงหลัก:
 
-ภาพรวมความพร้อมโดยประมาณ:
+- มี FastAPI backend
+- มี MITRE ATT&CK Enterprise 19.1 raw dataset
+- มี processed ATT&CK candidate subset สำหรับ 3 tactics
+- มี schema validation
+- มี Alert Parser และ Tactic Router ที่เรียก Google Gemini ผ่าน SDK ใหม่ `google-genai`
+- มี taxonomy API สำหรับ list/detail technique
+- มี README/setup docs ล่าสุดสำหรับ conda env `sec-alert311`
+- มี `.gitignore` และ `.env.example`
+- มี unit tests ขั้นต้นบางส่วนใน local
 
-| ส่วน | สถานะ | หมายเหตุ |
+ข้อจำกัดสำคัญยังเหมือนเดิม: **RAG/retrieval, technique inference, evidence linking และ grounding ยังไม่ได้ implement** ดังนั้น `/alerts/infer` ยังไม่ใช่ inference pipeline จริง และยังคืน technique แบบ stub/hard-code
+
+## 2. ภาพรวมความพร้อม
+
+| ส่วน | สถานะล่าสุด | หมายเหตุ |
 |---|---|---|
-| MITRE ATT&CK dataset | ทำแล้วระดับต้น | pin Enterprise ATT&CK 19.1 และกรองข้อมูลแล้ว |
-| Data schema | ทำแล้วระดับต้น | มี validation ของ technique ID และ confidence |
-| Alert parsing | มี implementation | พึ่ง Google Gemini และยังไม่มี test/error handling ที่เพียงพอ |
-| Tactic routing | มี implementation | จำกัด 3 tactics และมี fallback |
-| Taxonomy API | มี implementation | list/detail จากไฟล์ processed |
-| Inference API | เป็น stub | parse/route จริง แต่ technique ที่ตอบกลับ hard-code |
-| Retriever/RAG | ยังไม่ทำ | ไฟล์ว่าง |
-| Technique inference | ยังไม่ทำ | ไฟล์ว่าง |
-| Evidence/grounding | ยังไม่ทำ | ไฟล์ว่าง |
-| Evaluation | ยังไม่ทำ | ไฟล์และ dataset directory ว่าง |
-| Automated tests | ยังไม่ทำ | pytest พบ 0 tests |
-| UI | ยังไม่ทำ | directory ว่าง |
-| Production/DevOps docs | ยังไม่ทำ | ไม่มี README, Dockerfile, CI, lock file และ `.gitignore` |
+| Repository hygiene | ดีขึ้นมาก | มี `.gitignore`, `.env` ไม่ถูก track, `.env.example` มี `GOOGLE_API_KEY=` |
+| README/setup | ทำแล้ว | มีวิธีติดตั้งจากศูนย์ด้วย conda `sec-alert311` และ `venv` |
+| Dependencies | ทำแล้วระดับต้น | เปลี่ยนเป็น `google-genai`; ยังไม่มี lock file แบบ strict |
+| MITRE ATT&CK dataset | ทำแล้วระดับต้น | pin Enterprise ATT&CK 19.1 |
+| STIX ingestion | ทำแล้วบางส่วน | local แก้ output path ไป `data/processed/` แล้ว แต่ยังไม่ push |
+| Data schema | ทำแล้วระดับต้น | validate technique ID และ confidence |
+| Alert parsing | มี implementation | เรียก Gemini ผ่าน `google-genai`; ยังไม่มี structured output/retry/timeout |
+| Tactic routing | มี implementation | จำกัด 3 tactics และ fallback เป็นทั้ง 3 tactics |
+| Taxonomy API | มี implementation | local แก้ path ให้ project-root based แล้ว แต่ยังไม่ push |
+| Inference API | ยังเป็น stub | parse/route จริง แต่ final technique ยัง hard-code T1110 |
+| RAG / Retriever | ยังไม่เริ่มจริง | `embedder.py` และ `retriever.py` ยังว่าง |
+| Technique inference | ยังไม่เริ่มจริง | `technique_inferencer.py` ยังว่าง |
+| Evidence linking | ยังไม่เริ่มจริง | `evidence_linker.py` ยังว่าง |
+| Grounding judge | ยังไม่เริ่มจริง | `grounding_judge.py` ยังว่าง |
+| Evaluation | ยังไม่เริ่มจริง | `eval/metrics.py` และ `eval/run_eval.py` ยังไม่มี implementation ที่ใช้ได้ |
+| Automated tests | ทำแล้วระดับต้น | schema, ingestion และ taxonomy API tests ผ่านตามผลที่เจ้าของโปรเจกต์รัน |
+| UI | ยังไม่เริ่ม | `ui/` ยังไม่มี workflow |
+| CI/Deploy | ยังไม่เริ่ม | ยังไม่มี CI, Dockerfile, release process |
 
-## 2. สิ่งที่ทำไปแล้ว
+## 3. สิ่งที่ทำเพิ่มจากรีวิวรอบก่อน
 
-### 2.1 ข้อมูลและ schema
+### 3.1 Repository hygiene และ setup
 
-- เก็บ MITRE Enterprise ATT&CK STIX 2.1 เวอร์ชัน 19.1 ที่ `data/raw/enterprise-attack-19.1.json`
-- raw bundle มี 25,843 STIX objects และมีขนาดประมาณ 53 MB
-- สคริปต์ `src/rag/ingest_stix.py` กรองเฉพาะ:
-  - tactics: `initial-access`, `execution`, `credential-access`
-  - platforms: Windows หรือ Linux
-  - ไม่รวม deprecated/revoked technique
-- มี processed candidate 127 รายการ ไม่มี technique ID ซ้ำ แบ่งเป็น:
-  - credential-access 58
-  - execution 48
-  - initial-access 21
-- มี schema หลักใน `src/schemas.py`: `ParsedAlert`, `TechniqueCandidate`, `InferredTechnique`, `ATTACKInferenceResult`
-- validation รองรับ technique และ sub-technique รูปแบบ `T####` และ `T####.###` รวมทั้งบังคับ confidence ให้อยู่ในช่วง 0–1
+- เพิ่ม `.gitignore` เพื่อ ignore:
+  - `.env`, `.env.*`
+  - virtual environments
+  - `__pycache__`, `.pyc`
+  - pytest/cache/coverage files
+  - editor files
+  - `data/processed/`
+- เพิ่ม `.env.example` พร้อม key placeholder:
+  - `GOOGLE_API_KEY=`
+- เพิ่ม README ภาษาไทยพร้อม:
+  - ภาพรวมโปรเจกต์
+  - วิธีติดตั้งด้วย conda `sec-alert311`
+  - วิธีติดตั้งด้วย `venv`
+  - วิธีตั้งค่า Gemini API key
+  - วิธี regenerate ATT&CK processed data
+  - วิธีรัน API
+  - ตัวอย่าง `curl`
+  - สถานะล่าสุดของ tests และข้อจำกัด
 
-### 2.2 Agent ที่มีโค้ดแล้ว
+### 3.2 เปลี่ยน Gemini SDK
 
-- `alert_parser.py` เรียก Google Gemini เพื่อแปลง narrative เป็น assets, observed actions และ IOCs
-- `tactic_router.py` เรียก Google Gemini เพื่อเลือก tactic ใน scope 3 รายการ
-- ทั้งสองส่วนพยายามตัด Markdown code fence และ parse JSON
-- router กรองค่าที่อยู่นอก scope และ fallback เป็นทั้ง 3 tactics หากโมเดลไม่คืนค่าที่ใช้ได้
+โค้ดเดิมใช้:
 
-### 2.3 API ที่มีแล้ว
+- `google-generativeai`
+- `google.generativeai.GenerativeModel`
 
-- FastAPI application เวอร์ชัน `0.1.0`
-- `GET /` health response
-- `GET /taxonomy/techniques` สำหรับ list และ filter ตาม tactic
-- `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด
-- `POST /alerts/infer` รับ alert ID/narrative และเรียก parser/router
-- ทุก response ถูกตั้ง header `X-MITRE-ATTaCK-Version: enterprise-attack-19.1`
-- เปิด CORS middleware แล้ว
+โค้ดล่าสุดเปลี่ยนมาใช้:
 
-### 2.4 ประวัติ Git
+- `google-genai`
+- `from google import genai`
+- wrapper ใหม่ที่ `src/agents/gemini_client.py`
 
-มี 2 commits:
+`alert_parser.py` และ `tactic_router.py` เรียกผ่าน helper `generate_text()` แล้ว ทำให้การเรียก Gemini รวมศูนย์ขึ้นกว่าเดิม
 
-1. `18735bb` — เริ่ม schema, STIX ingestion และวางโครงไฟล์ส่วนต่าง ๆ
-2. `331368b` — เพิ่ม Week 3 API, Alert Parser, Tactic Router และ dependencies
+### 3.3 Dependencies ล่าสุด
 
-## 3. สิ่งที่ยังเหลือ
+`requirements.txt` ตอนนี้ระบุ dependency หลัก:
 
-### ความสำคัญสูงสุด: ทำให้ผล inference เป็นของจริง
+- `google-genai>=2.12.1`
+- `fastapi>=0.139.2`
+- `uvicorn>=0.51.0`
+- `pydantic>=2.13.4`
+- `python-dotenv>=1.2.2`
+- `pytest>=9.1.1`
+- `httpx>=0.28.1`
 
-1. ทำ `src/rag/embedder.py` เพื่อสร้าง embedding/index ของ technique candidates
-2. ทำ `src/rag/retriever.py` เพื่อค้น candidate ตาม parsed alert และ tactic
-3. ทำ `src/agents/technique_inferencer.py` เพื่อให้คะแนน/เลือก technique จาก candidate ที่ค้นมา
-4. ทำ `src/agents/evidence_linker.py` เพื่อผูกทุก prediction กับข้อความหลักฐานจาก input จริง
-5. ทำ `src/agents/grounding_judge.py` เพื่อตรวจว่า ID, tactic, evidence และคำอธิบาย grounded กับ MITRE/input
-6. เปลี่ยน mock ใน `POST /alerts/infer` ให้เป็น pipeline จริงตั้งแต่ parse ถึง judge
-7. กำหนดเกณฑ์ `needs_human_review` จาก confidence/grounding/evidence ไม่ใช่เพียงตรวจว่ารายการผลลัพธ์ว่างหรือไม่
+ตรวจใน conda env `sec-alert311` ได้:
 
-### คุณภาพและการประเมินผล
+- Python `3.11.15`
+- `google-genai 2.12.1`
+- `fastapi 0.139.2`
+- `uvicorn 0.51.0`
+- `pydantic 2.13.4`
+- `python-dotenv 1.2.2`
+- `pytest 9.1.1`
+- `httpx 0.28.1`
 
-- เขียน unit tests สำหรับ schemas, parser, router, ingestion และ API
-- mock Gemini ใน test เพื่อให้ test deterministic และไม่เสีย quota
-- เพิ่ม integration test ของ inference pipeline
-- สร้าง labeled evaluation dataset ใน `data/eval/`
-- ทำ `eval/metrics.py` เช่น precision, recall, F1, top-k recall, tactic accuracy, evidence/grounding score และ abstention/review rate
-- ทำ `eval/run_eval.py` พร้อมบันทึก model/prompt/dataset/STIX version เพื่อให้ผลทำซ้ำได้
-- เติม prompt files ใน `prompts/v1/` และให้โค้ดโหลด prompt จากไฟล์ แทน prompt ที่ hard-code อยู่ใน source
+### 3.4 Work plan
 
-### API และความทนทาน
+เจ้าของโปรเจกต์ตรวจรับ Week 1 แล้ว และ `WORK_PLAN_TH.md` ใน local ถูกอัปเดตให้ Week 1 เป็น `เสร็จแล้ว` ทั้ง 5 รายการ:
 
-- validate ว่า narrative ไม่ว่างและกำหนดความยาวสูงสุด
-- แยก error ของ invalid model output, timeout, quota/rate limit และ provider failure ไม่ควรคืนรายละเอียด exception ดิบให้ client
-- เพิ่ม timeout, retry แบบจำกัด, structured logging และ request/correlation ID
-- รองรับ configuration ผ่าน settings object และตรวจ environment ตอน startup
-- เพิ่ม authentication/rate limiting หากเปิดใช้นอกเครื่อง
-- จำกัด CORS origins สำหรับ production
-- ทำ API ของ evaluation (`src/api/routes/evaluate.py`) หรือเอาไฟล์ออกจนกว่าจะใช้
-- ใช้ absolute path ที่อิง project/package location เพื่อไม่ให้ API พังเมื่อรันจาก working directory อื่น
+- secret / `.env`
+- `.gitignore` และ generated files
+- STIX ingestion output path
+- README และ dependencies
+- test ขั้นต้น
 
-### Documentation, UI และการ deploy
+หมายเหตุ: การแก้ `WORK_PLAN_TH.md` ยังเป็น local change ยังไม่ได้ push
 
-- สร้าง README: เป้าหมาย, architecture, setup, env vars, run/test/eval commands และตัวอย่าง request/response
-- ทำหน้า UI ใน `ui/` หากยังอยู่ใน scope
-- เพิ่ม `.gitignore`, Dockerfile/compose ตามรูปแบบ deploy, CI และ dependency lock/pinning
-- เพิ่ม LICENSE และ MITRE ATT&CK attribution ที่เห็นได้ในเอกสาร/หน้า UI ไม่พึ่ง response header อย่างเดียว
-- กำหนด policy การเก็บ alert ซึ่งอาจมี IP, hostname, account หรือข้อมูลอ่อนไหว
+## 4. สถานะ RAG / Retrieval ตอนนี้
 
-## 4. ประเด็นและความเสี่ยงที่พบ
+### 4.1 สิ่งที่มีแล้ว
 
-### Critical — ความลับถูก track ใน Git
+มีฐานข้อมูล candidate สำหรับ retrieval ในรูปแบบ JSON จาก MITRE ATT&CK subset:
 
-ไฟล์ `.env` อยู่ใน Git repository ขณะที่ `.env.example` ว่างและไม่มี `.gitignore` ต้องถือว่าค่าความลับในไฟล์ดังกล่าวอาจรั่วแล้ว: revoke/rotate key, ลบ `.env` ออกจาก tracking, เติม `.gitignore` และใส่เฉพาะชื่อ environment variables ที่ไม่มีค่า secret ใน `.env.example` หาก repository เคยถูกแชร์หรือ push แล้ว ควรพิจารณาล้าง secret จาก Git history ด้วย
+- `data/raw/enterprise-attack-19.1.json`
+- `data/processed/technique_ids.json`
+- `data/processed/technique_candidates.json`
 
-### High — endpoint หลักคืนผล mock ที่อาจทำให้ผู้ใช้เข้าใจผิด
+candidate ถูก filter จาก:
 
-`POST /alerts/infer` คืน T1110 และ candidate T1059.001 แบบ hard-code โดยไม่ใช้ผล tactic routing ในการสร้างผลสุดท้าย จึงสามารถคืน technique ที่ไม่สัมพันธ์กับ alert ได้ ควรระบุ response ว่าเป็น stub อย่างชัดเจนหรือปิด endpoint นี้จากผู้ใช้จริงจนกว่า pipeline จะเสร็จ
+- tactics: `initial-access`, `execution`, `credential-access`
+- platforms: Windows, Linux
+- ตัด deprecated/revoked technique
 
-### High — ไม่มี automated test/evaluation
+จากรีวิวรอบก่อน candidate มี 127 รายการ:
 
-ไฟล์ test ทั้งสองไฟล์ว่าง และการรัน pytest รายงาน `no tests ran` จึงยังไม่มี regression safety net และยังไม่มีหลักฐานเชิงตัวเลขว่าการ map ATT&CK ถูกต้องเพียงใด
+- `credential-access`: 58
+- `execution`: 48
+- `initial-access`: 21
 
-### High — LLM integration ยังเปราะ
+### 4.2 สิ่งที่ยังไม่มี
 
-- model name ถูก hard-code และไม่มี startup validation
-- parse JSON จากข้อความโดยตรง ไม่มี schema-constrained generation
-- ไม่มี timeout/retry/error classification
-- ไม่มีการป้องกัน prompt injection จาก narrative อย่างชัดเจน
-- exception ถูกส่งกลับ client ผ่าน `detail=str(e)` ซึ่งอาจเปิดเผยข้อมูลภายใน
-- ไม่มี deterministic fallback parser สำหรับ IOC พื้นฐาน
+ยังไม่มี RAG จริงในความหมายของ retrieval augmented generation:
 
-### Medium — ingestion output path ไม่ตรงกับไฟล์ที่ API ใช้
+- ยังไม่มี embedding model/backend
+- ยังไม่มี vector index หรือ lexical index
+- ยังไม่มี chunking/normalization strategy สำหรับ technique candidate text
+- ยังไม่มี `top-k` retrieval
+- ยังไม่มี tactic-aware retrieval
+- ยังไม่มี ranking/scoring
+- ยังไม่มี evaluation เช่น top-k recall
 
-สคริปต์ ingestion เขียน `technique_ids.json` และ `technique_candidates.json` ที่ working directory ปัจจุบัน แต่ API อ่าน `data/processed/technique_candidates.json` ทำให้การ regenerate ตามสคริปต์ไม่อัปเดตข้อมูลที่ API ใช้ตามที่คาด
+ไฟล์ที่เกี่ยวข้องยังว่าง:
 
-### Medium — technique ที่อยู่ได้หลาย tactic ถูกลดเหลือ tactic เดียว
+- `src/rag/embedder.py`
+- `src/rag/retriever.py`
 
-`to_candidate()` เลือก tactic แรกหลัง sort แม้ STIX object เดียวอาจอยู่หลาย tactic ทำให้สูญเสียความสัมพันธ์ และจำนวนราย tactic อาจไม่สะท้อน ATT&CK จริง ควรเปลี่ยน schema เป็น `tactics: list[str]` หรือสร้าง record ต่อ technique-tactic โดยมีวิธี deduplicate ชัดเจน
+### 4.3 ข้อเสนอสำหรับ Week 2
 
-### Medium — dependency และ repository hygiene
+Week 2 ควรเริ่มจาก retrieval MVP ที่ deterministic ก่อนต่อ LLM inference:
 
-- dependencies ใช้ lower bounds (`>=`) ไม่มี lock จึง build ซ้ำแล้วอาจได้พฤติกรรมต่างกัน
-- ไม่มี `.gitignore` และมี `__pycache__`/`.pyc` ถูก commit แล้ว
-- raw STIX ขนาดใหญ่ถูกเก็บตรงใน Git ทำให้ repository หนัก ควรพิจารณาสคริปต์ดาวน์โหลดพร้อม checksum, release asset หรือ Git LFS
-- ไม่มี README หรือคำสั่ง setup ที่ทำซ้ำได้
+1. ตัดสินใจ embedding backend
+   - ทางเลือกเบา: lexical/BM25 ก่อน เพื่อไม่ต้องพึ่ง external embedding API
+   - ทางเลือก semantic: local sentence-transformers หรือ Gemini embeddings
+2. นิยาม candidate text ที่จะ embed/index เช่น:
+   - technique ID
+   - technique name
+   - tactic
+   - description excerpt
+   - platforms
+3. สร้าง index artifact ที่ reproduce ได้
+4. ทำ `retrieve_candidates(parsed_alert, tactics, top_k)`
+5. เขียน tests ให้รับประกันว่า:
+   - ไม่คืน technique นอก pinned subset
+   - filter tactic ได้
+   - top-k คงที่กับ fixture
+6. ทำ baseline evaluation เล็ก ๆ สำหรับ alerts ตัวอย่าง
 
-### Medium — runtime verification ยังไม่ครบ
+## 5. สถานะ API ตอนนี้
 
-ตรวจ syntax ด้วย `compileall` แล้วผ่าน แต่ environment ที่ใช้รีวิวไม่มี FastAPI ติดตั้ง จึง import/run TestClient ไม่ได้ และยังไม่ได้ทดสอบ Gemini แบบ live เพราะต้องใช้ external API key การมี requirements ไม่ได้ยืนยันว่า runtime ใช้งานได้จนกว่าจะสร้าง clean environment แล้ว install/run smoke test
+### 5.1 Endpoints ที่มี
 
-### Low/Medium — validation และ API semantics
+- `GET /`
+  - health check
+  - คืน `{"status": "ok", "stix_version": "19.1"}`
+- `GET /taxonomy/techniques`
+  - list candidate techniques
+  - filter ด้วย query param `tactic`
+- `GET /taxonomy/techniques/{technique_id}`
+  - ดึง technique รายตัว
+- `POST /alerts/infer`
+  - รับ `alert_id` และ `narrative`
+  - เรียก parser/router จริง
+  - คืน inference result แบบ stub
 
-- `AlertRequest.narrative` ยอมรับข้อความว่าง
-- filter tactic ที่ไม่รู้จักจะคืนรายการว่างแทน 400
-- CORS เปิด `*` ทุก origin/method/header
-- taxonomy โหลดและ parse JSON ใหม่ทุก request ซึ่งยังพอรับได้ที่ 127 รายการ แต่ควร cache ตอน startup หากโตขึ้น
+ทุก response มี header:
 
-## 5. แผนงานแนะนำ
+```text
+X-MITRE-ATTaCK-Version: enterprise-attack-19.1
+```
 
-### Phase 0 — Security และ reproducibility
+### 5.2 ข้อจำกัด API
 
-- rotate secret และหยุด track `.env`
-- เพิ่ม `.gitignore` และเอา generated bytecode ออกจาก Git
-- สร้าง README และ clean environment จาก requirements/lock file
-- แก้ ingestion output path พร้อม test
+- `/alerts/infer` ยังคืน `T1110` แบบ hard-code
+- ยังไม่ใช้ผล `tactics` เพื่อเลือก technique จริง
+- ยังไม่มี validation ว่า narrative ห้ามว่าง
+- ยังไม่มี max length
+- ยังคืน `detail=str(e)` เมื่อ provider/model error
+- CORS ยังเปิด `*`
+- ยังไม่มี auth/rate limit
+- ยังไม่มี request ID / structured logging
 
-### Phase 1 — Retrieval MVP
+## 6. สถานะ Tests
 
-- เลือก embedding backend และ index format
-- index candidate 127 รายการพร้อม metadata ของทุก tactic/platform/source
-- ทำ top-k retrieval โดยมี tactic filter
-- เพิ่ม retrieval tests และ top-k recall evaluation
+### 6.1 Tests ที่มีใน local
 
-### Phase 2 — Grounded inference
+มี test files เพิ่มใน local:
 
-- ทำ inferencer, evidence linker และ grounding judge
-- ใช้ structured output/schema validation
-- กำหนด confidence calibration และ human-review thresholds
-- ห้าม technique ที่ไม่อยู่ใน retrieved/pinned ATT&CK subset หลุดสู่ผลลัพธ์
+- `tests/test_schemas.py`
+- `tests/test_ingest_stix.py`
+- `tests/test_taxonomy_api.py`
+- `tests/__init__.py`
 
-### Phase 3 — API quality และ evaluation
+### 6.2 ผลที่รันล่าสุด
 
-- ต่อ pipeline จริงเข้ากับ `/alerts/infer`
-- เพิ่ม unit/integration/API tests และ CI
-- สร้าง evaluation set ที่ครอบคลุม positive, multi-technique, ambiguous และ no-match alerts
-- บันทึกและเปรียบเทียบผลตาม prompt/model version
+รันใน conda env `sec-alert311`:
 
-### Phase 4 — UI และ production hardening
+```bash
+conda run -n sec-alert311 python -m compileall -q src eval tests
+```
 
-- ทำ UI ที่แสดง prediction, confidence, evidence, MITRE link และปุ่ม analyst review
-- เพิ่ม auth, rate limit, observability, privacy/retention controls
-- package/deploy และทำ acceptance/security testing
+ผล: ผ่าน
 
-## 6. Definition of Done ที่แนะนำสำหรับ MVP
+รัน test suite:
 
-MVP ควรถือว่าเสร็จเมื่อ:
+```bash
+python -m pytest -q
+```
 
-- clean install และ start server ได้จาก README เพียงชุดคำสั่งเดียว
-- `/alerts/infer` ไม่มี mock/hard-code และทุก prediction มาจาก pinned ATT&CK subset
-- ทุก prediction มี evidence span ที่ตรวจย้อนกลับไปยัง input ได้
-- invalid/ambiguous/no-match input ส่งเข้า human review อย่างเหมาะสม
-- มี unit/integration tests ใน CI และไม่มี test ที่ต้องเรียก Gemini จริง
-- มี evaluation report และเกณฑ์ขั้นต่ำที่ทีมตกลงกัน
-- secret ไม่อยู่ใน repository และ production config ไม่เปิด CORS แบบ wildcard
-- MITRE attribution, advisory disclaimer และข้อจำกัดของระบบแสดงต่อผู้ใช้ชัดเจน
+ผล: ผ่านทุก test ตามผลที่เจ้าของโปรเจกต์รันใน env `sec-alert311`
 
-## 7. ผลการตรวจที่ทำในรอบนี้
+### 6.3 ความหมายของสถานะ test
 
-- ตรวจไฟล์ source, prompts, tests, eval, data และ Git history ทั้ง repository
-- `python -m compileall -q src eval tests`: ผ่าน (ไม่พบ syntax error)
-- `python -m pytest -q`: ไม่พบ test ให้รัน
-- runtime API smoke test: ยังทำไม่ได้เพราะ environment ปัจจุบันไม่มี package `fastapi`
-- ไม่ได้เรียก Gemini live และไม่ได้แก้ไข source code ของระบบ
+- schema, ingestion และ taxonomy API มี regression safety net ขั้นต้นแล้ว
+- ยังไม่มี tests สำหรับ parser/router ที่ mock Gemini
+- ยังไม่มี integration test สำหรับ `/alerts/infer`
+- ยังไม่มี RAG/retrieval tests เพราะ RAG ยังไม่ถูก implement
 
-ข้อสรุป: ฐานของ Week 2–3 มีทิศทางชัดเจน แต่จุดที่สร้างคุณค่าหลัก—retrieval, inference, evidence grounding และ measurable evaluation—ยังเหลือทั้งหมด ควรเริ่มจากแก้ secret/repository hygiene แล้วทำ end-to-end vertical slice ที่มี test ก่อนขยาย UI หรือ production deployment
+## 7. ความเสี่ยงหลักล่าสุด
+
+### High — `/alerts/infer` ยังเป็น stub
+
+Endpoint หลักยังคืน technique hard-code ทำให้ยังไม่ควรใช้เป็นผลวิเคราะห์จริง ควรขึ้น label ชัดเจนว่าเป็น demo/stub จนกว่า retrieval/inference/evidence/grounding จะเสร็จ
+
+### High — RAG ยังไม่มี implementation
+
+แม้มีไฟล์ `embedder.py` และ `retriever.py` แต่ยังว่างทั้งหมด จึงยังไม่มีระบบ retrieve candidate จาก ATT&CK subset ตาม alert จริง
+
+### High — Gemini output ยัง parse แบบเปราะ
+
+parser/router ยัง parse JSON จากข้อความ LLM โดยตรง แม้มีการตัด code fence แล้ว แต่ยังไม่มี:
+
+- schema-constrained generation
+- retry
+- timeout
+- error classification
+- fallback parser สำหรับ IOC พื้นฐาน
+- prompt-injection hardening
+
+### Medium — local changes ยังไม่ถูก push
+
+งานบางส่วนที่เกี่ยวกับ Week 1 ยังอยู่ใน working tree:
+
+- `WORK_PLAN_TH.md`
+- `src/api/routes/taxonomy.py`
+- `src/rag/ingest_stix.py`
+- `tests/test_schemas.py`
+- `tests/__init__.py`
+- `tests/test_ingest_stix.py`
+- `tests/test_taxonomy_api.py`
+
+ควร commit/push หรือแยก branch ให้ชัดก่อนเริ่ม Week 2 เพื่อลดความสับสน
+
+### Medium — technique หลาย tactic ยังถูกลดเหลือ tactic เดียว
+
+`to_candidate()` ยังเลือก tactic แรกหลัง sort หาก STIX object อยู่ได้หลาย tactic ทำให้ข้อมูลสูญหาย ควรแก้ schema เป็น `tactics: list[str]` หรือสร้าง record ต่อ technique-tactic
+
+### Medium — ยังไม่มี lock file
+
+`requirements.txt` ใช้ lower bounds (`>=`) ทำให้ clean install ในอนาคตอาจได้ version ใหม่กว่าที่ตรวจวันนี้ ควรเพิ่ม lock file เมื่อเริ่มต้องการ reproducibility จริง
+
+## 8. สิ่งที่ควรทำถัดไป
+
+ลำดับที่แนะนำ:
+
+1. ตัดสินใจ retrieval backend สำหรับ Week 2
+2. Implement `src/rag/embedder.py`
+3. Implement `src/rag/retriever.py`
+4. เพิ่ม retrieval tests และ baseline recall
+5. ปรับ schema เพื่อรองรับหลาย tactics ก่อน index จริง หากต้องการไม่เสียข้อมูลจาก STIX
+
+## 9. สรุป
+
+โปรเจกต์ขยับจาก “โครง Week 2–3 ที่ยังไม่มี hygiene/docs” มาเป็น “early MVP ที่ setup ได้ชัดขึ้นและพร้อมเริ่ม Week 2” แล้ว
+
+สิ่งที่ดีขึ้นมากคือ repository hygiene, README, dependency, Gemini SDK และ tests ขั้นต้น ส่วนที่ยังเป็นหัวใจที่ต้องทำต่อคือ RAG/retrieval และ inference pipeline จริง ตอนนี้ยังไม่มี embedding/index/retriever และ `/alerts/infer` ยังเป็น stub จึงยังไม่ควรสื่อว่าเป็นระบบ ATT&CK inference ที่ใช้วิเคราะห์จริงได้
