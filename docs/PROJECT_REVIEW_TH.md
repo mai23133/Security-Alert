@@ -32,9 +32,9 @@ Branch ที่ตรวจ: `mai-work`
 
 เอกสารข้อกำหนดระบุ `/alerts/infer/batch`, `/rag/search` และ `/evaluate` แต่ route ปัจจุบันยังไม่มี endpoints เหล่านี้ และ `/alerts/infer` ยังไม่ใช้ retrieval, inference, evidence linking หรือ grounding judge
 
-### High: schema ยังไม่ตรงกับข้อกำหนดหลาย tactics
+### Resolved: ชื่อฟิลด์ schema ไม่ตรงกับข้อกำหนด
 
-ข้อกำหนดกำหนด `tactics: list[str]` สำหรับ TechniqueCandidate และ InferredTechnique แต่ schema ปัจจุบันใช้ `tactic: str` เพียงค่าเดียว การ ingest จึงเลือก tactic เดียวสำหรับ Technique ที่อยู่หลาย tactic และทำให้ข้อมูลจาก STIX สูญหาย
+ข้อกำหนดปัจจุบันกำหนด `tactic: str` สำหรับ `TechniqueCandidate` และ `InferredTechnique` จึงต้องปรับ schema, ingestion, taxonomy API และ tests ให้ใช้ชื่อฟิลด์เดียวกัน
 
 ### High: Gemini path ยังไม่มี operational guardrails
 
@@ -50,7 +50,7 @@ CORS ยังเปิด `*`, ไม่มี authentication/rate limit, ไ�
 
 ## ลำดับงานที่แนะนำ
 
-1. ปรับ schema และ ingestion ให้เก็บหลาย tactics ตาม specification
+1. ปรับ schema และ ingestion ให้ใช้ชื่อฟิลด์ `tactic` ตาม specification
 2. เลือก retrieval backend แบบทำซ้ำได้ และสร้าง index จาก pinned subset
 3. เพิ่ม retriever tests และ Recall@k baseline
 4. สร้าง inferencer, evidence linker และ grounding judge ที่เลือกได้เฉพาะ retrieved candidates
@@ -59,4 +59,4 @@ CORS ยังเปิด `*`, ไม่มี authentication/rate limit, ไ�
 
 ## ข้อสรุป
 
-โค้ดพร้อมสำหรับ review ในฐานะ walking skeleton ที่ติดตั้งและทดสอบซ้ำได้ แต่ยังไม่พร้อมเป็นระบบอนุมาน MITRE ATT&CK จริง จนกว่าจะปิด High findings ข้างต้น โดยเฉพาะ retrieval, หลาย tactics, grounding และ Gemini guardrails
+โค้ดพร้อมสำหรับ review ในฐานะ walking skeleton ที่ติดตั้งและทดสอบซ้ำได้ แต่ยังไม่พร้อมเป็นระบบอนุมาน MITRE ATT&CK จริง จนกว่าจะปิด High findings ข้างต้น โดยเฉพาะ retrieval, grounding และ Gemini guardrails

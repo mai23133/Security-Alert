@@ -130,3 +130,4 @@ def test_main_writes_files_to_processed_directory(
     assert technique_ids == ["T1110"]
     assert len(candidates) == 1
     assert candidates[0]["technique_id"] == "T1110"
+    assert candidates[0]["tactic"] == "credential-access"

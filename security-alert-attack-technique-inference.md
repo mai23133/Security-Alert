@@ -87,14 +87,14 @@ class ParsedAlert(BaseModel):
 class TechniqueCandidate(BaseModel):
     technique_id: str
     technique_name: str
-    tactics: list[str]
+    tactic: str
     description_excerpt: str
     stix_version: str
 
 class InferredTechnique(BaseModel):
     technique_id: str
     technique_name: str
-    tactics: list[str]
+    tactic: str
     confidence: float
     evidence_spans: list[str]
     mitre_url: str
