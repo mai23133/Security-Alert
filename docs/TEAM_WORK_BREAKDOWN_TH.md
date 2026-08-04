@@ -1,153 +1,244 @@
 # คู่มือแบ่งงาน 4 คน: Security-Alert
 
-เอกสารนี้ใช้คู่กับ `docs/WORK_PLAN_TH.md` เพื่อให้แต่ละคนรู้ว่าเป้าหมายคืออะไร ต้องแก้ไฟล์ใด ส่งมอบอะไร และงานเชื่อมต่อกันอย่างไร
+เอกสารนี้ใช้คู่กับ `docs/WORK_PLAN_TH.md` และ `security-alert-attack-technique-inference.md` เพื่อให้ทุกคนทำงานตาม Schema และ Workflow เดียวกัน
 
 ## เป้าหมายร่วม
 
-ส่งมอบ API ที่รับ Alert แล้วแนะนำ MITRE ATT&CK Technique 1–3 รายการจาก Enterprise ATT&CK `19.1` ที่ pin ไว้เท่านั้น ทุกผลต้องมีหลักฐานในข้อความ, ค่าความมั่นใจ, `tactic: str` และสถานะ `needs_human_review` ระบบมีหน้าที่ให้คำแนะนำ ไม่ block หรือ response เหตุการณ์อัตโนมัติ
+ระบบรับ Alert narrative แล้วแนะนำ MITRE ATT&CK Enterprise Technique 1–3 รายการจาก pinned STIX `enterprise-attack-19.1` ให้ analyst ตรวจสอบต่อ ผลลัพธ์เป็นคำแนะนำเท่านั้น ไม่ block หรือ response เหตุการณ์อัตโนมัติ
 
-## กติกากลางสำหรับทุกคน
+ผลลัพธ์ต้องอยู่ใน `ATTACKInferenceResult` ตาม Schema ของอาจารย์ และทุก prediction ต้องมี confidence, evidence ที่พบจริงใน Alert narrative, `tactic: str`, MITRE URL และการตัดสิน `needs_human_review`
 
-- อ่าน `security-alert-attack-technique-inference.md` ก่อนเริ่มงานทุกครั้ง
-- ใช้ `tactic` เป็นชื่อฟิลด์เดียวใน schema, JSON และ API response
-- ห้ามคืน Technique ID ที่ไม่มีใน `data/processed/technique_ids.json` หรือ STIX subset ที่ pin ไว้
-- ถือ Alert เป็น untrusted input และอย่าให้ข้อความ Alert กำหนดคำสั่งของ model/pipeline
-- ห้ามใช้ Gemini หรือ provider จริงใน automated tests; ใช้ mock/fake เท่านั้น
-- ก่อนส่งงานให้รัน `conda run -n sec-alert311 python -m pytest -q` และ `git diff --check`
+## กติกากลางและ API Contract
 
-## ภาพรวมลำดับงาน
+- อ่าน `security-alert-attack-technique-inference.md` ก่อนเริ่มงานทุกครั้ง เพราะเป็น Source of Truth
+- ใช้ `TechniqueCandidate.tactic: str` และ `InferredTechnique.tactic: str` เท่านั้น ห้ามเปลี่ยนเป็น `list[str]`
+- Gemini เลือก Technique ได้เฉพาะจาก `TechniqueCandidate` ที่ Retriever ส่งให้ และห้ามสร้าง Technique ID เอง
+- `evidence_spans` ทุกค่าเป็นข้อความที่มีอยู่จริงใน Alert narrative
+- ทุก `ATTACKInferenceResult` ต้องมี `disclaimer`
+- ห้ามเพิ่ม field ระดับบนใน `ATTACKInferenceResult` หากไม่มีใน Schema
+- ตำแหน่ง metadata ใน response คือ `TechniqueCandidate.stix_version` สำหรับ STIX version, `InferredTechnique.mitre_url` สำหรับ MITRE reference และ `ATTACKInferenceResult.disclaimer` สำหรับคำเตือน
+- ใช้เฉพาะ Enterprise ATT&CK `19.1` ที่ pin ไว้ และตรวจ ID กับ `data/processed/technique_ids.json`
+- Alert เป็น untrusted input และอาจมี prompt injection; tests ที่เกี่ยวกับ Gemini ต้องใช้ mock/fake และห้ามเรียก API จริง
+
+## Workflow ระบบ
 
 ```text
-Owner 1: Index/Retriever ──> Owner 2: Inference + Grounding ──> Owner 4: API Integration
-              │                              │
-              └──────────────> Owner 3: Evaluation <──────────┘
+Owner 4: รับ API Request
+          ↓
+Owner 2: Alert Parser + Tactic Router
+          ↓
+Owner 1: Index + Retriever
+          ↓
+Owner 2: Inferencer + Evidence + Grounding Judge
+          ↓
+Owner 4: Validate Schema + API Response
+
+Owner 3: ประเมิน Retriever, Inference และระบบรวม
 ```
 
-ก่อนเริ่ม implementation ทุกคนให้ตกลง contract ระหว่างโมดูลก่อนหนึ่งรอบ: retriever คืน `list[TechniqueCandidate]`, inferencer เลือกได้เฉพาะจากรายการนั้น และผลสุดท้ายต้องเป็น `ATTACKInferenceResult`
+Workflow ภายใน Owner 2 คือ:
 
-## Owner 1 — Retrieval และ Knowledge Index
+```text
+Alert narrative
+→ ParsedAlert
+→ Tactic
+→ รับ Candidates จาก Retriever
+→ InferredTechnique
+→ Evidence validation
+→ Human review decision
+```
+
+## Interfaces กลางที่ต้องล็อกก่อนเริ่ม
+
+```python
+# Owner 2: แปลงข้อความ Alert เป็นข้อมูลแบบมีโครงสร้าง
+def parse_alert(narrative: str) -> ParsedAlert:
+    ...
+
+
+# Owner 2: เลือก Tactic เดียวตาม Schema ปัจจุบัน
+def route_tactic(parsed_alert: ParsedAlert) -> str:
+    ...
+
+
+# Owner 1: ค้นหา Technique Candidates ที่เกี่ยวข้อง
+def retrieve_candidates(
+    parsed_alert: ParsedAlert,
+    tactic: str,
+    top_k: int = 5,
+) -> list[TechniqueCandidate]:
+    ...
+
+
+# Owner 2: เลือก Technique จาก Candidate ที่ได้รับเท่านั้น
+def infer_techniques(
+    narrative: str,
+    candidates: list[TechniqueCandidate],
+) -> list[InferredTechnique]:
+    ...
+
+
+# Owner 2: ตัดสินว่าต้องส่งให้เจ้าหน้าที่ตรวจเพิ่มเติมหรือไม่
+def judge_result(
+    narrative: str,
+    inferred: list[InferredTechnique],
+    candidates: list[TechniqueCandidate],
+) -> bool:
+    ...
+```
+
+Owner 1 และ Owner 2 ต้องตกลงรูปแบบ empty result, error และ deterministic ordering ของ candidates ก่อนเขียน implementation จริง
+
+## Owner 1 — Index และ Retriever
 
 ### เป้าหมาย
 
-ทำให้ระบบค้น candidate ที่เกี่ยวข้องจาก STIX subset ได้แบบทำซ้ำได้ และคืนเฉพาะ candidate ที่อนุญาต
+สร้าง Retriever ที่คืน Top-k `TechniqueCandidate` จาก MITRE ATT&CK subset ที่ pin ไว้เท่านั้น เพื่อให้ Owner 2 ใช้เป็นขอบเขตของการ inference
 
-### ทำอะไรบ้าง
+### งานที่รับผิดชอบ
 
-- เขียน decision note ของ embedding backend และ index format
-- ทำ `src/rag/embedder.py` และ `src/rag/retriever.py`
-- สร้าง index จาก `data/processed/technique_candidates.json`
-- รองรับ `tactic` filter และ `top_k`
-- เพิ่ม tests และรายงาน Recall@1, Recall@3, Recall@5
+- เตรียมข้อมูลจาก MITRE ATT&CK STIX `19.1`
+- ตัด revoked และ deprecated techniques
+- กรอง `tactic` และ platform ตามขอบเขตโปรเจกต์
+- สร้าง index จาก processed candidates
+- ทำ BM25/keyword baseline ก่อน
+- เพิ่ม embedding retriever เมื่อมีเวลาและไม่ทำให้ผลทดสอบไม่ reproducible
+- คืน Top-k `TechniqueCandidate`
+- ตรวจ Candidate ID กับ ATT&CK allowlist
+- เขียน retrieval tests
 
 ### วิธีทำ
 
-1. เริ่มจาก processed candidates เท่านั้น ไม่อ่าน TAXII online ระหว่าง runtime
-2. เก็บ metadata อย่างน้อย: `technique_id`, `technique_name`, `description_excerpt`, `tactic`, `stix_version` และแหล่งข้อมูล
-3. ตรวจ candidate ทุกตัวกับ allowlist ใน `technique_ids.json` ก่อนคืนผล
-4. กำหนด tie-breaker ที่ชัดเจน เช่น score แล้วตามด้วย `technique_id` เพื่อให้ผลซ้ำได้
+1. ใช้ `data/processed/technique_candidates.json` และ `technique_ids.json` เป็นข้อมูล runtime หลัก
+2. เก็บ metadata ที่มีใน Schema โดยเฉพาะ `technique_id`, `technique_name`, `description_excerpt`, `tactic` และ `stix_version`
+3. รองรับ filter ด้วย tactic เดียวและ `top_k` โดยผลต้องเรียงแบบ deterministic
+4. ทดสอบว่า candidate ทุกตัวอยู่ใน allowlist, filter ได้, top-k ถูกต้อง และ no-match คืนรายการว่าง
 
-### ผลส่งมอบและเกณฑ์ผ่าน
+### สิ่งส่งมอบ
 
-- decision note และคำสั่ง rebuild index
-- retriever คืน top-k ที่ deterministic, filter tactic ได้ และไม่คืน ID นอก allowlist
-- tests ครอบคลุม top-k, filter, empty result และ deterministic ordering
-- baseline Recall@1/@3/@5 ที่รันซ้ำได้
+- decision note ของ index/retrieval backend และวิธี rebuild
+- `embedder.py`, `retriever.py` และ retrieval tests
+- Top-k results ที่ deterministic และไม่คืน ID นอก allowlist
 
-## Owner 2 — Inference, Evidence และ Grounding
+Owner 1 **ไม่เป็นเจ้าของ Metric**: ส่ง Top-k results ให้ Owner 3 คำนวณ Recall@k แล้วใช้รายงานนั้นปรับ Retriever
+
+## Owner 2 — Parser, Router, Inferencer, Evidence และ Judge
 
 ### เป้าหมาย
 
-เปลี่ยน retrieved candidates ให้เป็น prediction ที่ตรวจย้อนกลับได้ โดยไม่ให้ model สร้าง ID หรือหลักฐานเอง
+แปลง narrative เป็นข้อมูลที่มีโครงสร้าง เลือก tactic เดียว และสร้าง prediction ที่ grounded โดยเลือกได้เฉพาะ candidates ที่ Owner 1 คืนมา
 
-### ทำอะไรบ้าง
+### งานที่รับผิดชอบ
 
-- ทำ `src/agents/technique_inferencer.py`
-- ทำ `src/agents/evidence_linker.py`
-- ทำ `src/agents/grounding_judge.py`
-- กำหนด threshold ของ confidence และ `needs_human_review`
-- เพิ่ม unit tests สำหรับ no-match, ambiguous, malformed output และ prompt injection
+- Alert Parser: แปลง narrative เป็น `ParsedAlert`
+- Tactic Router: เลือก tactic เดียวให้ตรงกับ `tactic: str`
+- Inferencer: ตรวจ JSON ที่ Gemini ส่งกลับ, จัดการ timeout และ malformed output, และเลือก Technique จาก candidates เท่านั้น
+- Evidence validation: ตรวจว่า `evidence_spans` ทุกช่วงพบจริงใน narrative
+- Grounding Judge: ตรวจ candidate ID, tactic, evidence และตัดสิน `needs_human_review`
+- สร้าง confidence และ unit tests ของโมดูลทั้งหมดโดย mock Gemini
 
 ### วิธีทำ
 
-1. รับเฉพาะ candidate list จาก Owner 1; output Technique ID ต้องเป็นสมาชิกของรายการนี้
-2. จำกัด prediction 1–3 รายการ; no-match ต้องเป็นรายการว่างและ review เป็น `true`
-3. Evidence span ต้องเป็นข้อความที่พบจริงใน `alert.narrative`
-4. Grounding judge ต้อง reject เมื่อ ID ไม่อยู่ใน candidate/allowlist, tactic ไม่ตรง candidate หรือ evidence ไม่พบใน input
-5. ใช้ fake client หรือ mock provider ใน tests เสมอ
+1. Parser ต้องส่ง `ParsedAlert` ที่มี narrative, assets, observed_actions และ IOCs ตาม Schema
+2. Router คืน tactic เดียวที่อยู่ในขอบเขต; ถ้าไม่แน่ใจให้ส่ง human review แทนการสร้างค่าใหม่
+3. Inferencer รับ `list[TechniqueCandidate]`; ตัด ID ที่ไม่อยู่ในรายการนี้, ผิดรูปแบบ หรือเกิน 1–3 รายการ
+4. Timeout, malformed JSON หรือ prompt injection ต้องไม่ทำให้ได้ prediction ที่ไม่ grounded; ให้คืน no-match หรือ review ตามกฎที่ตกลง
+5. Evidence validator ตรวจแบบ exact substring กับ narrative ก่อนส่งต่อ Judge
+6. Judge ต้องตั้ง review สำหรับ no-match, low confidence, ambiguous result, evidence ไม่ตรง, tactic ไม่ตรง หรือ candidate ไม่ถูกต้อง
 
-### ผลส่งมอบและเกณฑ์ผ่าน
+### สิ่งส่งมอบ
 
-- โมดูลคืน `InferredTechnique` ที่มี `tactic`, confidence 0–1, evidence และ MITRE URL
-- ทุก prediction ผ่าน grounding หรือถูกตัดออก
-- เคส low-confidence, ambiguous และ no-match ตั้ง `needs_human_review=true`
-- tests ไม่เรียก network หรือ Gemini จริง
+- `alert_parser.py`, `tactic_router.py`, `technique_inferencer.py`, `evidence_linker.py`, `grounding_judge.py` ที่ผ่าน unit tests
+- fake/mock Gemini client และ test cases สำหรับ valid, no-match, ambiguous, timeout, malformed output และ prompt injection
+- prediction ที่เป็น `InferredTechnique` ถูกต้องตาม Schema และ evidence ตรวจย้อนกลับได้
 
 ## Owner 3 — Dataset และ Evaluation
 
 ### เป้าหมาย
 
-สร้างวิธีวัดคุณภาพที่ทำซ้ำได้และบอกได้ว่าระบบพร้อมสาธิตหรือไม่
+วัดคุณภาพของ Retriever, Inference, Grounding และระบบรวมแบบทำซ้ำได้ พร้อมรักษา gold labels และเวอร์ชัน dataset
 
-### ทำอะไรบ้าง
+### งานที่รับผิดชอบ
 
-- สร้าง evaluation dataset ตามรูปแบบที่ทีมตกลง
-- ทำ `eval/metrics.py` และ `eval/run_eval.py`
-- คำนวณ exact technique F1, parent technique recall, evidence grounding, hallucinated-ID, false-positive และ human-review rate
-- บันทึก version ของ model, prompt, dataset และ STIX ในรายงาน
+- สร้าง evaluation dataset รวมทั้งหมด 35 Alerts
+- ใน 35 Alerts มี ambiguous/multi-technique 10 รายการ และ negative controls 5 รายการ
+- เริ่มจากชุดทดลอง 10 Alerts ก่อน แล้วจึงขยายเป็น 35 Alerts
+- ดูแล Gold labels, dataset version และให้สมาชิกอย่างน้อยอีกหนึ่งคนช่วยตรวจ Gold labels
+- คำนวณ `Recall@1`, `Recall@3` และ `Recall@5` จากผล Top-k ของ Owner 1
+- ประเมิน inference, evidence grounding, hallucinated-ID, exact technique F1, parent technique recall, false-positive และ human-review rate
+- สร้าง evaluation report พร้อม model, prompt, dataset และ STIX version
 
 ### วิธีทำ
 
-1. Dataset ต้องมี 35 alerts, label 1–3 เทคนิค, ambiguous/multi-technique 10 รายการ และ negative controls 5 รายการ ตาม specification
-2. Gold ID ทุกตัวต้องอยู่ใน allowlist และยึด pinned STIX `19.1`
-3. Evaluation runner รับ prediction ที่บันทึกไว้หรือ fake pipeline ได้ เพื่อพัฒนาได้ก่อน API จริงเสร็จ
-4. เขียน tests ของ metric สำหรับ exact match, parent/sub-technique, invalid ID และ no-match
+1. Gold labels ต้องอยู่ใน pinned allowlist และอ้างอิง Enterprise ATT&CK `19.1`
+2. ชุดทดลอง 10 Alerts ใช้ตรวจ schema ของ dataset และ metric ก่อนขยายชุดเต็ม
+3. แยก test ของ metric ออกจาก provider; runner ต้องทำงานกับ saved predictions หรือ fake pipeline ได้
+4. รับ Top-k จาก Owner 1 เพื่อคำนวณ Recall@k และส่งผลให้ Owner 1 ปรับ Retriever
+5. ประเมิน output ของ Owner 2 และระบบที่ Owner 4 เชื่อม โดยไม่เรียก Gemini จริงใน automated tests
 
-### ผลส่งมอบและเกณฑ์ผ่าน
+### สิ่งส่งมอบ
 
-- dataset พร้อม schema/README และไม่มีข้อมูลอ่อนไหวนอก course sandbox
-- runner สร้างรายงานที่ repeatable พร้อม metadata ครบ
-- metric tests ครอบคลุม edge cases
-- รายงานใช้ตรวจเกณฑ์: F1 ≥70%, parent recall ≥90%, hallucinated ID =0, evidence grounding ≥85%
+- dataset, README/schema และ version record
+- `eval/metrics.py`, `eval/run_eval.py` และ tests ของ metric
+- report ที่มี Recall@1/@3/@5, inference/grounding/hallucination metrics และ quality gates
 
-## Owner 4 — API Integration, Reliability และ Tests
+## Owner 4 — API Integration, Reliability และ CI
 
 ### เป้าหมาย
 
-ทำให้ผู้ใช้เรียก pipeline ได้ผ่าน FastAPI อย่างปลอดภัย ตรวจสอบได้ และไม่ทำให้ provider failure หลุดออกเป็น internal exception
+เชื่อม workflow ทั้งระบบเข้ากับ `POST /alerts/infer` ให้ request และ response เป็นไปตาม Schema, มี error handling และทดสอบ integration ได้โดยไม่เรียก Gemini จริง
 
-### ทำอะไรบ้าง
+### งานหลักที่รับผิดชอบ
 
-- เชื่อม pipeline ที่ผ่าน grounding เข้า `src/api/routes/alerts.py`
-- เพิ่ม `/alerts/infer/batch`, `/rag/search` และ `/evaluate` ตาม API contract
-- เพิ่ม request ID, structured logging, typed errors, timeout/retry และ prompt version loading
-- ทำ API/integration tests โดย mock pipeline/provider
-- เตรียม CI smoke test และตรวจ CORS/auth/rate limiting ตาม deployment decision
+- ทำ `POST /alerts/infer`
+- เชื่อม Pipeline: Parser/Router → Retriever → Inferencer/Evidence/Judge
+- ตรวจ request และ response ด้วย Pydantic Schema
+- คืน `ATTACKInferenceResult` ตาม Schema พร้อม `disclaimer`
+- ทำ error handling ที่ไม่เผย stack trace หรือ secrets
+- เขียน API และ integration tests โดย mock pipeline/provider
+- ทำ CI smoke test สำหรับ test suite และ integration ที่สำคัญ
 
 ### วิธีทำ
 
-1. เริ่มจาก API contract และ fake pipeline เพื่อเขียน tests ได้ทันที
-2. เมื่อ Owner 1–2 ส่ง interface ที่ตกลงแล้ว จึงเปลี่ยน dependency เป็น implementation จริง
-3. Response ทุกตัวต้องมี MITRE attribution, STIX version และ advisory disclaimer
-4. Provider failure หรือ malformed output ต้องคืน error ที่ปลอดภัย หรือ no-match/review ตามกฎที่ทีมกำหนด โดยไม่ส่ง stack trace ให้ client
-5. อย่าเปิด CORS กว้าง, authentication หรือ rate limit เกินกว่าความจำเป็นของ deployment ที่ตกลง
+1. เริ่มด้วย fixture/fake pipeline เพื่อให้ API tests เขียนและรันได้พร้อมกับงาน Owner อื่น
+2. เมื่อ Owner 1 และ Owner 2 ส่ง interface ที่ล็อกแล้ว จึงเชื่อม implementation จริงตามลำดับ workflow
+3. Validation ต้องยืนยันว่า response ไม่มี Technique นอก candidates/allowlist และไม่เพิ่ม top-level fields นอก `ATTACKInferenceResult`
+4. API ต้องคง advisory disclaimer; MITRE URL อยู่ใน prediction และ STIX version อยู่ใน candidate ตาม Schema ไม่ใช่ top-level response fields
+5. Provider timeout หรือ malformed output ต้องถูกจัดการเป็นผลลัพธ์/ข้อผิดพลาดที่ปลอดภัยตาม contract ที่ทีมตกลง
 
-### ผลส่งมอบและเกณฑ์ผ่าน
+### สิ่งส่งมอบ
 
-- ทุก endpoint ใน specification มี contract test
-- `/alerts/infer` ใช้ pipeline จริง ไม่ใช่ stub และ tests ไม่เรียก provider จริง
-- request/error trace ได้, response ไม่เผย secrets หรือ internal details
-- CI รัน tests และ evaluation smoke test ได้
+- `/alerts/infer` ใช้ pipeline จริง ไม่ใช่ no-match stub
+- API/integration tests ที่ mock Gemini และรันได้แบบ deterministic
+- CI smoke test และเอกสาร error behavior ของ endpoint
+
+### งานเสริมเมื่อมีเวลา
+
+- `POST /alerts/infer/batch`
+- `POST /evaluate`
+- Authentication
+- Rate limiting
+- Advanced structured logging
+
+## การทำงานพร้อมกันและการรวมงาน
+
+- ทุก Owner เริ่มพร้อมกันได้โดยใช้ mock หรือ fixture
+- ต้องล็อก Schema และ Interfaces กลางในเอกสารนี้ก่อนเริ่ม implementation
+- แต่ละ Owner ทำงานบน branch ของตนเองและเขียน tests ของส่วนที่รับผิดชอบ
+- ลำดับการรวมงานจริงคือ Owner 2 → Owner 1 → Owner 2 → Owner 4
+- Owner 3 ประเมินแต่ละโมดูลและระบบรวมตลอดการรวมงาน
 
 ## จุดนัดส่งมอบ
 
-| จุดนัด | ผู้ส่ง | ผู้รับ | สิ่งที่ต้องตกลง |
+| จุดนัด | ผู้ส่ง | ผู้รับ | สิ่งที่ต้องส่ง |
 | --- | --- | --- | --- |
-| Contract review | ทุกคน | ทุกคน | Schema ยังใช้ `tactic: str`; input/output ของ retriever, inferencer และ API |
-| Retrieval ready | Owner 1 | Owner 2, 3, 4 | วิธีเรียก retriever, candidate ordering, top-k และ error/empty behavior |
-| Agent ready | Owner 2 | Owner 3, 4 | prediction/review rules และ format ของ evidence/grounding decision |
-| Evaluation ready | Owner 3 | Owner 4 | รูปแบบ prediction input, report output และ quality gates |
-| Integration ready | Owner 4 | ทุกคน | ผล full test, smoke evaluation และรายการที่ยังไม่ผ่าน |
+| Interface lock | ทุกคน | ทุกคน | ยืนยัน `tactic: str`, interfaces กลาง, empty/error behavior และ fixture ร่วม |
+| Parser/Router ready | Owner 2 | Owner 1, 4 | `ParsedAlert`, tactic เดียว และ unit-test fixtures |
+| Retriever ready | Owner 1 | Owner 2, 3, 4 | Top-k candidates, deterministic ordering และ allowlist checks |
+| Inference/Judge ready | Owner 2 | Owner 3, 4 | prediction, evidence validation และ review rules |
+| Evaluation baseline | Owner 3 | Owner 1, 2, 4 | dataset version, Recall@k และ inference/grounding report |
+| API ready | Owner 4 | ทุกคน | `/alerts/infer`, integration tests, CI smoke result และ known limitations |
 
-## Definition of Done ของงานแต่ละคน
+## Definition of Done
 
-งานจะถือว่าเสร็จเมื่อ code, tests และเอกสารอยู่ใน PR เดียวกัน; ผ่าน test suite; `git diff --check` ไม่มี error; และไม่มีสิ่งใดละเมิด pinned STIX, allowlist, advisory-only หรือ untrusted-input guardrails
+งานของแต่ละ Owner เสร็จเมื่อมี code, tests และเอกสารของตนเองใน branch/PR; test ที่เกี่ยวข้องผ่านโดยไม่เรียก Gemini จริง; `git diff --check` ผ่าน; และงานไม่ละเมิด pinned STIX, allowlist, `tactic: str`, evidence grounding, advisory-only หรือ untrusted-input guardrails
