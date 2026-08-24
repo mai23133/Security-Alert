@@ -39,7 +39,7 @@ flowchart LR
     F[Pinned STIX 19.1] --> G[Ingestion]
     G --> H[127 technique candidates + allowlist]
     H --> I[GET /taxonomy/techniques]
-    H --> J[GET /taxonomy/techniques/{id}]
+    H --> J[GET /taxonomy/techniques/:id]
 ```
 
 เส้นทางด้านบนแยกเป็นสองส่วน: API inference ยังเป็น stub เพื่อความปลอดภัย ส่วน taxonomy API อ่านผลจาก ingestion ที่สร้างเสร็จแล้ว. ทั้งสองส่วนยังไม่เชื่อมกันเป็น RAG pipeline.
