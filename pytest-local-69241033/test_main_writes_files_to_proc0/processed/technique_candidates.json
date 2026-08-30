@@ -1,0 +1,9 @@
+[
+  {
+    "technique_id": "T1110",
+    "technique_name": "Brute Force",
+    "tactic": "credential-access",
+    "description_excerpt": "Adversaries may use brute force techniques.",
+    "stix_version": "19.1"
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "dataset_version": "1.0.0-rc1",
+    "stix_version": "enterprise-attack-19.1",
+    "source": "synthetic sanitized course alerts",
+    "label_review_status": "pending_independent_review",
+    "label_reviewers": []
+  },
+  "alerts": [
+    {"alert_id":"eval-001","narrative":"WIN-01 recorded 900 failed sign-ins for account admin from one source address.","category":"positive","gold_technique_ids":["T1110"]},
+    {"alert_id":"eval-002","narrative":"The gateway saw one password tried against 70 employee accounts within five minutes.","category":"positive","gold_technique_ids":["T1110.003"]},
+    {"alert_id":"eval-003","narrative":"Repeated guesses targeted the single Linux account backupsvc until authentication succeeded.","category":"positive","gold_technique_ids":["T1110.001"]},
+    {"alert_id":"eval-004","narrative":"WIN-02 launched powershell.exe with an encoded command downloaded by the user.","category":"positive","gold_technique_ids":["T1059.001"]},
+    {"alert_id":"eval-005","narrative":"LINUX-01 executed a curl pipeline through /bin/bash from a temporary directory.","category":"positive","gold_technique_ids":["T1059.004"]},
+    {"alert_id":"eval-006","narrative":"The endpoint started cmd.exe /c whoami from an unsigned installer.","category":"positive","gold_technique_ids":["T1059.003"]},
+    {"alert_id":"eval-007","narrative":"A spreadsheet attachment required the user to open invoice-review.xlsm and enabled malicious content.","category":"positive","gold_technique_ids":["T1204.002"]},
+    {"alert_id":"eval-008","narrative":"The mail gateway delivered payroll-update.zip as a targeted attachment to Finance.","category":"positive","gold_technique_ids":["T1566.001"]},
+    {"alert_id":"eval-009","narrative":"A public web server spawned a shell immediately after requests exploited an unpatched endpoint.","category":"positive","gold_technique_ids":["T1190"]},
+    {"alert_id":"eval-010","narrative":"A valid dormant contractor account authenticated to the VPN from an unusual country.","category":"positive","gold_technique_ids":["T1078"]},
+    {"alert_id":"eval-011","narrative":"The browser redirected the analyst to an exploit page that executed code without a download prompt.","category":"positive","gold_technique_ids":["T1189"]},
+    {"alert_id":"eval-012","narrative":"An exposed remote administration service accepted an external session using a compromised account.","category":"positive","gold_technique_ids":["T1133"]},
+    {"alert_id":"eval-013","narrative":"A newly inserted USB device copied and launched worm.exe on the Windows workstation.","category":"positive","gold_technique_ids":["T1091"]},
+    {"alert_id":"eval-014","narrative":"A suspicious process opened LSASS and read its memory for credential material.","category":"positive","gold_technique_ids":["T1003.001"]},
+    {"alert_id":"eval-015","narrative":"The infostealer read saved login data from the Chrome user profile database.","category":"positive","gold_technique_ids":["T1555.003"]},
+    {"alert_id":"eval-016","narrative":"A service process invoked Windows Management Instrumentation to launch calc.exe remotely.","category":"positive","gold_technique_ids":["T1047"]},
+    {"alert_id":"eval-017","narrative":"The host created a scheduled task named UpdateCheck that ran an unknown executable.","category":"positive","gold_technique_ids":["T1053.005"]},
+    {"alert_id":"eval-018","narrative":"An unsigned binary called low-level Windows Native API functions to start a child process.","category":"positive","gold_technique_ids":["T1106"]},
+    {"alert_id":"eval-019","narrative":"The user clicked a shortened link in a targeted message and the browser loaded a credential lure.","category":"positive","gold_technique_ids":["T1566.002"]},
+    {"alert_id":"eval-020","narrative":"A fake software update prompted the user to copy and run a command in the terminal.","category":"positive","gold_technique_ids":["T1204.004"]},
+
+    {"alert_id":"eval-021","narrative":"After 600 failed logons, WIN-03 accepted the password and launched encoded PowerShell.","category":"multi_technique","gold_technique_ids":["T1110","T1059.001"]},
+    {"alert_id":"eval-022","narrative":"Finance received quote.xlsm; opening the malicious attachment started cmd.exe /c payload.exe.","category":"multi_technique","gold_technique_ids":["T1566.001","T1204.002","T1059.003"]},
+    {"alert_id":"eval-023","narrative":"Requests exploited the public portal, then /bin/bash executed a downloaded script.","category":"multi_technique","gold_technique_ids":["T1190","T1059.004"]},
+    {"alert_id":"eval-024","narrative":"A stolen VPN account entered through the external service and ran a PowerShell discovery command.","category":"multi_technique","gold_technique_ids":["T1078","T1133","T1059.001"]},
+    {"alert_id":"eval-025","narrative":"The user opened benefits.docm, after which a process read LSASS memory.","category":"multi_technique","gold_technique_ids":["T1204.002","T1003.001"]},
+
+    {"alert_id":"eval-026","narrative":"Many authentication failures affected several accounts, but the source pattern was incomplete.","category":"ambiguous","gold_technique_ids":["T1110"]},
+    {"alert_id":"eval-027","narrative":"A script interpreter launched an obfuscated command; telemetry could not distinguish cmd from PowerShell.","category":"ambiguous","gold_technique_ids":["T1059"]},
+    {"alert_id":"eval-028","narrative":"A user interaction preceded execution of an unknown file delivered outside recorded mail telemetry.","category":"ambiguous","gold_technique_ids":["T1204.002"]},
+    {"alert_id":"eval-029","narrative":"An external login used correct credentials, but ownership of the account could not be confirmed.","category":"ambiguous","gold_technique_ids":["T1078"]},
+    {"alert_id":"eval-030","narrative":"The web process crashed after a crafted request and later spawned a child process; exploit success is uncertain.","category":"ambiguous","gold_technique_ids":["T1190"]},
+
+    {"alert_id":"eval-031","narrative":"The approved patch service installed the monthly Windows security update and rebooted normally.","category":"negative","gold_technique_ids":[]},
+    {"alert_id":"eval-032","narrative":"A developer ran the signed company inventory script during the documented maintenance window.","category":"negative","gold_technique_ids":[]},
+    {"alert_id":"eval-033","narrative":"The vulnerability scanner completed an authorized scan from the registered scanner address.","category":"negative","gold_technique_ids":[]},
+    {"alert_id":"eval-034","narrative":"The backup agent authenticated with its managed service account and completed the scheduled backup.","category":"negative","gold_technique_ids":[]},
+    {"alert_id":"eval-035","narrative":"An administrator opened PowerShell to run the approved health-check script under change ticket CHG-42.","category":"negative","gold_technique_ids":[]}
+  ]
+}

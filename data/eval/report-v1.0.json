@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "dataset_version": "1.0.0-rc1",
+    "stix_version": "enterprise-attack-19.1",
+    "prediction_fixture_version": "1.0.0",
+    "model_version": "synthetic-saved-predictions",
+    "prompt_version": "none"
+  },
+  "metrics": {
+    "alert_count": 35,
+    "exact_technique": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "parent_technique_recall": 1.0,
+    "evidence_grounding_rate": 1.0,
+    "hallucinated_id_rate": 0.0,
+    "false_positive_rate": 0.0,
+    "human_review_rate": 0.2857142857142857,
+    "recall_at_1": 0.8108108108108109,
+    "recall_at_3": 1.0,
+    "recall_at_5": 1.0
+  },
+  "quality_gates": {
+    "exact_f1_at_least_0_70": true,
+    "parent_recall_at_least_0_90": true,
+    "grounding_at_least_0_85": true,
+    "hallucinated_id_rate_is_zero": true
+  }
+}
