@@ -56,7 +56,13 @@ def infer_techniques(
 
     alert_tokens = _tokens(narrative)
     ranked: list[tuple[float, TechniqueCandidate, list[str]]] = []
+    seen_candidate_ids: set[str] = set()
     for candidate in candidates:
+        # A retriever should not duplicate candidates, but B must not emit
+        # duplicate predictions even when it receives malformed input.
+        if candidate.technique_id in seen_candidate_ids:
+            continue
+        seen_candidate_ids.add(candidate.technique_id)
         candidate_terms = _tokens(
             f"{candidate.technique_name} {candidate.description_excerpt}"
         )

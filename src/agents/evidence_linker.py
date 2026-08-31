@@ -17,7 +17,11 @@ def link_evidence(
 
     grounded: list[InferredTechnique] = []
     for technique in inferred:
-        spans = [span for span in technique.evidence_spans if span and span in narrative]
+        spans = list(
+            dict.fromkeys(
+                span for span in technique.evidence_spans if span and span in narrative
+            )
+        )
         if spans:
             grounded.append(technique.model_copy(update={"evidence_spans": spans}))
     return grounded
