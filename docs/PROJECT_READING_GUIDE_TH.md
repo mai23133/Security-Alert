@@ -6,7 +6,7 @@
 
 Security-Alert รับข้อความ security alert แล้วมีเป้าหมายจะแนะนำ MITRE ATT&CK Enterprise Technique 1–3 รายการ พร้อม confidence, tactic และ evidence spans ให้ analyst ตรวจสอบต่อ
 
-ปัจจุบัน repository มี knowledge base ที่กรองจาก MITRE STIX, Pydantic schemas และ FastAPI taxonomy endpoints แล้ว ส่วน retrieval, inference, evidence linking, grounding, evaluation และ UI ยังไม่เชื่อมเป็นระบบทำงานจริง ดังนั้น `POST /alerts/infer` ยังคืน no-match แบบปลอดภัยและตั้ง `needs_human_review: true` เสมอ
+ปัจจุบัน repository มี knowledge base ที่กรองจาก MITRE STIX, Pydantic schemas และ FastAPI taxonomy endpoints แล้ว สาย B มี inferencer, evidence linker และ grounding judge ที่ทดสอบได้แล้ว แต่ retrieval, evaluation และการเชื่อม pipeline เข้ากับ API ยังอยู่ระหว่างพัฒนา ดังนั้น `POST /alerts/infer` ยังคืน no-match แบบปลอดภัยและตั้ง `needs_human_review: true` เสมอ
 
 ## ลำดับการอ่านที่แนะนำ
 
@@ -39,7 +39,7 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 
 ### 3. เช็กว่างานเดินถึงขั้นไหน
 
-อ่าน [WORK_PLAN_TH.md](WORK_PLAN_TH.md) ซึ่งเป็นสถานะงานล่าสุด แล้วดู [HANDOFF_TH.md](HANDOFF_TH.md) สำหรับข้อจำกัดและลำดับงานที่ควรทำต่อ
+อ่าน [WORK_PLAN_TH.md](WORK_PLAN_TH.md) ซึ่งเป็นสถานะงานล่าสุด แล้วดู [TEAM_WORK_PARALLEL_PROPOSAL_TH.md](TEAM_WORK_PARALLEL_PROPOSAL_TH.md) สำหรับหน้าที่และจุดส่งต่องานของแต่ละสาย
 
 สถานะปัจจุบันโดยย่อ:
 
@@ -48,9 +48,10 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 | STIX ingestion และ pinned subset | ทำแล้ว |
 | Schemas และ taxonomy API | ทำแล้ว |
 | `/alerts/infer` | เป็น safe no-match stub |
-| Retriever / RAG | ยังไม่ทำ |
-| Inference, evidence และ grounding | ยังไม่ทำจริง |
-| Evaluation, CI, UI และ deployment | ยังไม่ทำ |
+| Retriever / RAG | กำลังพัฒนาโดยสาย A |
+| Inference, evidence และ grounding | พร้อมส่งต่อให้ D เชื่อมระบบ |
+| Evaluation | กำลังพัฒนาโดยสาย C |
+| API integration, CI และ UI | กำลังพัฒนาโดยสาย D |
 
 ### 4. ดูภาพรวม API ก่อนอ่าน routes
 
@@ -78,7 +79,7 @@ src/schemas.py
 | `src/api/routes/taxonomy.py` | list/detail API ของ Technique จาก processed candidates |
 | `src/api/routes/alerts.py` | endpoint infer ปัจจุบัน ซึ่งยังไม่เรียก pipeline จริง |
 
-ไฟล์ใน `src/agents/` และ `src/rag/embedder.py`, `src/rag/retriever.py` คือส่วนเป้าหมายที่ยังต้องพัฒนาหรือเชื่อมต่อในลำดับถัดไป
+`src/agents/technique_inferencer.py`, `evidence_linker.py` และ `grounding_judge.py` พร้อมใช้งานเป็นโมดูลสาย B แล้ว; `src/rag/embedder.py`, `src/rag/retriever.py` และ API integration คือส่วนที่ยังต้องส่งมอบ/เชื่อมต่อในลำดับถัดไป
 
 ### 6. อ่าน tests ควบคู่กับโค้ด
 
@@ -87,9 +88,11 @@ tests/test_schemas.py
 tests/test_ingest_stix.py
 tests/test_taxonomy_api.py
 tests/test_alerts_api.py
+tests/test_agents.py
+tests/test_inference_guardrails.py
 ```
 
-tests บอกพฤติกรรมที่ระบบรับประกันได้แล้วในปัจจุบัน เช่น format ของ Technique ID, การกรอง STIX, taxonomy endpoints และผล no-match ของ `/alerts/infer`
+tests บอกพฤติกรรมที่ระบบรับประกันได้แล้วในปัจจุบัน เช่น format ของ Technique ID, การกรอง STIX, taxonomy endpoints, ผล no-match ของ `/alerts/infer` และ guardrails ของสาย B
 
 ## ภาพรวมเส้นทางข้อมูลปัจจุบันและเป้าหมาย
 
@@ -119,4 +122,4 @@ flowchart TD
 
 ## ถ้าจะเริ่มพัฒนาต่อ
 
-ทำตามลำดับใน [WORK_PLAN_TH.md](WORK_PLAN_TH.md): เริ่มจากเลือก embedding/index, ทำ retriever ที่ deterministic และมี Recall@k baseline ก่อน แล้วจึงทำ inference/evidence/grounding และเชื่อมเข้า API
+ทำตาม [WORK_PLAN_TH.md](WORK_PLAN_TH.md) และแบ่งงานใน [TEAM_WORK_PARALLEL_PROPOSAL_TH.md](TEAM_WORK_PARALLEL_PROPOSAL_TH.md): A ปิด retriever, C ปิด evaluation, D เชื่อม API โดยเรียกโมดูล B ที่พร้อมอยู่แล้ว

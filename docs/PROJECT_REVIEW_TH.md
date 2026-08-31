@@ -2,6 +2,8 @@
 
 วันที่ตรวจ: 24 สิงหาคม 2026
 
+> หมายเหตุ: เอกสารนี้เป็นรายงานย้อนหลัง ณ วันที่ระบุ ไม่ใช่สถานะล่าสุดของโครงการ โปรดใช้ `WORK_PLAN_TH.md` และ `TEAM_WORK_PARALLEL_PROPOSAL_TH.md` สำหรับสถานะงานปัจจุบัน
+
 ขอบเขตการตรวจ: เอกสาร โค้ด ข้อมูล processed และ automated tests ใน branch `mai-work`
 
 ข้อกำหนดอ้างอิงหลัก: `security-alert-attack-technique-inference.md` (MITRE Enterprise ATT&CK STIX 2.1 `enterprise-attack-19.1`)

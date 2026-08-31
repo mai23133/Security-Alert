@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` คืน no-match ที่ต้องให้มนุษย์ตรวจแบบ deterministic ระหว่างรอพัฒนา retriever, inferencer, evidence linker, grounding judge และ evaluation pipeline
+> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` ยังคืน no-match ที่ต้องให้มนุษย์ตรวจแบบ deterministic ระหว่างรอ retriever และ API integration; โมดูล inferencer, evidence linker และ grounding judge พร้อมทดสอบและรอให้เชื่อมเข้ากับ endpoint
 
 ## ขอบเขตปัจจุบัน
 
@@ -39,7 +39,7 @@ Library หลักที่โปรเจกต์ใช้:
 | `pytest` | `9.1.1` | รัน automated tests |
 | `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
 
-ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 17 tests
+ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 27 tests
 
 ## ติดตั้งจากศูนย์ด้วย Conda
 
@@ -126,15 +126,15 @@ https://aistudio.google.com/app/apikey
 ```text
 src/
   api/                 FastAPI application และ routes
-  agents/              Alert parser และ tactic router สำหรับ pipeline ในอนาคต
+  agents/              Parser/router และ inference/evidence/grounding guardrails
   rag/                 STIX ingestion และส่วน retrieval ที่กำลังพัฒนา
   schemas.py           Pydantic schemas สำหรับ request/response และ ATT&CK data
 data/
   raw/                 MITRE ATT&CK STIX bundle ที่ pin version ไว้
   processed/           ไฟล์ technique candidates ที่ generate แล้ว
 prompts/v1/            Prompt files สำหรับ versioned prompts ในอนาคต
-tests/                 Tests สำหรับ schema, ingestion และ taxonomy API
-eval/                  Evaluation placeholders
+tests/                 Tests สำหรับ schema, ingestion, taxonomy, API และ guardrails
+eval/                  Evaluation components ที่กำลังพัฒนา
 ```
 
 ## เตรียมข้อมูล ATT&CK
@@ -216,6 +216,7 @@ curl -X POST http://127.0.0.1:8000/alerts/infer \
 - `POST /alerts/infer` สำหรับรับ alert narrative และคืน no-match ที่ต้องให้มนุษย์ตรวจจนกว่าจะเชื่อม inference pipeline
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
 - `src/agents/gemini_client.py` สำหรับ pipeline Gemini ที่ยังไม่เชื่อมกับ endpoint
+- `src/agents/technique_inferencer.py`, `evidence_linker.py`, `grounding_judge.py` สำหรับ inference แบบ candidate-bounded และ evidence grounding ที่พร้อมเชื่อม
 
 ## Development และตรวจสอบ
 
@@ -234,17 +235,16 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `17 passed`
+- `python -m pytest -q`: `27 passed`
 
 ## Roadmap
 
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
-- เชื่อม `/alerts/infer` กับ retrieval/inference pipeline จริง
 - ทำ retrieval จาก pinned ATT&CK subset
-- ทำ technique inferencer, evidence linker และ grounding judge
-- เพิ่ม tests ที่ mock Gemini เพื่อให้รันซ้ำได้โดยไม่ใช้ API quota
-- สร้าง evaluation dataset และ metrics
+- เชื่อม `/alerts/infer` กับ retrieval/inference pipeline จริง
+- ทำ evaluation dataset และ metrics
+- เพิ่ม API contract/integration tests โดยไม่ใช้ Gemini จริง
 - ปรับ API validation, error handling, config และ CORS สำหรับ production
 
 ## Security และ Privacy

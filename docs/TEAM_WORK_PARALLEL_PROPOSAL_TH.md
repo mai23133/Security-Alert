@@ -1,14 +1,25 @@
-# ข้อเสนอการแบ่งงานแบบทำพร้อมกัน: Security-Alert
+# แผนแบ่งงานแบบทำพร้อมกัน: Security-Alert
 
-สถานะ: **เอกสารเสนอเพื่อให้ทีมตัดสินใจ** — ไม่แทนที่ `docs/TEAM_WORK_BREAKDOWN_TH.md` จนกว่าทีมจะเห็นชอบ
+สถานะ: **เอกสารแบ่งงานที่ใช้งานอยู่**
 
 อ้างอิงหลัก: `security-alert-attack-technique-inference.md`
 
-## เหตุผลที่เสนอให้เปลี่ยน
+## สถานะการทำงานล่าสุด (31 สิงหาคม 2026)
+
+| สายงาน | สถานะ | จุดส่งต่องานถัดไป |
+| --- | --- | --- |
+| A — Retrieval | กำลังทำ | ส่ง retriever ที่คืน `TechniqueCandidate` แบบ deterministic พร้อม tests และ Recall@k ให้ D |
+| B — Inference, evidence และ guardrails | เสร็จแล้ว | D เรียก `infer_techniques` → `link_evidence` → `judge_result`; รายละเอียดอยู่ใน `MAI_WORK_INFERENCE_GUARDRAILS_TH.md` |
+| C — Dataset และ evaluation | กำลังทำ | ส่ง gold dataset, metrics และ reproducible report |
+| D — API, CI และ UI | กำลังทำ | เชื่อม A+B เข้ากับ API และทำ contract/integration tests |
+
+ไฟล์ `TEAM_WORK_BREAKDOWN_TH.md` ถูกยกเลิกและลบออกแล้ว; เอกสารนี้เป็นแหล่งอ้างอิงเดียวสำหรับการแบ่งงานสี่สาย
+
+## หลักการของแผน
 
 แผนเดิมแบ่งตามลำดับ runtime ของ pipeline คือ Parser/Router → Retriever → Inferencer → Judge → API. ลำดับนี้ถูกต้องเมื่อตัวระบบทำงานจริง แต่ทำให้การพัฒนาต้องรอคนก่อนหน้าส่งโค้ดและเกิดรอบ merge หลายครั้ง
 
-ข้อเสนอนี้แยกงานเป็น 4 สายที่ทดสอบได้ด้วย fixture หรือ fake adapter ของตนเอง. ทุกคนเริ่มพัฒนาได้ในวันเดียวกัน แล้วเหลือการเชื่อมของจริงเพียงครั้งเดียวหลังแต่ละสายผ่าน test ของตัวเอง
+แผนนี้แยกงานเป็น 4 สายที่ทดสอบได้ด้วย fixture หรือ fake adapter ของตนเอง. แต่ละสายทำงานอิสระได้ แล้วเหลือการเชื่อมของจริงเพียงครั้งเดียวหลังแต่ละสายผ่าน test ของตัวเอง
 
 ```mermaid
 flowchart LR
@@ -28,11 +39,11 @@ flowchart LR
 - ผลลัพธ์เป็น advisory เท่านั้น: คง disclaimer, MITRE attribution และ `needs_human_review`.
 - ไม่มีสายงานใดเพิ่ม automated response, Mobile/ICS ATT&CK หรือ online TAXII เป็น dependency หลัก.
 
-## ข้อตกลงเล็ก ๆ ก่อนแยกทำงาน
+## ข้อตกลงร่วมระหว่างทำงาน
 
-นัดทีมเพียง 30–45 นาทีเพื่อยืนยันข้อตกลงต่อไปนี้ แล้วเริ่มทั้งสี่สายได้ทันที ไม่ต้องรอ implementation:
+ให้ทีมยืนยันข้อตกลงต่อไปนี้ก่อน integration เพื่อให้ทั้งสี่สายส่งมอบงานได้โดยไม่เปลี่ยน schema หรือ behavior กลาง:
 
-| เรื่องที่ล็อก | ข้อเสนอเริ่มต้น |
+| เรื่องที่ล็อก | ข้อตกลงปัจจุบัน |
 | --- | --- |
 | Fixture กลาง | มี narrative 10 ตัวอย่าง, candidate lists, allowlist, expected no-match และ prediction ที่ตั้งใจให้ผิดสำหรับทดสอบ judge/metrics |
 | Candidate ordering | score จากมากไปน้อย แล้วเรียง `technique_id` เพื่อแก้คะแนนเท่ากัน |

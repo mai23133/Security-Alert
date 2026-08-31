@@ -4,7 +4,7 @@
 
 Security Alert รับข้อความแจ้งเตือนด้านความปลอดภัยผ่าน FastAPI แล้วส่งคืนผลการอนุมาน MITRE ATT&CK Technique ในรูปแบบ JSON ที่ตรวจสอบด้วย Pydantic
 
-ระบบมีสถานะเป็น **Iteration 1 — Walking Skeleton (`v0.1.0`)** จึงคืนผล no-match แบบ deterministic พร้อมส่งต่อให้มนุษย์ตรวจ เพื่อยืนยันว่า API contract และ schema ทำงานร่วมกันได้โดยไม่สร้าง Technique ที่ไม่มีหลักฐาน ส่วน LLM, RAG, multi-agent routing และ grounding judge จริงจะพัฒนาใน iteration ถัดไป
+ระบบมีสถานะเป็น **Walking Skeleton ที่กำลังเชื่อม pipeline**: API ยังคืน no-match แบบ deterministic พร้อมส่งต่อให้มนุษย์ตรวจ แต่โมดูล inferencer, evidence linker และ grounding judge ของสาย B พร้อมให้ D เชื่อมแล้ว ส่วน RAG, evaluation และ product integration ยังอยู่ระหว่างพัฒนา
 
 ## Iteration 1 Architecture
 
@@ -42,12 +42,12 @@ flowchart TD
 | --- | --- | --- |
 | FastAPI endpoint | รับ request และส่ง response no-match ตาม API contract | Stub |
 | Pydantic schemas | ตรวจสอบ request และ structured response | Required |
-| Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | Planned |
-| Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | Planned |
-| Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | Planned |
-| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | Planned |
-| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | Planned |
-| Grounding Judge | ปฏิเสธ Technique ที่ไม่มีหลักฐานหรือไม่มีใน taxonomy | Planned |
+| Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | มี safe fallback/test แบบ fake provider; ยังไม่เชื่อม runtime |
+| Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | มี safe fallback/test แบบ fake provider; ยังไม่เชื่อม runtime |
+| Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | กำลังพัฒนาโดยสาย A |
+| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | พร้อมเชื่อมโดยสาย B |
+| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | พร้อมเชื่อมโดยสาย B |
+| Grounding Judge | ปฏิเสธ Technique ที่ไม่มีหลักฐานหรือไม่มีใน taxonomy | พร้อมเชื่อมโดยสาย B |
 
 ## Main API Contract
 

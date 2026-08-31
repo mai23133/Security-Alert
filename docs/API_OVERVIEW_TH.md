@@ -6,6 +6,8 @@
 >
 > Taxonomy ที่ใช้: MITRE ATT&CK Enterprise STIX 2.1 รุ่นตรึง `enterprise-attack-19.1`
 > ผลลัพธ์เป็นคำแนะนำ (advisory) เท่านั้น ไม่สั่งตอบสนองหรือบล็อกเหตุการณ์โดยอัตโนมัติ
+>
+> สถานะปัจจุบัน: โมดูล inference/evidence/grounding พร้อมแล้ว แต่ `POST /alerts/infer` ยังเป็น safe no-match stub จนกว่าสาย D จะเชื่อม retriever ของสาย A
 
 ## ภาพรวม
 
@@ -137,7 +139,6 @@ Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่า�
 ## สิ่งที่ต้องทำก่อน API ถึงภาพเป้าหมาย
 
 1. ทำ retriever/index จาก pinned STIX subset และ endpoint `/rag/search`
-2. ทำ inferencer, evidence linker และ grounding judge ที่ test ได้ด้วย mock provider
-3. เชื่อม pipeline เข้ากับ `/alerts/infer` โดยคง response schema เดิม
+2. เชื่อม inferencer, evidence linker และ grounding judge ที่มี tests แล้วเข้ากับ `/alerts/infer` โดยคง response schema เดิม
 4. เพิ่ม batch, evaluation, typed error handling, request ID และ tests ที่ไม่เรียก Gemini จริง
 5. เพิ่ม UI, deployment controls และ acceptance/security tests
