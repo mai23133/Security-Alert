@@ -21,7 +21,7 @@ async def client():
         yield test_client
 
 
-async def test_infer_returns_fast_no_match_for_human_review(client):
+async def test_infer_runs_deterministic_pipeline_and_returns_human_review(client):
     response = await client.post(
         "/alerts/infer",
         json={
@@ -31,16 +31,12 @@ async def test_infer_returns_fast_no_match_for_human_review(client):
     )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "alert_id": "alert-001",
-        "inferred_techniques": [],
-        "candidates_considered": [],
-        "needs_human_review": True,
-        "disclaimer": (
-            "Advisory tagging only. Not autonomous SOC action. "
-            "Verify with senior analyst."
-        ),
-    }
+    result = response.json()
+    assert result["alert_id"] == "alert-001"
+    assert result["inferred_techniques"] == []
+    assert result["candidates_considered"]
+    assert result["needs_human_review"] is True
+    assert result["disclaimer"].startswith("Advisory tagging only.")
     assert response.headers["X-MITRE-ATTaCK-Version"] == (
         "enterprise-attack-19.1"
     )

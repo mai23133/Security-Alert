@@ -43,6 +43,11 @@ def _json_payload(raw: str) -> object:
     return json.loads(value)
 
 
+def _untrusted_payload(narrative: str) -> str:
+    """Serialize alert data without letting it close the prompt delimiter."""
+    return json.dumps({"narrative": narrative}).replace("<", "\\u003c")
+
+
 def parse_alert(
     narrative: str, *, generate: TextGenerator = generate_text
 ) -> ParsedAlert:
@@ -51,7 +56,7 @@ def parse_alert(
         return _empty_parse(narrative)
 
     prompt = (
-        f"{SYSTEM_PROMPT}\n\n<untrusted_alert>\n{narrative}"
+        f"{SYSTEM_PROMPT}\n\n<untrusted_alert>\n{_untrusted_payload(narrative)}"
         "\n</untrusted_alert>"
     )
     try:
@@ -64,7 +69,7 @@ def parse_alert(
             observed_actions=data.get("observed_actions", []),
             iocs=data.get("iocs", []),
         )
-    except (TypeError, ValueError, json.JSONDecodeError, TimeoutError):
+    except Exception:
         return _empty_parse(narrative)
 
 

@@ -46,6 +46,16 @@ def test_evidence_linker_discards_spans_not_present_in_alert():
     assert linked[0].evidence_spans == ["executed PowerShell"]
 
 
+def test_evidence_linker_rejects_non_substantive_substrings():
+    narrative = "benign event"
+    inference = InferredTechnique(
+        technique_id="T1059.001", technique_name="PowerShell", tactic="execution",
+        confidence=0.9, evidence_spans=["e"],
+        mitre_url="https://attack.mitre.org/techniques/T1059/001/",
+    )
+    assert link_evidence(narrative, [inference]) == []
+
+
 def test_judge_requires_review_for_unknown_id_low_confidence_or_no_match():
     narrative = "The host executed PowerShell."
     allowed = candidate()

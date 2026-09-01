@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from collections.abc import Collection
 
 from src.schemas import TechniqueCandidate
 from rank_bm25 import BM25Okapi
@@ -32,7 +33,7 @@ class BaselineRetriever:
         return [TechniqueCandidate(**item) for item in raw_data]
 
     def search(
-        self, narrative: str, tactic: str | None = None, top_k: int = 5
+        self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5
     ) -> list[TechniqueCandidate]:
         if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
             raise ValueError("top_k must be a positive integer")
@@ -46,12 +47,15 @@ class BaselineRetriever:
             return []
 
         scores = self.bm25.get_scores(tokenized_query)
+        allowed_tactics = (
+            {tactic} if isinstance(tactic, str) else set(tactic) if tactic else None
+        )
 
         scored_candidates = []
         for score, candidate in zip(scores, self.candidates):
             if candidate.technique_id not in self.allowlist_ids:
                 continue
-            if tactic and candidate.tactic != tactic:
+            if allowed_tactics is not None and candidate.tactic not in allowed_tactics:
                 continue
             if score > 0:
                 scored_candidates.append((score, candidate))

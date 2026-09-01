@@ -22,6 +22,13 @@ def test_retriever_tactic_filter(retriever):
     for result in results:
         assert result.tactic == "credential-access"
 
+
+def test_retriever_supports_multiple_tactic_filters(retriever):
+    results = retriever.search(
+        "PowerShell execution", tactic=["execution", "credential-access"], top_k=5
+    )
+    assert all(result.tactic in {"execution", "credential-access"} for result in results)
+
 def test_retriever_allowlist_enforcement(retriever):
     """3. ทดสอบว่าต้องไม่มี ID นอก Allowlist หลุดออกมาเด็ดขาด"""
     results = retriever.search("powershell execution cmd", top_k=10)

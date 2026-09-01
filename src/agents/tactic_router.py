@@ -37,6 +37,11 @@ def _json_payload(raw: str) -> object:
     return json.loads(value)
 
 
+def _untrusted_payload(alert: ParsedAlert) -> str:
+    """Serialize alert data without allowing a user-controlled close tag."""
+    return alert.model_dump_json().replace("<", "\\u003c")
+
+
 def route_tactics(
     alert: ParsedAlert, *, generate: TextGenerator = generate_text
 ) -> list[str]:
@@ -45,9 +50,8 @@ def route_tactics(
     Searching all three tactics is the safe fallback: it narrows no results
     away merely because an untrusted provider failed or returned bad JSON.
     """
-    content = alert.model_dump_json()
     prompt = (
-        f"{SYSTEM_PROMPT}\n\n<untrusted_alert>\n{content}"
+        f"{SYSTEM_PROMPT}\n\n<untrusted_alert>\n{_untrusted_payload(alert)}"
         "\n</untrusted_alert>"
     )
     try:
@@ -57,7 +61,7 @@ def route_tactics(
         requested = set(item for item in tactics if isinstance(item, str))
         valid = [tactic for tactic in IN_SCOPE_TACTICS if tactic in requested]
         return valid or IN_SCOPE_TACTICS.copy()
-    except (TypeError, ValueError, json.JSONDecodeError, TimeoutError):
+    except Exception:
         return IN_SCOPE_TACTICS.copy()
 
 

@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` ยังคืน no-match ที่ต้องให้มนุษย์ตรวจแบบ deterministic ระหว่างรอ retriever และ API integration; โมดูล inferencer, evidence linker และ grounding judge พร้อมทดสอบและรอให้เชื่อมเข้ากับ endpoint
+> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` ใช้ deterministic retrieval/inference pipeline จาก pinned ATT&CK subset และตั้ง human-review flag ตาม grounding guardrails; ยังต้องเพิ่ม batch/search API, evaluation และ production controls
 
 ## ขอบเขตปัจจุบัน
 
@@ -99,7 +99,7 @@ python -m pytest -q
 
 โปรเจกต์อ่าน key ได้จาก `GOOGLE_API_KEY` หรือ `GEMINI_API_KEY` โดยแนะนำให้ใช้ `GOOGLE_API_KEY`
 
-> API และ tests ในสถานะปัจจุบันไม่เรียก Gemini จึงไม่ต้องมี key เพื่อ install, run หรือทดสอบ `/alerts/infer` แบบ no-match. Key จะจำเป็นเมื่อเชื่อม inference pipeline จริงในภายหลัง
+> API และ tests ยังทำงานได้โดยไม่ต้องมี key: หาก Gemini ใช้ไม่ได้ parser/router จะ fail-safe และค้นทุก tactic ใน scope ด้วย deterministic retriever. Key จำเป็นเฉพาะเมื่อเปิดใช้ parser/router ผ่าน Gemini ใน runtime
 
 สร้าง `.env` จากไฟล์ตัวอย่าง:
 
@@ -204,16 +204,14 @@ curl -X POST http://127.0.0.1:8000/alerts/infer \
   }'
 ```
 
-หมายเหตุ: endpoint นี้ยังไม่เชื่อม inference pipeline จึงคืน no-match พร้อม human-review flag และไม่เรียก Gemini
-
-ผลลัพธ์ปัจจุบันจะมี `inferred_techniques` และ `candidates_considered` เป็นรายการว่าง และ `needs_human_review` เป็น `true` เสมอ จึงเป็นผลสำหรับทดสอบ API contract เท่านั้น ไม่ใช่การวิเคราะห์ ATT&CK
+Endpoint ส่ง candidates จาก pinned subset ให้ inferencer เลือกได้สูงสุด 3 technique จากนั้นตรวจ evidence และกำหนด `needs_human_review` แบบ conservative ทุกกรณีที่ no-match, confidence ต่ำ หรือ grounding ไม่ผ่าน
 
 ## Components ที่มีแล้ว
 
 - `GET /` สำหรับ health check และ STIX version
 - `GET /taxonomy/techniques` สำหรับ list technique candidates
 - `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
-- `POST /alerts/infer` สำหรับรับ alert narrative และคืน no-match ที่ต้องให้มนุษย์ตรวจจนกว่าจะเชื่อม inference pipeline
+- `POST /alerts/infer` สำหรับรับ alert narrative และคืนผลจาก deterministic retrieval/inference pipeline พร้อม human-review guardrail
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
 - `src/agents/gemini_client.py` สำหรับ pipeline Gemini ที่ยังไม่เชื่อมกับ endpoint
 - `src/agents/technique_inferencer.py`, `evidence_linker.py`, `grounding_judge.py` สำหรับ inference แบบ candidate-bounded และ evidence grounding ที่พร้อมเชื่อม
@@ -242,7 +240,6 @@ python -m pytest -q
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
 - ทำ retrieval จาก pinned ATT&CK subset
-- เชื่อม `/alerts/infer` กับ retrieval/inference pipeline จริง
 - ทำ evaluation dataset และ metrics
 - เพิ่ม API contract/integration tests โดยไม่ใช้ Gemini จริง
 - ปรับ API validation, error handling, config และ CORS สำหรับ production

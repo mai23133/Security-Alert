@@ -1,6 +1,8 @@
 """Evidence validation for ATT&CK predictions."""
 from __future__ import annotations
 
+import re
+
 from src.schemas import InferredTechnique
 
 
@@ -19,7 +21,9 @@ def link_evidence(
     for technique in inferred:
         spans = list(
             dict.fromkeys(
-                span for span in technique.evidence_spans if span and span in narrative
+                span
+                for span in technique.evidence_spans
+                if span and span in narrative and re.search(r"[A-Za-z0-9]{4,}", span)
             )
         )
         if spans:
