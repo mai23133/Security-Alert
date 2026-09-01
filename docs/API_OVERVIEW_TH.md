@@ -7,7 +7,7 @@
 > Taxonomy ที่ใช้: MITRE ATT&CK Enterprise STIX 2.1 รุ่นตรึง `enterprise-attack-19.1`
 > ผลลัพธ์เป็นคำแนะนำ (advisory) เท่านั้น ไม่สั่งตอบสนองหรือบล็อกเหตุการณ์โดยอัตโนมัติ
 >
-> สถานะปัจจุบัน: โมดูล inference/evidence/grounding พร้อมแล้ว แต่ `POST /alerts/infer` ยังเป็น safe no-match stub จนกว่าสาย D จะเชื่อม retriever ของสาย A
+> สถานะปัจจุบัน: `POST /alerts/infer` เชื่อม parser, router, BM25 retriever, inferencer, evidence linker และ grounding judge แล้ว; endpoint ที่เหลือใน API contract ยังเป็นงานถัดไป
 
 ## ภาพรวม
 
@@ -49,14 +49,14 @@ flowchart TD
     J --> I
 ```
 
-Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่าน หาก Technique ID ไม่อยู่ใน candidate/allowlist, evidence ไม่พบจริงในข้อความ หรือผลมีความกำกวมเกินเกณฑ์ ในกรณีนั้น API ต้องคืนผลที่ `needs_human_review: true`
+Grounding Judge จะบังคับ human review หาก Technique ID/name/tactic ไม่ตรง candidate, evidence ไม่พบจริง, confidence ต่ำ, no-match, prediction ซ้ำ หรือเกิน 3 รายการ ขอบเขตปัจจุบันยังเป็น structural grounding: ยังไม่ได้พิสูจน์ semantic relationship ระหว่าง evidence กับ Technique
 
 ## Endpoint เป้าหมาย
 
 | Method | Endpoint | หน้าที่ | สถานะปัจจุบัน |
 | --- | --- | --- | --- |
 | `GET` | `/` | health check และ STIX version | ใช้งานได้ |
-| `POST` | `/alerts/infer` | วิเคราะห์ alert เดี่ยวและคืน `ATTACKInferenceResult` | safe no-match stub |
+| `POST` | `/alerts/infer` | วิเคราะห์ alert เดี่ยวและคืน `ATTACKInferenceResult` | ใช้งานได้ระดับ baseline |
 | `POST` | `/alerts/infer/batch` | วิเคราะห์ alerts หลายรายการ | วางแผน |
 | `GET` | `/taxonomy/techniques` | แสดง Technique ใน pinned subset; filter ตาม tactic ได้ | ใช้งานได้ |
 | `GET` | `/taxonomy/techniques/{id}` | ดูรายละเอียด Technique รายตัว | ใช้งานได้ |
@@ -76,7 +76,7 @@ Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่า�
 
 `alert_id` เป็น optional; API สร้าง ID ให้เมื่อไม่ได้ส่งมา
 
-### Response เมื่อ inference ผ่าน grounding
+### ตัวอย่าง response เมื่อ inference ผ่าน structural grounding
 
 ```json
 {
@@ -113,7 +113,7 @@ Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่า�
 }
 ```
 
-### Response เมื่อไม่มีหลักฐานเพียงพอ
+### Response เมื่อไม่มี inference ที่ผ่านเกณฑ์
 
 ```json
 {
@@ -124,6 +124,8 @@ Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่า�
   "disclaimer": "Advisory tagging only. Not autonomous SOC action. Verify with senior analyst."
 }
 ```
+
+`candidates_considered` อาจมี candidate ที่ Retriever พบได้ แม้ `inferred_techniques` จะว่าง เพราะ Inferencer อาจไม่พบคำสนับสนุนเพียงพอสำหรับ candidate เหล่านั้น
 
 ## ขอบเขตและ guardrails ที่ API ต้องบังคับ
 
@@ -138,7 +140,8 @@ Grounding Judge จะไม่ยอมให้ผลลัพธ์ผ่า�
 
 ## สิ่งที่ต้องทำก่อน API ถึงภาพเป้าหมาย
 
-1. ทำ retriever/index จาก pinned STIX subset และ endpoint `/rag/search`
-2. เชื่อม inferencer, evidence linker และ grounding judge ที่มี tests แล้วเข้ากับ `/alerts/infer` โดยคง response schema เดิม
-4. เพิ่ม batch, evaluation, typed error handling, request ID และ tests ที่ไม่เรียก Gemini จริง
+1. เติม platform/source metadata ให้ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
+2. เพิ่ม semantic grounding และ evaluation เพื่อวัด false positive/grounding rate
+3. เพิ่ม `/rag/search`, batch และ evaluation endpoint
+4. เพิ่ม typed error handling, request ID, timeout/retry, structured logging และ tests ที่ไม่เรียก Gemini จริง
 5. เพิ่ม UI, deployment controls และ acceptance/security tests

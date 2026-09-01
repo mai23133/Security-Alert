@@ -1,6 +1,6 @@
 # สรุปการรวมงานสาย A และ B
 
-เอกสารนี้สรุปงานที่รวมเข้ากับ branch `mai-work` เพื่อให้สมาชิกทีมเห็นภาพเดียวกันก่อนทำงานส่วนถัดไป
+เอกสารนี้สรุปงานที่รวมเข้ากับ branch `mai-work` เพื่อให้สมาชิกทีมเห็นภาพเดียวกันก่อนทำงานส่วนถัดไป (อัปเดต 1 กันยายน 2026)
 
 ## ตอนนี้ระบบทำอะไรได้แล้ว
 
@@ -34,6 +34,8 @@ Retriever มีการควบคุมสำคัญดังนี้:
 - กำหนด `top_k` ได้ และจะ reject ค่า `0`, ค่าติดลบ หรือค่าที่ไม่ใช่จำนวนเต็ม
 - เรียงผลลัพธ์แบบทำซ้ำได้ โดย score สูงก่อน และ Technique ID เป็นตัวตัดสินกรณีคะแนนเท่ากัน
 
+ข้อจำกัดปัจจุบัน: candidate model มี metadata เพียง ID, ชื่อ, tactic, description และ STIX version; ยังไม่มี platform/source ตามเกณฑ์ Week 2 และ subset ปัจจุบันมี 127 candidates ซึ่งเกินเป้าหมายประมาณ 30–50 techniques ใน specification
+
 ## สาย B: Inference และ Guardrails
 
 หลัง Retriever คืน candidate แล้ว Inferencer จะเลือกได้ไม่เกิน 3 Technique และเลือกได้จาก candidate ที่ Retriever ส่งมาเท่านั้น จึงไม่สร้าง Technique ID ขึ้นเอง
@@ -44,6 +46,8 @@ Evidence Linker จะเก็บเฉพาะ evidence span ที่:
 2. มีข้อความที่สื่อความหมายอย่างน้อยหนึ่ง token ความยาว 4 ตัวอักษร/ตัวเลข
 
 Grounding Judge จะตั้ง `needs_human_review: true` เมื่อพบ no-match, confidence ต่ำ, Technique ซ้ำ, เกิน 3 รายการ, candidate ไม่ตรงกัน หรือ evidence ไม่ผ่าน
+
+ข้อจำกัดปัจจุบัน: grounding ตรวจความตรงของ ID/name/tactic และการมีอยู่ของ substring แต่ยังไม่พิสูจน์เชิงความหมายว่า span นั้นสนับสนุน Technique ที่เลือก จึงยังต้องเพิ่ม semantic grounding ก่อนผ่าน quality gate
 
 ## การทำงานเมื่อไม่มี Gemini API key
 
@@ -91,10 +95,12 @@ git diff --check
 
 ส่วนที่ยังอยู่ในแผนงาน:
 
-1. เพิ่ม `POST /alerts/infer/batch` และ `POST /rag/search`
-2. เพิ่ม typed errors, request ID, timeout/retry และ structured logging
-3. สร้าง evaluation dataset, metrics และรายงานที่ทำซ้ำได้
-4. วัด Exact F1, parent recall, grounding rate, hallucinated-ID rate และ false-positive rate
-5. เพิ่ม CI, UI และ deployment controls เช่น CORS, authentication และ rate limiting
+1. เติม platform/source metadata และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
+2. เพิ่ม semantic evidence-to-technique grounding
+3. เพิ่ม `POST /alerts/infer/batch` และ `POST /rag/search`
+4. เพิ่ม typed errors, request ID, timeout/retry และ structured logging
+5. สร้าง evaluation dataset, metrics และรายงานที่ทำซ้ำได้
+6. วัด Exact F1, parent recall, grounding rate, hallucinated-ID rate และ false-positive rate
+7. เพิ่ม CI, UI และ deployment controls เช่น CORS, authentication และ rate limiting
 
 ก่อนนำผลไปใช้จริง ต้องให้ผู้เชี่ยวชาญตรวจผลลัพธ์ทุกครั้ง

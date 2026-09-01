@@ -1,6 +1,6 @@
 # แผนงานปัจจุบัน Security-Alert
 
-อัปเดต: 31 สิงหาคม 2026
+อัปเดต: 1 กันยายน 2026
 Source of Truth: `security-alert-attack-technique-inference.md`
 การแบ่งงานที่ใช้งานอยู่: `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md`
 
@@ -13,18 +13,20 @@ Source of Truth: `security-alert-attack-technique-inference.md`
 | ส่วนงาน | สถานะ | หลักฐาน/งานส่งต่อ |
 | --- | --- | --- |
 | Setup, schema, STIX ingestion และ taxonomy API | เสร็จแล้ว | ใช้ `tactic: str`, pinned STIX `19.1`, ตัด deprecated/revoked และมี taxonomy list/detail API |
-| สาย A — Retrieval | เสร็จแล้วระดับ baseline | BM25 deterministic top-k, allowlist/tactic filter, tests และ Recall@k baseline พร้อมใช้กับ API |
-| สาย B — Inference, evidence และ guardrails | เสร็จแล้ว | inferencer, evidence linker, grounding judge และ fake-provider tests พร้อมให้ D เชื่อม; ดู `MAI_WORK_INFERENCE_GUARDRAILS_TH.md` |
+| สาย A — Retrieval | เสร็จแล้วระดับ baseline, ยังมี gap | BM25 deterministic top-k, allowlist/tactic filter และ tests พร้อม API; ยังไม่มี platform/source metadata และ subset มี 127 candidates |
+| สาย B — Inference, evidence และ guardrails | เชื่อมแล้วระดับ baseline, ยังมี gap | candidate-bounded inference, exact-substring evidence และ review rules ทำงานใน API; semantic evidence-to-technique validation ยังไม่มี |
 | สาย C — Dataset และ evaluation | กำลังทำ | ต้องส่ง gold dataset, metrics และ reproducible report |
 | สาย D — API, CI และ UI | กำลังทำ | `/alerts/infer` เชื่อม A+B แล้วแบบ deterministic; ยังต้องเพิ่ม batch/search, typed errors, CI และ UI |
 
-ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 27 tests และ `git diff --check` ผ่าน
+ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 42 tests และ `git diff --check` ผ่าน
 
 ## ลำดับการรวมงาน
 
 ```text
 API request
-→ A: retrieve_candidates(narrative, tactic=None, top_k=5)
+→ B: parse_alert(narrative)
+→ B: route_tactics(parsed_alert)
+→ A: retriever.search(narrative, tactic=tactics, top_k=5)
 → B: infer_techniques(narrative, candidates)
 → B: link_evidence(narrative, inferred)
 → B: judge_result(narrative, inferred, candidates)
@@ -35,10 +37,12 @@ D เป็นเจ้าภาพ integration เมื่อ A ส่ง retr
 
 ## งานคงเหลือก่อน MVP พร้อมประเมิน
 
-1. D เพิ่ม batch/search, typed errors, request ID, CI และ UI ตามขอบเขตที่ทีมตกลง
-3. C ส่ง dataset 35 alerts (รวม ambiguous/multi-technique 10 และ negative controls 5), metrics และ report ที่ทำซ้ำได้
-4. รัน evaluation ระบบรวมให้ผ่าน Exact F1 ≥70%, parent recall ≥90%, hallucinated ID = 0 และ evidence grounding ≥85%
-5. ก่อน deploy: จำกัด CORS, เพิ่ม authentication/rate limiting ตาม deployment target, privacy/retention และ acceptance/security tests
+1. A เติม metadata platform/source หรือบันทึกเหตุผลที่ schema ปัจจุบันยังไม่มี; ตัดสินใจกับทีม/ผู้สอนเรื่อง 127 candidates เทียบเป้าหมาย 30–50
+2. B เพิ่ม semantic grounding ที่ตรวจว่า evidence สนับสนุน Technique นั้นจริง ไม่ใช่เพียง substring ทั่วไป
+3. D เพิ่ม batch/search, typed errors, request ID, timeout/retry, CI และ UI ตามขอบเขตที่ทีมตกลง
+4. C ส่ง dataset 35 alerts (รวม ambiguous/multi-technique 10 และ negative controls 5), metrics และ report ที่ทำซ้ำได้
+5. รัน evaluation ระบบรวมให้ผ่าน Exact F1 ≥70%, parent recall ≥90%, hallucinated ID = 0 และ evidence grounding ≥85%
+6. ก่อน deploy: จำกัด CORS, เพิ่ม authentication/rate limiting ตาม deployment target, privacy/retention และ acceptance/security tests
 
 ## ข้อตกลงและความเสี่ยงที่ต้องติดตาม
 

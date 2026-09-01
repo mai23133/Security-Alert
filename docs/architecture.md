@@ -4,26 +4,27 @@
 
 Security Alert รับข้อความแจ้งเตือนด้านความปลอดภัยผ่าน FastAPI แล้วส่งคืนผลการอนุมาน MITRE ATT&CK Technique ในรูปแบบ JSON ที่ตรวจสอบด้วย Pydantic
 
-ระบบมีสถานะเป็น **Walking Skeleton ที่กำลังเชื่อม pipeline**: API ยังคืน no-match แบบ deterministic พร้อมส่งต่อให้มนุษย์ตรวจ แต่โมดูล inferencer, evidence linker และ grounding judge ของสาย B พร้อมให้ D เชื่อมแล้ว ส่วน RAG, evaluation และ product integration ยังอยู่ระหว่างพัฒนา
+ระบบมีสถานะเป็น **early MVP ที่เชื่อม pipeline baseline แล้ว**: `/alerts/infer` เรียก parser, router, BM25 retriever, inferencer, evidence linker และ grounding judge ตามลำดับ ส่วน evaluation, API ที่เหลือ และ production integration ยังอยู่ระหว่างพัฒนา
 
-## Iteration 1 Architecture
+## Current Architecture
 
 ```mermaid
 flowchart TD
     A["Client / SOC Analyst"] -->|"POST /alerts/infer"| B["FastAPI Endpoint"]
     B --> C["Pydantic Request Validation"]
-    C --> D["Deterministic No-Match Service"]
-    D --> E["Pydantic Response Validation"]
-    E -->|"ATTACKInferenceResult JSON"| A
+    C --> D["Parser → Router → BM25 Retriever"]
+    D --> E["Inferencer → Evidence Linker → Grounding Judge"]
+    E --> F["Pydantic Response Validation"]
+    F -->|"ATTACKInferenceResult JSON"| A
 ```
 
 ### Request flow
 
 1. Client ส่ง alert ID และข้อความ security alert ไปยัง `POST /alerts/infer`
 2. FastAPI รับ request และใช้ Pydantic ตรวจสอบรูปแบบข้อมูล
-3. Deterministic no-match service คืนรายการ inference/candidate ว่างและตั้ง `needs_human_review=true`
-4. Pydantic ตรวจสอบผลลัพธ์ตาม `ATTACKInferenceResult`
-5. API ส่ง structured JSON กลับไปยัง client
+3. Pipeline ใช้ pinned candidates/allowlist เพื่อค้นและเลือก prediction ได้ไม่เกิน 3 รายการ
+4. Evidence Linker และ Grounding Judge กำหนด review flag ตาม structural guardrails
+5. Pydantic ตรวจสอบผลลัพธ์ตาม `ATTACKInferenceResult` แล้ว API ส่ง structured JSON กลับไปยัง client
 
 ## Target Agent Architecture
 
@@ -38,16 +39,16 @@ flowchart TD
     F --> H["ATTACKInferenceResult"]
 ```
 
-| Component | Responsibility | Iteration 1 status |
+| Component | Responsibility | สถานะปัจจุบัน |
 | --- | --- | --- |
-| FastAPI endpoint | รับ request และส่ง response no-match ตาม API contract | Stub |
+| FastAPI endpoint | รับ request และเรียก baseline pipeline | ใช้งานได้ระดับ baseline |
 | Pydantic schemas | ตรวจสอบ request และ structured response | Required |
-| Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | มี safe fallback/test แบบ fake provider; ยังไม่เชื่อม runtime |
-| Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | มี safe fallback/test แบบ fake provider; ยังไม่เชื่อม runtime |
-| Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | กำลังพัฒนาโดยสาย A |
-| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | พร้อมเชื่อมโดยสาย B |
-| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | พร้อมเชื่อมโดยสาย B |
-| Grounding Judge | ปฏิเสธ Technique ที่ไม่มีหลักฐานหรือไม่มีใน taxonomy | พร้อมเชื่อมโดยสาย B |
+| Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | เชื่อม runtime; provider failure fallback แบบปลอดภัย |
+| Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | เชื่อม runtime; provider failure fallback ค้นทุก tactic ใน scope |
+| Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | BM25 baseline พร้อมใช้; metadata platform/source ยังไม่มี |
+| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | เชื่อม runtime |
+| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | เชื่อม runtime แบบ exact substring |
+| Grounding Judge | ตรวจ candidate boundary และ review conditions | เชื่อม runtime; semantic grounding ยังไม่มี |
 
 ## Main API Contract
 
@@ -82,4 +83,4 @@ flowchart TD
 
 ## Planned Evolution
 
-หลัง Iteration 1 จะเปลี่ยน `Deterministic No-Match Service` เป็น agent pipeline จริงตามลำดับ Alert Parser → Tactic Router → Technique Retriever → Technique Inferencer → Evidence Linker → Grounding Judge โดยยังคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client
+เติม semantic grounding, platform/source metadata, subset decision, batch/search/evaluate endpoints, typed errors/request ID/timeout/retry, CI, UI และ deployment controls โดยคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client

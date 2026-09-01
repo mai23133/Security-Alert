@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` ใช้ deterministic retrieval/inference pipeline จาก pinned ATT&CK subset และตั้ง human-review flag ตาม grounding guardrails; ยังต้องเพิ่ม batch/search API, evaluation และ production controls
+> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` เชื่อม parser, router, BM25 retrieval, inference และ grounding แบบ baseline แล้ว โดย retrieval/inference ทำงานแบบ deterministic จาก pinned subset; ยังต้องทำ evaluation, API ที่เหลือ และ production controls
 
 ## ขอบเขตปัจจุบัน
 
@@ -38,8 +38,9 @@ Library หลักที่โปรเจกต์ใช้:
 | `python-dotenv` | `1.2.2` | โหลดค่า `.env` |
 | `pytest` | `9.1.1` | รัน automated tests |
 | `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
+| `rank-bm25` | `0.2.2` | retrieval baseline แบบ offline |
 
-ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 27 tests
+ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 42 tests
 
 ## ติดตั้งจากศูนย์ด้วย Conda
 
@@ -72,7 +73,7 @@ python -m pytest -q
 ```bash
 which python
 python --version
-python -m pip show google-genai fastapi uvicorn pydantic python-dotenv pytest httpx
+python -m pip show google-genai fastapi uvicorn pydantic python-dotenv pytest httpx rank-bm25
 ```
 
 ควรเห็น Python อยู่ใต้ path ประมาณนี้:
@@ -127,7 +128,8 @@ https://aistudio.google.com/app/apikey
 src/
   api/                 FastAPI application และ routes
   agents/              Parser/router และ inference/evidence/grounding guardrails
-  rag/                 STIX ingestion และส่วน retrieval ที่กำลังพัฒนา
+  rag/                 STIX ingestion และ BM25 retrieval baseline
+  inference_pipeline.py รวม parser/router/retrieval/inference/grounding
   schemas.py           Pydantic schemas สำหรับ request/response และ ATT&CK data
 data/
   raw/                 MITRE ATT&CK STIX bundle ที่ pin version ไว้
@@ -213,8 +215,9 @@ Endpoint ส่ง candidates จาก pinned subset ให้ inferencer เ�
 - `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
 - `POST /alerts/infer` สำหรับรับ alert narrative และคืนผลจาก deterministic retrieval/inference pipeline พร้อม human-review guardrail
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
-- `src/agents/gemini_client.py` สำหรับ pipeline Gemini ที่ยังไม่เชื่อมกับ endpoint
-- `src/agents/technique_inferencer.py`, `evidence_linker.py`, `grounding_judge.py` สำหรับ inference แบบ candidate-bounded และ evidence grounding ที่พร้อมเชื่อม
+- `src/agents/gemini_client.py` เป็น provider ของ parser/router เมื่อมี API key; หากใช้ไม่ได้ pipeline จะ fallback แบบปลอดภัย
+- `src/rag/retriever.py` สำหรับ BM25 retrieval แบบ allowlist/tactic-filtered
+- `src/inference_pipeline.py` สำหรับเชื่อม parser, router, retriever, inferencer, evidence linker และ grounding judge
 
 ## Development และตรวจสอบ
 
@@ -233,16 +236,17 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `27 passed`
+- `python -m pytest -q`: `42 passed`
 
 ## Roadmap
 
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
-- ทำ retrieval จาก pinned ATT&CK subset
 - ทำ evaluation dataset และ metrics
-- เพิ่ม API contract/integration tests โดยไม่ใช้ Gemini จริง
-- ปรับ API validation, error handling, config และ CORS สำหรับ production
+- เพิ่ม `/alerts/infer/batch`, `/rag/search` และ `/evaluate` ตาม API contract
+- เพิ่ม typed errors, request ID, timeout/retry, structured logging และ CI
+- ยืนยัน/เติม metadata platform และ source ของ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
+- ปรับ CORS, authentication/rate limiting และ privacy controls สำหรับ production
 
 ## Security และ Privacy
 

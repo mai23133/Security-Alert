@@ -6,7 +6,7 @@
 
 Security-Alert รับข้อความ security alert แล้วมีเป้าหมายจะแนะนำ MITRE ATT&CK Enterprise Technique 1–3 รายการ พร้อม confidence, tactic และ evidence spans ให้ analyst ตรวจสอบต่อ
 
-ปัจจุบัน repository มี knowledge base ที่กรองจาก MITRE STIX, Pydantic schemas และ FastAPI taxonomy endpoints แล้ว สาย B มี inferencer, evidence linker และ grounding judge ที่ทดสอบได้แล้ว แต่ retrieval, evaluation และการเชื่อม pipeline เข้ากับ API ยังอยู่ระหว่างพัฒนา ดังนั้น `POST /alerts/infer` ยังคืน no-match แบบปลอดภัยและตั้ง `needs_human_review: true` เสมอ
+ปัจจุบัน repository มี knowledge base ที่กรองจาก MITRE STIX, Pydantic schemas, taxonomy endpoints และ pipeline baseline แล้ว: `/alerts/infer` เชื่อม parser, router, BM25 retrieval, inference, evidence และ grounding อยู่ ส่วน evaluation, API contract ที่เหลือ และ production controls ยังอยู่ระหว่างพัฒนา
 
 ## ลำดับการอ่านที่แนะนำ
 
@@ -47,9 +47,9 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 | --- | --- |
 | STIX ingestion และ pinned subset | ทำแล้ว |
 | Schemas และ taxonomy API | ทำแล้ว |
-| `/alerts/infer` | เป็น safe no-match stub |
-| Retriever / RAG | กำลังพัฒนาโดยสาย A |
-| Inference, evidence และ grounding | พร้อมส่งต่อให้ D เชื่อมระบบ |
+| `/alerts/infer` | pipeline baseline ใช้งานได้ พร้อม human-review guardrail |
+| Retriever / RAG | BM25 baseline พร้อมใช้; platform/source metadata และ subset decision ยังเหลือ |
+| Inference, evidence และ grounding | เชื่อมแล้ว; semantic grounding ยังเหลือ |
 | Evaluation | กำลังพัฒนาโดยสาย C |
 | API integration, CI และ UI | กำลังพัฒนาโดยสาย D |
 
@@ -77,9 +77,9 @@ src/schemas.py
 | `src/rag/ingest_stix.py` | กรอง STIX ให้เหลือ tactics และ platforms ใน scope; ตัด deprecated/revoked |
 | `src/api/main.py` | สร้าง FastAPI app, register routes และเพิ่ม MITRE version header |
 | `src/api/routes/taxonomy.py` | list/detail API ของ Technique จาก processed candidates |
-| `src/api/routes/alerts.py` | endpoint infer ปัจจุบัน ซึ่งยังไม่เรียก pipeline จริง |
+| `src/api/routes/alerts.py` | endpoint infer ที่เรียก `src/inference_pipeline.py` |
 
-`src/agents/technique_inferencer.py`, `evidence_linker.py` และ `grounding_judge.py` พร้อมใช้งานเป็นโมดูลสาย B แล้ว; `src/rag/embedder.py`, `src/rag/retriever.py` และ API integration คือส่วนที่ยังต้องส่งมอบ/เชื่อมต่อในลำดับถัดไป
+อ่าน `src/inference_pipeline.py` ต่อจาก route เพื่อเห็นการเชื่อม parser/router → retriever → inferencer → evidence linker → grounding judge. Retriever และ agents อยู่ในระดับ baseline; evaluation และ semantic grounding ยังเป็นงานถัดไป
 
 ### 6. อ่าน tests ควบคู่กับโค้ด
 
@@ -90,20 +90,19 @@ tests/test_taxonomy_api.py
 tests/test_alerts_api.py
 tests/test_agents.py
 tests/test_inference_guardrails.py
+tests/test_retriever.py
 ```
 
-tests บอกพฤติกรรมที่ระบบรับประกันได้แล้วในปัจจุบัน เช่น format ของ Technique ID, การกรอง STIX, taxonomy endpoints, ผล no-match ของ `/alerts/infer` และ guardrails ของสาย B
+tests บอกพฤติกรรมที่ระบบรับประกันได้แล้วในปัจจุบัน เช่น format ของ Technique ID, การกรอง STIX, taxonomy endpoints, pipeline `/alerts/infer`, BM25 retrieval และ guardrails ของสาย B
 
 ## ภาพรวมเส้นทางข้อมูลปัจจุบันและเป้าหมาย
 
 ```mermaid
 flowchart TD
     A["Alert text"] --> B["FastAPI /alerts/infer"]
-    B --> C["ปัจจุบัน: safe no-match response"]
-
-    A -. "เมื่อพัฒนาครบ" .-> D["Alert Parser"]
+    B --> D["Alert Parser"]
     D --> E["Tactic Router"]
-    E --> F["Technique Retriever"]
+    E --> F["BM25 Technique Retriever"]
     G["Pinned ATT&CK STIX 19.1"] --> F
     F --> H["Technique Inferencer"]
     H --> I["Evidence Linker"]
@@ -122,4 +121,4 @@ flowchart TD
 
 ## ถ้าจะเริ่มพัฒนาต่อ
 
-ทำตาม [WORK_PLAN_TH.md](WORK_PLAN_TH.md) และแบ่งงานใน [TEAM_WORK_PARALLEL_PROPOSAL_TH.md](TEAM_WORK_PARALLEL_PROPOSAL_TH.md): A ปิด retriever, C ปิด evaluation, D เชื่อม API โดยเรียกโมดูล B ที่พร้อมอยู่แล้ว
+ทำตาม [WORK_PLAN_TH.md](WORK_PLAN_TH.md): ปิด gap ของ A/B (metadata, subset และ semantic grounding), C ปิด evaluation และ D เติม API/CI/UI ที่เหลือ

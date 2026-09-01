@@ -1,7 +1,7 @@
 # เอกสารส่งต่องาน Security-Alert
 
-อัปเดต: 31 สิงหาคม 2026
-สถานะ: สาย B ส่งมอบแล้ว; สาย A, C และ D กำลังทำงานตาม `TEAM_WORK_PARALLEL_PROPOSAL_TH.md`
+อัปเดต: 1 กันยายน 2026
+สถานะ: สาย A และ B ถูกเชื่อมกับ `/alerts/infer` แล้วระดับ baseline; C และงาน API/deployment ที่เหลือยังดำเนินต่อ
 
 ## ภาพรวมสำหรับผู้รับงาน
 
@@ -18,21 +18,22 @@ Security-Alert รับข้อความ alert และมีเป้า�
 | ส่วน | สถานะ |
 | --- | --- |
 | Pinned STIX, allowlist, schema และ taxonomy API | พร้อมใช้งาน |
-| `POST /alerts/infer` | safe no-match stub; ยังไม่เรียก pipeline |
-| สาย B | พร้อมเชื่อม: `infer_techniques`, `link_evidence`, `judge_result` และ tests guardrails |
-| สาย A | กำลังทำ retriever/index |
+| `POST /alerts/infer` | pipeline parser → router → BM25 retriever → inference → evidence → judge |
+| สาย A | BM25 retrieval baseline พร้อมใช้งาน; ยังไม่มี platform/source metadata และมี 127 candidates |
+| สาย B | candidate-bounded inference และ structural grounding พร้อมใช้งาน; semantic grounding ยังเป็น gap |
 | สาย C | กำลังทำ dataset/metrics |
-| สาย D | กำลังทำ API integration, CI และ UI |
+| สาย D | API integration ของ infer เสร็จแล้ว; batch/search, typed errors, CI และ UI ยังเหลือ |
 
-ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 27 tests
+ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 42 tests
 
-## Contract สำหรับ D
+## Contract ที่ใช้งานจริง
 
 ```python
-candidates = retrieve_candidates(narrative, tactic=None, top_k=5)
-inferred = infer_techniques(narrative, candidates)
-inferred = link_evidence(narrative, inferred)
-needs_human_review = judge_result(narrative, inferred, candidates)
+parsed = parse_alert(narrative)
+tactics = route_tactics(parsed)
+candidates = retriever.search(parsed.narrative, tactic=tactics, top_k=5)
+inferred = link_evidence(parsed.narrative, infer_techniques(parsed.narrative, candidates))
+needs_human_review = judge_result(parsed.narrative, inferred, candidates)
 ```
 
 ผลลัพธ์ต้องอยู่ใน `ATTACKInferenceResult` ตาม schema เดิม, คง disclaimer และไม่เพิ่ม Technique ID นอก candidates/allowlist

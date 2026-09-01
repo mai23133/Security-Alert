@@ -4,14 +4,14 @@
 
 อ้างอิงหลัก: `security-alert-attack-technique-inference.md`
 
-## สถานะการทำงานล่าสุด (31 สิงหาคม 2026)
+## สถานะการทำงานล่าสุด (1 กันยายน 2026)
 
 | สายงาน | สถานะ | จุดส่งต่องานถัดไป |
 | --- | --- | --- |
-| A — Retrieval | กำลังทำ | ส่ง retriever ที่คืน `TechniqueCandidate` แบบ deterministic พร้อม tests และ Recall@k ให้ D |
-| B — Inference, evidence และ guardrails | เสร็จแล้ว | D เรียก `infer_techniques` → `link_evidence` → `judge_result`; รายละเอียดอยู่ใน `MAI_WORK_INFERENCE_GUARDRAILS_TH.md` |
+| A — Retrieval | baseline เชื่อมแล้ว | BM25 deterministic retrieval ใช้กับ API แล้ว; platform/source metadata และ subset decision ยังเหลือ |
+| B — Inference, evidence และ guardrails | baseline เชื่อมแล้ว | pipeline เรียก infer/evidence/judge แล้ว; semantic grounding ยังเหลือ |
 | C — Dataset และ evaluation | กำลังทำ | ส่ง gold dataset, metrics และ reproducible report |
-| D — API, CI และ UI | กำลังทำ | เชื่อม A+B เข้ากับ API และทำ contract/integration tests |
+| D — API, CI และ UI | กำลังทำ | `/alerts/infer` เชื่อม A+B แล้ว; batch/search, typed errors, CI และ UI ยังเหลือ |
 
 ไฟล์ `TEAM_WORK_BREAKDOWN_TH.md` ถูกยกเลิกและลบออกแล้ว; เอกสารนี้เป็นแหล่งอ้างอิงเดียวสำหรับการแบ่งงานสี่สาย
 
@@ -56,6 +56,8 @@ flowchart LR
 
 ## สายงาน A — Retrieval foundation
 
+> สถานะ: implementation baseline ส่งมอบและเชื่อมแล้ว; ส่วน metadata platform/source และการยืนยัน scope 127 candidates เป็นงานค้าง
+
 **เป้าหมาย:** คืน top-k `TechniqueCandidate` จาก pinned subset แบบ deterministic โดยยังไม่ต้องพึ่ง parser หรือ Gemini
 
 | หัวข้อ | รายละเอียด |
@@ -69,6 +71,8 @@ flowchart LR
 ข้อเสนอสำหรับ MVP คือเริ่มจาก keyword/BM25 ที่ rebuild ได้ในเครื่องก่อน แล้วค่อยตัดสินใจเพิ่ม embedding เมื่อมี baseline และ dependency ที่ตรึงได้. Retrieval service ควรรับ narrative โดยตรง เพื่อไม่ให้ Parser/Router เป็น critical path.
 
 ## สายงาน B — Inference, evidence และ guardrails
+
+> สถานะ: implementation baseline ส่งมอบและเชื่อมแล้ว; evidence ยังตรวจแบบ structural exact substring ไม่ใช่ semantic grounding
 
 **เป้าหมาย:** แปลง candidate ที่ฉีดเข้ามาเป็น prediction ที่ grounded โดยไม่ต้องรอ retriever จริง
 
@@ -98,25 +102,26 @@ Metric ขั้นต่ำคือ Exact technique F1, parent technique recal
 
 ## สายงาน D — Product shell: API, CI และ UI
 
-**เป้าหมาย:** ทำ product surface และ integration contract ให้พร้อม โดยเริ่มจาก fake pipeline ที่สลับเป็นของจริงภายหลังได้
+**เป้าหมาย:** เติม product surface รอบถัดไปบน pipeline จริงที่เชื่อมแล้ว โดยคง tests ให้ใช้ fixture/mock และไม่เรียก provider จริง
 
 | หัวข้อ | รายละเอียด |
 | --- | --- |
-| Input ที่ใช้ทดสอบ | `FakeInferencePipeline` ที่คืน `ATTACKInferenceResult` จาก fixture |
-| Fake dependency | pipeline fake สำหรับ success, no-match, invalid provider result และ timeout |
+| Input ที่ใช้ทดสอบ | `ATTACKInferenceResult` และ pipeline/retriever fixture สำหรับ success, no-match, invalid provider result และ timeout |
+| Fake dependency | mock provider หรือ test double เฉพาะจุด; ห้ามเรียก Gemini/network จริง |
 | ไฟล์หลัก | `src/api/`, API tests, CI workflow, `ui/`, documentation ของ error behavior |
 | ไม่แตะ | algorithm ใน `src/rag/`, rule implementation ใน agents, dataset/metrics |
-| ส่งมอบ | `/alerts/infer` ที่ dependency-inject pipeline ได้, batch endpoint, request ID/typed safe errors, CI smoke test และ UI skeleton |
+| ส่งมอบที่เหลือ | batch endpoint, search endpoint, request ID/typed safe errors, CI smoke test และ UI skeleton |
 
 UI ของ MVP แสดง narrative, prediction, confidence, evidence, candidate list และ human-review status; ข้อมูลต้องแสดง disclaimer เสมอ. CORS/auth/rate limit ให้เลือกตาม deployment target และไม่เปิดใช้กับข้อมูล Alert จริงก่อนกำหนด privacy/retention policy.
 
 ## การรวมงาน: ทำครั้งเดียวและมีเจ้าภาพชัดเจน
 
-หลัง A, B และ D ส่ง unit/contract tests ผ่าน ให้ D เป็นเจ้าภาพ integration PR เดียว โดยต่อ adapter ตามลำดับนี้:
+การ integration A+B เข้ากับ `/alerts/infer` ทำแล้วบน `mai-work`; ลำดับ runtime ปัจจุบันคือ:
 
 ```text
 API request
-→ retriever(narrative, optional tactic, top_k)
+→ parser(narrative) → router(parsed alert)
+→ retriever(narrative, tactic=tactics, top_k)
 → inferencer(narrative, candidates)
 → evidence validation and grounding judge
 → ATTACKInferenceResult
