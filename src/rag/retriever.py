@@ -1,18 +1,21 @@
 import json
-from typing import List, Optional
+from pathlib import Path
 
 from src.schemas import TechniqueCandidate
 from rank_bm25 import BM25Okapi
 from src.rag.embedder import TextEmbedder
 
 class BaselineRetriever:
-    def __init__(self, candidates_path: str, allowlist_path: str, embedder: Optional[TextEmbedder] = None):
+    def __init__(
+        self,
+        candidates_path: str | Path,
+        allowlist_path: str | Path,
+        embedder: TextEmbedder | None = None,
+    ):
         self.candidates = self._load_candidates(candidates_path)
         self.allowlist_ids = set(self._load_json(allowlist_path))
-        
         # ผูก Embedder เข้ากับ Retriever
         self.embedder = embedder or TextEmbedder()
-        
         # ใช้ Embedder ในการตัดคำเตรียม Index แทนการใช้ .lower().split()
         corpus = [
             self.embedder.tokenize(f"{c.technique_name} {c.description_excerpt}")
@@ -20,21 +23,24 @@ class BaselineRetriever:
         ]
         self.bm25 = BM25Okapi(corpus) if corpus else None
 
-    def _load_json(self, path: str):
-        with open(path, 'r', encoding='utf-8') as f:
+    def _load_json(self, path: str | Path) -> object:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_candidates(self, path: str) -> List[TechniqueCandidate]:
+    def _load_candidates(self, path: str | Path) -> list[TechniqueCandidate]:
         raw_data = self._load_json(path)
         return [TechniqueCandidate(**item) for item in raw_data]
 
-    def search(self, narrative: str, tactic: Optional[str] = None, top_k: int = 5) -> List[TechniqueCandidate]:
+    def search(
+        self, narrative: str, tactic: str | None = None, top_k: int = 5
+    ) -> list[TechniqueCandidate]:
+        if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
+            raise ValueError("top_k must be a positive integer")
         if not self.bm25 or not self.candidates:
             return []
 
         # ใช้ Embedder ตัดคำค้นหา
         tokenized_query = self.embedder.tokenize(narrative)
-        
         # ดักจับกรณีที่ตัดคำแล้วไม่เหลือข้อความ (เช่น ใส่มาแต่เครื่องหมายวรรคตอน)
         if not tokenized_query:
             return []
@@ -47,7 +53,6 @@ class BaselineRetriever:
                 continue
             if tactic and candidate.tactic != tactic:
                 continue
-            
             if score > 0:
                 scored_candidates.append((score, candidate))
 

@@ -40,6 +40,13 @@ def test_retriever_top_k_limit(retriever):
     results = retriever.search("windows network connection", top_k=2)
     assert len(results) <= 2
 
+
+def test_retriever_rejects_non_positive_top_k(retriever):
+    with pytest.raises(ValueError, match="positive integer"):
+        retriever.search("PowerShell execution", top_k=0)
+    with pytest.raises(ValueError, match="positive integer"):
+        retriever.search("PowerShell execution", top_k=-1)
+
 def test_retriever_recall_baseline(retriever):
     """6. วัดผลความแม่นยำ (Recall@1, Recall@3, Recall@5) เบื้องต้น"""
     # เตรียมชุดข้อมูลทดสอบ: (ข้อความจำลองที่คล้าย Alert จริง, รหัสเทคนิคที่คาดหวัง)

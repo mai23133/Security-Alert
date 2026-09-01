@@ -1,11 +1,11 @@
 import re
 
+
 class TextEmbedder:
     """
     โมดูลสำหรับจัดการประมวลผลข้อความ (Embedding & Tokenization)
     ทำงานแบบ Offline 100% ตามข้อกำหนดของ Iteration 2
     """
-    
     def __init__(self):
         pass
 
@@ -21,7 +21,7 @@ class TextEmbedder:
 
     def embed(self, text: str) -> list[float]:
         """
-        Placeholder สำหรับ Contract ของทีม 
+        Placeholder สำหรับ Contract ของทีม
         รองรับการเปลี่ยนไปใช้ Dense Model (เช่น SentenceTransformers) ในอนาคต
         """
         return []
