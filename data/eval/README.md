@@ -29,6 +29,16 @@ python -m eval.run_eval --output data/eval/report-v1.0.json
 The saved fixture records `model_version=synthetic-saved-predictions` and
 `prompt_version=none`; it never contacts Gemini or the network.
 
+The generated report is a `fixture_validation` report with
+`not_a_runtime_quality_gate=true`. Its perfect prediction scores verify the
+metric and runner implementation only; they do not measure the quality of the
+real `/alerts/infer` pipeline. A runtime quality report must be generated
+separately and record its model, prompt, dataset, and STIX versions.
+
+Parent technique recall awards `1.0` for an exact technique match and `0.5` for
+predicting only the parent of a gold sub-technique. All other matches receive
+zero credit.
+
 ## Version and label review
 
 - Dataset version: `1.0.0-rc1`

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 
+PARENT_MATCH_CREDIT = 0.5
+
 
 def _ids(items: Iterable[object]) -> set[str]:
     result: set[str] = set()
@@ -36,15 +38,23 @@ def exact_technique_scores(records: Sequence[Mapping[str, object]]) -> dict[str,
 
 
 def parent_technique_recall(records: Sequence[Mapping[str, object]]) -> float:
-    """Credit an exact match or the parent ID of a gold sub-technique."""
-    covered = total = 0
+    """Return recall with 1.0 for exact and 0.5 for parent-only matches.
+
+    The partial-credit weight is intentionally explicit and versioned with the
+    evaluation code so reports remain reproducible.
+    """
+    credit = 0.0
+    total = 0
     for record in records:
         predicted = _ids(record.get("inferred_techniques", []))
         for gold_id in _ids(record.get("gold_technique_ids", [])):
             total += 1
             parent_id = gold_id.split(".", 1)[0]
-            covered += gold_id in predicted or parent_id in predicted
-    return _safe_div(covered, total)
+            if gold_id in predicted:
+                credit += 1.0
+            elif "." in gold_id and parent_id in predicted:
+                credit += PARENT_MATCH_CREDIT
+    return _safe_div(credit, total)
 
 
 def evidence_grounding_rate(records: Sequence[Mapping[str, object]]) -> float:

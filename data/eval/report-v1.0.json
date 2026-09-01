@@ -1,5 +1,7 @@
 {
   "metadata": {
+    "report_kind": "fixture_validation",
+    "not_a_runtime_quality_gate": true,
     "dataset_version": "1.0.0-rc1",
     "stix_version": "enterprise-attack-19.1",
     "prediction_fixture_version": "1.0.0",
