@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Alert Analysis</title>
+    <!-- ใช้ Tailwind CSS สำหรับจัด Layout ด่วน -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">ระบบวิเคราะห์ Security Alert</h1>
+
+        <!-- 1. โซนกรอกข้อมูล Alert (Narrative) -->
+        <div class="mb-6">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Narrative (ข้อความแจ้งเตือน):</label>
+            <textarea id="narrative-input" class="w-full border rounded p-2 text-gray-700" rows="3" placeholder="ใส่ข้อความแจ้งเตือนที่นี่..."></textarea>
+            <button onclick="mockAnalyze()" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                วิเคราะห์ข้อมูล (Test Fake API)
+            </button>
+        </div>
+
+        <hr class="my-6">
+
+        <!-- 2. โซนแสดงผลลัพธ์ (Prediction & Evidence) -->
+        <div id="results-section" class="hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">ผลการวิเคราะห์</h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                    <p class="font-bold text-sm text-blue-800">Prediction (เทคนิคที่คาดการณ์):</p>
+                    <p id="ui-prediction" class="text-lg font-semibold text-gray-900">-</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded border border-green-200">
+                    <p class="font-bold text-sm text-green-800">Confidence (ความมั่นใจ):</p>
+                    <p id="ui-confidence" class="text-lg font-semibold text-gray-900">-</p>
+                </div>
+            </div>
+
+            <div class="mb-4 p-4 border rounded bg-gray-50">
+                <p class="font-bold text-sm text-gray-700">Evidence (หลักฐานจากข้อความ):</p>
+                <p id="ui-evidence" class="text-gray-600 italic mt-1">-</p>
+            </div>
+
+            <!-- 3. โซนสถานะตรวจสอบ และ Candidate List -->
+            <div class="mb-4">
+                <p class="font-bold text-sm text-gray-700">Human-review Status:</p>
+                <span id="ui-review" class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-300 font-bold mt-1">
+                    Needs Human Review
+                </span>
+            </div>
+
+            <div class="mb-4">
+                <p class="font-bold text-sm text-gray-700">Candidate List (ตัวเลือกอื่นๆ):</p>
+                <ul id="ui-candidates" class="list-disc pl-5 text-sm text-gray-600 mt-1">
+                    <!-- รายชื่อจะถูกเติมด้วย JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. โซนคำเตือน (Disclaimer - บังคับต้องมีเสมอ) -->
+        <div class="mt-8 p-4 bg-red-50 border-l-4 border-red-500 text-sm text-red-700">
+            <strong>Disclaimer:</strong> ผลลัพธ์นี้เป็นเพียงคำแนะนำ (Advisory) เท่านั้น จำเป็นต้องมีการตรวจสอบโดยมนุษย์ (needs_human_review) ก่อนดำเนินการใดๆ ข้อมูลเทคนิคอ้างอิงตามกรอบการทำงานของ MITRE ATT&CK®
+        </div>
+    </div>
+
+    <!-- Script สำหรับเชื่อมต่อ API จริง (หรือ Fake Pipeline ที่ฝั่ง Backend) -->
+    <script>
+        async function mockAnalyze() {
+            // 1. ดึงข้อความจากกล่องข้อความ
+            const narrativeText = document.getElementById('narrative-input').value;
+            
+            if (!narrativeText.trim()) {
+                alert("กรุณากรอกข้อความแจ้งเตือน (Narrative) ก่อนคลิกวิเคราะห์ครับ");
+                return;
+            }
+
+            // 2. แสดงโซนผลลัพธ์และขึ้นสถานะโหลด
+            document.getElementById('results-section').classList.remove('hidden');
+            document.getElementById('ui-prediction').innerText = "กำลังเชื่อมต่อ API...";
+            document.getElementById('ui-confidence').innerText = "...";
+            document.getElementById('ui-evidence').innerText = "...";
+            document.getElementById('ui-candidates').innerHTML = "";
+
+            try {
+                // 3. ส่งข้อมูลไปหา FastAPI Backend (พอร์ต 8000)
+                const response = await fetch('http://localhost:8000/alerts/infer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // ข้อมูลที่ส่งไปจะต้องตรงกับ Pydantic Schema `AlertRequest`
+                    body: JSON.stringify({ narrative: narrativeText })
+                });
+
+                const data = await response.json();
+
+                // 4. จัดการกรณีเกิด Error จาก Backend
+                if (!response.ok) {
+                    throw new Error(data.detail?.error || "เกิดข้อผิดพลาดในการวิเคราะห์");
+                }
+
+                // 5. นำข้อมูล ATTACKInferenceResult มาแสดงผลบนหน้าเว็บ
+                // แสดง Prediction (เป็น List จึงจับมาต่อกันด้วยลูกน้ำ)
+                document.getElementById('ui-prediction').innerText = data.prediction.join(", ") || "ไม่พบเทคนิค";
+                document.getElementById('ui-confidence').innerText = data.confidence || "-";
+                
+                // แสดง Evidence
+                document.getElementById('ui-evidence').innerText = data.evidence_spans.length > 0 
+                    ? data.evidence_spans.join("\n") 
+                    : "ไม่มีข้อมูลหลักฐาน";
+                
+                // จัดการป้ายเตือน Needs Human Review
+                const reviewBadge = document.getElementById('ui-review');
+                if(data.needs_human_review) {
+                    reviewBadge.innerText = "Needs Human Review";
+                    reviewBadge.className = "inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-300 font-bold mt-1";
+                } else {
+                    reviewBadge.innerText = "System Confidence High";
+                    reviewBadge.className = "inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded border border-green-300 font-bold mt-1";
+                }
+
+                // วนลูปสร้างรายการ Candidate List
+                const candidatesList = document.getElementById('ui-candidates');
+                data.candidates.forEach(candidate => {
+                    let li = document.createElement("li");
+                    li.innerText = candidate;
+                    candidatesList.appendChild(li);
+                });
+
+            } catch (error) {
+                // ดักจับ Error และแจ้งเตือนผู้ใช้งานแบบปลอดภัย
+                console.error("API Error:", error);
+                document.getElementById('ui-prediction').innerText = "การเชื่อมต่อล้มเหลว";
+                document.getElementById('ui-confidence').innerText = "-";
+                document.getElementById('ui-evidence').innerText = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

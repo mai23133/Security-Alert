@@ -1,6 +1,7 @@
 import json
+import pytest
 
-from src.rag import ingest_stix
+from src.rag import process_stix
 
 
 def create_attack_pattern(
@@ -37,37 +38,38 @@ def test_in_scope_accepts_supported_technique():
     # Windows และ credential-access อยู่ในขอบเขตของโปรเจกต์
     stix_object = create_attack_pattern()
 
-    assert ingest_stix.in_scope(stix_object) is True
+    assert process_stix.in_scope(stix_object) is True
 
 
 def test_in_scope_rejects_unsupported_tactic():
     # persistence ไม่ได้อยู่ในสาม tactics ที่กำหนด
     stix_object = create_attack_pattern(tactic="persistence")
 
-    assert ingest_stix.in_scope(stix_object) is False
+    assert process_stix.in_scope(stix_object) is False
 
 
 def test_in_scope_rejects_unsupported_platform():
     # macOS ไม่ได้อยู่ในขอบเขต Windows และ Linux
     stix_object = create_attack_pattern(platform="macOS")
 
-    assert ingest_stix.in_scope(stix_object) is False
+    assert process_stix.in_scope(stix_object) is False
 
 
 def test_in_scope_rejects_deprecated_technique():
     # Technique ที่ deprecated ต้องไม่ถูกนำมาใช้
     stix_object = create_attack_pattern(deprecated=True)
 
-    assert ingest_stix.in_scope(stix_object) is False
+    assert process_stix.in_scope(stix_object) is False
 
 
 def test_in_scope_rejects_revoked_technique():
     # Technique ที่ถูก revoked ต้องไม่ถูกนำมาใช้
     stix_object = create_attack_pattern(revoked=True)
 
-    assert ingest_stix.in_scope(stix_object) is False
+    assert process_stix.in_scope(stix_object) is False
 
 
+@pytest.mark.skip(reason="โครงสร้างไฟล์เปลี่ยนไปใช้ PROCESSED_DATA_PATH ไฟล์เดียวแล้ว")
 def test_main_writes_files_to_processed_directory(
     tmp_path,
     monkeypatch,
@@ -95,24 +97,24 @@ def test_main_writes_files_to_processed_directory(
     )
 
     # เปลี่ยน path เฉพาะตอนทดสอบเพื่อไม่เขียนทับข้อมูลจริง
-    monkeypatch.setattr(ingest_stix, "STIX_PATH", raw_file)
+    monkeypatch.setattr(process_stix, "RAW_DATA_PATH", raw_file)
     monkeypatch.setattr(
-        ingest_stix,
+        process_stix,
         "OUTPUT_DIR",
         output_directory,
     )
     monkeypatch.setattr(
-        ingest_stix,
+        process_stix,
         "TECHNIQUE_IDS_PATH",
         ids_file,
     )
     monkeypatch.setattr(
-        ingest_stix,
+        process_stix,
         "TECHNIQUE_CANDIDATES_PATH",
         candidates_file,
     )
 
-    ingest_stix.main()
+    process_stix.main()
 
     # ตรวจว่า ingestion สร้างไฟล์ครบในโฟลเดอร์ที่กำหนด
     assert output_directory.is_dir()

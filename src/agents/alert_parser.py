@@ -1,20 +1,16 @@
-"""
-Alert Parser — Week 3 deliverable.
-รับ narrative ข้อความดิบ แล้วแตกออกเป็น assets, observed_actions, iocs
-ใช้ Google Gemini API (ฟรี)
-"""
 import json
+from pydantic import ValidationError
 
 from src.agents.gemini_client import generate_text
 from src.schemas import ParsedAlert
 
+# ตัด "narrative" ออกจาก Schema ใน Prompt เพื่อประหยัด Token เพราะเราจะใส่กลับไปเอง
 SYSTEM_PROMPT = """You are a security alert parser. Extract structured information from security alert narratives.
 Return ONLY valid JSON matching this schema exactly — no explanation, no markdown:
 {
-  "narrative": "<original text>",
   "assets": ["<hostnames, IPs, systems mentioned>"],
   "observed_actions": ["<what happened, each action as a short phrase>"],
-  "iocs": ["<IP addresses, hashes, domains, file paths>"]
+  "iocs": ["<IP addresses, domains, file hashes, paths>"]
 }
 Rules:
 - assets: hostnames, server names, system names (e.g. "WIN-SRV-04")
@@ -25,16 +21,28 @@ Rules:
 
 def parse_alert(narrative: str) -> ParsedAlert:
     """แตก narrative เป็น ParsedAlert struct"""
-    raw = generate_text(SYSTEM_PROMPT + "\n\nAlert:\n" + narrative)
-    # ตัด markdown code block ออกถ้า Gemini ใส่มา
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    data = json.loads(raw.strip())
-    data["narrative"] = narrative  # ใช้ original เสมอ ไม่ใช้จาก LLM
-    return ParsedAlert(**data)
-
+    raw_response = ""
+    try:
+        # 1. เรียกใช้งานแบบบังคับ JSON Mode ทันที
+        raw_response = generate_text(SYSTEM_PROMPT + "\n\nAlert:\n" + narrative, is_json=True)
+        data = json.loads(raw_response)
+        
+        # 2. ป้องกันกรณี LLM แอบใส่ narrative กลับมา ให้ลบทิ้งไปก่อน
+        if "narrative" in data:
+            del data["narrative"]
+            
+        # 3. ยัด Original Narrative กลับเข้าไป และ Map เข้า Pydantic Model
+        return ParsedAlert(narrative=narrative, **data)
+        
+    except (json.JSONDecodeError, ValidationError) as e:
+        print(f"Error parsing alert: {e}. Raw LLM output: {raw_response}")
+        # Fallback: หากพัง ให้คืนค่าโครงสร้างเปล่าๆ กลับไปพร้อมแจ้งเตือน
+        return ParsedAlert(
+            narrative=narrative,
+            assets=[],
+            observed_actions=["Error: Failed to parse actions"],
+            iocs=[]
+        )
 
 if __name__ == "__main__":
     sample = (
@@ -43,4 +51,5 @@ if __name__ == "__main__":
         "successful login and execution of encoded PowerShell."
     )
     result = parse_alert(sample)
+    # แสดงผลออกมาเป็น JSON สวยงาม
     print(result.model_dump_json(indent=2))

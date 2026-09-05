@@ -1,9 +1,5 @@
-"""
-Tactic Router — Week 3 deliverable.
-รับ ParsedAlert แล้วทายว่าน่าจะเข้า tactic ไหนใน 3 ตัวที่อยู่ใน scope
-ใช้ Google Gemini API (ฟรี)
-"""
 import json
+import re
 
 from src.agents.gemini_client import generate_text
 from src.schemas import ParsedAlert
@@ -35,17 +31,34 @@ IOCs: {alert.iocs}
 Narrative: {alert.narrative}"""
 
     raw = generate_text(SYSTEM_PROMPT + "\n\nAlert:\n" + content)
-    # ตัด markdown code block ออกถ้า Gemini ใส่มา
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    tactics = json.loads(raw.strip())
+    
+    try:
+        # ใช้ Regex เพื่อค้นหาและดึงเฉพาะส่วนที่เป็น Array [...] ออกมา
+        match = re.search(r'\[.*\]', raw, re.DOTALL)
+        if match:
+            json_str = match.group(0)
+        else:
+            json_str = raw.strip()
+            
+        tactics = json.loads(json_str)
+        
+        # ตรวจสอบว่าเป็น List จริงๆ
+        if not isinstance(tactics, list):
+            raise ValueError("Parsed JSON is not a list.")
 
-    # validate — กรองออกถ้า LLM ส่งนอก scope มา
-    valid = [t for t in tactics if t in IN_SCOPE_TACTICS]
-    return valid if valid else IN_SCOPE_TACTICS  # fallback: ค้นทั้ง 3
+        # Validate: กรองออกถ้า LLM ส่งนอก scope มา และเช็ค type
+        valid = [t for t in tactics if isinstance(t, str) and t in IN_SCOPE_TACTICS]
+        
+        if valid:
+            return valid
+        else:
+            print("Warning: LLM returned no valid tactics. Fallback to IN_SCOPE_TACTICS.")
+            return IN_SCOPE_TACTICS
 
+    except (json.JSONDecodeError, ValueError) as e:
+        # Log error เพื่อการตรวจสอบ
+        print(f"Error parsing Gemini response: {e}. Raw output: {raw}")
+        return IN_SCOPE_TACTICS  # Fallback: ค้นทั้ง 3
 
 if __name__ == "__main__":
     from src.agents.alert_parser import parse_alert

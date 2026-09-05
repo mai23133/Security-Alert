@@ -1,0 +1,41 @@
+name: Security-Alert CI Pipeline
+
+# 1. กำหนดเหตุการณ์ที่จะให้ CI ทำงาน (เมื่อมีการ Push หรือ Pull Request เข้ากิ่ง main)
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Run Pytest (Smoke Test)
+    runs-on: ubuntu-latest
+
+    steps:
+    # 2. ดึงโค้ดล่าสุดจาก Repository
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 3. ตั้งค่า Python ให้ตรงกับที่คุณใช้งาน (3.11)
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    # 4. ติดตั้งไลบรารีที่จำเป็นสำหรับโปรเจกต์และเทสต์
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # ถ้ามีไฟล์ requirements.txt ให้ใช้คำสั่งนี้
+        pip install -r requirements.txt
+        # ติดตั้ง pytest และ httpx เผื่อไว้สำหรับเทสต์ API
+        pip install pytest httpx pytest-asyncio
+
+    # 5. สั่งรันเทสต์ โดยจำลองสภาพแวดล้อม (Fake Pipeline) ห้ามเรียก API จริง
+    - name: Run tests with Fake Pipeline
+      env:
+        MOCK_AI: "True"
+        GEMINI_API_KEY: "dummy_key_for_ci_testing"
+      run: |
+        pytest -v

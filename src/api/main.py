@@ -2,14 +2,15 @@
 FastAPI application entry point.
 Week 3 deliverable — loads .env, mounts routes, adds MITRE attribution header.
 """
+from dotenv import load_dotenv
+# หลดไฟล์ .env แค่ครั้งเดียวที่นี่
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 from src.api.routes.alerts import router as alerts_router
 from src.api.routes.taxonomy import router as taxonomy_router
-
-load_dotenv()
 
 app = FastAPI(
     title="Security Alert → ATT&CK Inference API",

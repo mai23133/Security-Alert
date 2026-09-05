@@ -1,122 +1,91 @@
-"""
-Ingest the pinned MITRE ATT&CK STIX 2.1 enterprise bundle and filter down
-to the in-scope subset defined in spec section 3 and 7:
-  - Tactics: Initial Access, Execution, Credential Access
-  - Platforms: Windows, Linux
-  - Exclude deprecated/revoked techniques
-Week 2 deliverable.
-"""
 import json
+import os
+import time
+import chromadb
+from google import genai
+from dotenv import load_dotenv
 
-from pathlib import Path
-from src.schemas import TechniqueCandidate
+# โหลดตัวแปรจากไฟล์ .env
+load_dotenv()
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STIX_PATH = PROJECT_ROOT / "data" / "raw" / "enterprise-attack-19.1.json"
-OUTPUT_DIR = PROJECT_ROOT / "data" / "processed"
+# 1. กำหนดตำแหน่งไฟล์และฐานข้อมูล
+PROCESSED_DATA_PATH = "data/processed/subset_attack.json"
+CHROMA_DB_PATH = "data/chroma_db"
+COLLECTION_NAME = "mitre_attack_subset"
 
-TECHNIQUE_IDS_PATH = OUTPUT_DIR / "technique_ids.json"
-TECHNIQUE_CANDIDATES_PATH = OUTPUT_DIR / "technique_candidates.json"
+# 2. ตั้งค่า Client สำหรับ Gemini
+api_key = os.getenv("GEMINI_API_KEY")
 
-STIX_VERSION = "19.1"
+gemini_client = genai.Client(api_key=api_key) if api_key else None
 
+def get_embedding(text: str, client: genai.Client) -> list[float]:
+    """ใช้ Gemini สร้าง Vector Embedding จากข้อความ (รุ่นใหม่ล่าสุด)"""
+    response = client.models.embed_content(
+        model='gemini-embedding-2',
+        contents=text,
+    )
+    return response.embeddings[0].values
 
-IN_SCOPE_TACTICS = {"initial-access", "execution", "credential-access"}
-IN_SCOPE_PLATFORMS = {"Windows", "Linux"}
+def ingest_to_chroma():
+    if not gemini_client:
+         raise ValueError("ไม่พบ GEMINI_API_KEY ในไฟล์ .env กรุณาตรวจสอบ")
+    # อ่านข้อมูลที่กรองไว้แล้ว
+    try:
+        with open(PROCESSED_DATA_PATH, "r", encoding="utf-8") as f:
+            techniques = json.load(f)
+    except FileNotFoundError:
+        print(f" Error: ไม่พบไฟล์ที่ {PROCESSED_DATA_PATH} กรุณารัน process_stix.py ก่อน")
+        return
 
+    # 3. ตั้งค่า ChromaDB
+    chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+    
+    # ลบ Collection เดิมถ้ามี เพื่อเริ่มใหม่ (ป้องกันข้อมูลซ้ำซ้อน)
+    try:
+        chroma_client.delete_collection(name=COLLECTION_NAME)
+    except:
+        pass
+        
+    collection = chroma_client.create_collection(name=COLLECTION_NAME)
 
-def load_stix_objects(path: str) -> list[dict]:
-    with open(path) as f:
-        return json.load(f)["objects"]
+    docs = []
+    metadatas = []
+    ids = []
+    embeddings = []
 
+    print(f"กำลังแปลงข้อมูล {len(techniques)} เทคนิค ลงใน ChromaDB...")
 
-def external_id(obj: dict) -> str | None:
-    for ref in obj.get("external_references", []):
-        if ref.get("source_name") == "mitre-attack":
-            return ref.get("external_id")
-    return None
+    # 4. วนลูปสร้าง Embedding ทีละเทคนิค
+    for t in techniques:
+        # ประกอบข้อความให้มีบริบทชัดเจนขึ้นสำหรับทำ RAG
+        doc_text = f"Technique: {t['technique_name']}\nTactic: {t['tactic']}\nDescription: {t['description']}"
+        
+        docs.append(doc_text)
+        metadatas.append({
+            "technique_id": t["technique_id"],
+            "technique_name": t["technique_name"],
+            "tactic": t["tactic"],
+            "stix_version": "19.1"
+        })
+        ids.append(t["technique_id"])
+        
+        # แปลงข้อความเป็น Vector
+        emb = get_embedding(doc_text, gemini_client)
+        embeddings.append(emb)
+        
+        # หน่วงเวลา 3 วินาที ป้องกัน API โดนแบนชั่วคราว (Rate Limit)
+        print(f"  -> Processed {t['technique_id']}... sleeping for 3 seconds")
+        time.sleep(3)
 
-
-def in_scope(obj: dict) -> bool:
-    if obj["type"] != "attack-pattern":
-        return False
-    if obj.get("x_mitre_deprecated", False) or obj.get("revoked", False):
-        return False
-    tactics = {p["phase_name"] for p in obj.get("kill_chain_phases", [])}
-    if not tactics & IN_SCOPE_TACTICS:
-        return False
-    platforms = set(obj.get("x_mitre_platforms", []))
-    if not platforms & IN_SCOPE_PLATFORMS:
-        return False
-    if not external_id(obj):
-        return False
-    return True
-
-
-def to_candidate(obj: dict) -> TechniqueCandidate:
-    tactics = {p["phase_name"] for p in obj.get("kill_chain_phases", [])}
-    # an object can map to >1 in-scope tactic; pick the first in-scope match
-    tactic = sorted(tactics & IN_SCOPE_TACTICS)[0]
-    return TechniqueCandidate(
-        technique_id=external_id(obj),
-        technique_name=obj["name"],
-        tactic=tactic,
-        description_excerpt=obj["description"][:300],
-        stix_version=STIX_VERSION,
+    # 5. บันทึกลง ChromaDB
+    collection.add(
+        documents=docs,
+        embeddings=embeddings,
+        metadatas=metadatas,
+        ids=ids
     )
 
-
-def main():
-    objects = load_stix_objects(STIX_PATH)
-    in_scope_objs = [o for o in objects if in_scope(o)]
-    candidates = [to_candidate(o) for o in in_scope_objs]
-
-    print(f"Total STIX objects: {len(objects)}")
-    print(
-        "In-scope techniques "
-        f"(3 tactics, Win/Linux, non-deprecated/revoked): {len(candidates)}"
-    )
-
-    by_tactic = {}
-
-    for candidate in candidates:
-        by_tactic.setdefault(candidate.tactic, []).append(
-            candidate.technique_id
-        )
-
-    for tactic, technique_ids in sorted(by_tactic.items()):
-        print(f"  {tactic}: {len(technique_ids)} techniques")
-
-    ids = {candidate.technique_id for candidate in candidates}
-
-    for expected in ["T1110", "T1059.001"]:
-        print(f"  {expected} present: {expected in ids}")
-
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    with TECHNIQUE_IDS_PATH.open("w", encoding="utf-8") as file:
-        json.dump(
-            sorted(ids),
-            file,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-    with TECHNIQUE_CANDIDATES_PATH.open(
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            [candidate.model_dump() for candidate in candidates],
-            file,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-    print(f"\nWrote {TECHNIQUE_IDS_PATH}")
-    print(f"Wrote {TECHNIQUE_CANDIDATES_PATH}")
-
+    print(f"สร้าง Vector Database สำเร็จ! บันทึกข้อมูลลงที่ {CHROMA_DB_PATH} เรียบร้อยแล้ว")
 
 if __name__ == "__main__":
-    main()
-
+    ingest_to_chroma()

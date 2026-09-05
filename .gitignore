@@ -23,3 +23,5 @@ htmlcov/
 Thumbs.db
 
 data/processed/
+
+data/chroma_db/
