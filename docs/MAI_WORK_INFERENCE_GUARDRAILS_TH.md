@@ -1,5 +1,7 @@
 # บันทึกงานสายงาน B: Inference, Evidence และ Guardrails
 
+> เอกสารนี้บันทึกการส่งมอบสาย B ณ 1 กันยายน 2026 สำหรับสถานะระบบรวม A+B+D และผลตรวจล่าสุด ให้อ่าน `D_IMPLEMENTATION_SUMMARY_TH.md`
+
 อัปเดต: 1 กันยายน 2026
 สถานะ: **สายงาน B เชื่อมกับ `/alerts/infer` แล้วในระดับ baseline**
 ขอบเขต: Agent Architecture, Data Schemas และ Security & Guardrails ตาม `security-alert-attack-technique-inference.md`

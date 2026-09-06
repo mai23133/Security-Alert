@@ -1,8 +1,9 @@
 # แผนงานปัจจุบัน Security-Alert
 
-อัปเดต: 1 กันยายน 2026
+อัปเดต: 7 กันยายน 2026
 Source of Truth: `security-alert-attack-technique-inference.md`
 การแบ่งงานที่ใช้งานอยู่: `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md`
+จุดส่งต่อ D → C: `docs/D_IMPLEMENTATION_SUMMARY_TH.md`
 
 ## เป้าหมาย MVP
 
@@ -16,9 +17,9 @@ Source of Truth: `security-alert-attack-technique-inference.md`
 | สาย A — Retrieval | เสร็จแล้วระดับ baseline, ยังมี gap | BM25 deterministic top-k, allowlist/tactic filter และ tests พร้อม API; ยังไม่มี platform/source metadata และ subset มี 127 candidates |
 | สาย B — Inference, evidence และ guardrails | เชื่อมแล้วระดับ baseline, ยังมี gap | candidate-bounded inference, exact-substring evidence และ review rules ทำงานใน API; semantic evidence-to-technique validation ยังไม่มี |
 | สาย C — Dataset และ evaluation | กำลังทำ | ต้องส่ง gold dataset, metrics และ reproducible report |
-| สาย D — API, CI และ UI | กำลังทำ | `/alerts/infer` เชื่อม A+B แล้วแบบ deterministic; ยังต้องเพิ่ม batch/search, typed errors, CI และ UI |
+| สาย D — API, CI และ UI | เสร็จแล้วสำหรับ local MVP | มี single/batch inference, RAG search, validation, typed errors, request ID, bounded provider timeout/retry, offline CI และ UI; production auth/rate limit/privacy acceptance ยังขึ้นกับ deployment target |
 
-ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 42 tests และ `git diff --check` ผ่าน
+ผลตรวจล่าสุดบน `feature-d-integration`: `python -m pytest -q` ผ่าน 62 tests, compileall และ `git diff --check` ผ่าน
 
 ## ลำดับการรวมงาน
 
@@ -37,9 +38,11 @@ D เป็นเจ้าภาพ integration เมื่อ A ส่ง retr
 
 ## งานคงเหลือก่อน MVP พร้อมประเมิน
 
+ลำดับปัจจุบันคือ merge `feature-d-integration` เข้า `mai-work` ก่อน แล้วให้สาย C ใช้ `mai-work` ล่าสุดเป็นฐานสำหรับแก้ review items และ integration
+
 1. A เติม metadata platform/source หรือบันทึกเหตุผลที่ schema ปัจจุบันยังไม่มี; ตัดสินใจกับทีม/ผู้สอนเรื่อง 127 candidates เทียบเป้าหมาย 30–50
 2. B เพิ่ม semantic grounding ที่ตรวจว่า evidence สนับสนุน Technique นั้นจริง ไม่ใช่เพียง substring ทั่วไป
-3. D เพิ่ม batch/search, typed errors, request ID, timeout/retry, CI และ UI ตามขอบเขตที่ทีมตกลง
+3. D ผ่าน local-MVP contract แล้ว; ก่อน deploy จริงต้องเลือก authentication/rate limit และยืนยัน privacy/retention policy ตาม environment
 4. C ส่ง dataset 35 alerts (รวม ambiguous/multi-technique 10 และ negative controls 5), metrics และ report ที่ทำซ้ำได้
 5. รัน evaluation ระบบรวมให้ผ่าน Exact F1 ≥70%, parent recall ≥90%, hallucinated ID = 0 และ evidence grounding ≥85%
 6. ก่อน deploy: จำกัด CORS, เพิ่ม authentication/rate limiting ตาม deployment target, privacy/retention และ acceptance/security tests

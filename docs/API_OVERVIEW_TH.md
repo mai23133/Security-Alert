@@ -1,5 +1,7 @@
 # ภาพรวม API — Security Alert → MITRE ATT&CK Inference
 
+อัปเดต: 7 กันยายน 2026 (`feature-d-integration` commit `5718f2a`)
+
 เอกสารนี้อธิบายภาพรวม API เป้าหมายของโครงการสำหรับใช้คุยงานและดูความสัมพันธ์ระหว่าง client, FastAPI และ inference pipeline
 
 > แหล่งอ้างอิงหลัก: `security-alert-attack-technique-inference.md`
@@ -7,7 +9,7 @@
 > Taxonomy ที่ใช้: MITRE ATT&CK Enterprise STIX 2.1 รุ่นตรึง `enterprise-attack-19.1`
 > ผลลัพธ์เป็นคำแนะนำ (advisory) เท่านั้น ไม่สั่งตอบสนองหรือบล็อกเหตุการณ์โดยอัตโนมัติ
 >
-> สถานะปัจจุบัน: `POST /alerts/infer` เชื่อม parser, router, BM25 retriever, inferencer, evidence linker และ grounding judge แล้ว; endpoint ที่เหลือใน API contract ยังเป็นงานถัดไป
+> สถานะปัจจุบัน: single/batch inference, RAG search, taxonomy API และ local UI พร้อมแล้ว; `/evaluate` รอรวมสาย C
 
 ## ภาพรวม
 
@@ -57,10 +59,10 @@ Grounding Judge จะบังคับ human review หาก Technique ID/nam
 | --- | --- | --- | --- |
 | `GET` | `/` | health check และ STIX version | ใช้งานได้ |
 | `POST` | `/alerts/infer` | วิเคราะห์ alert เดี่ยวและคืน `ATTACKInferenceResult` | ใช้งานได้ระดับ baseline |
-| `POST` | `/alerts/infer/batch` | วิเคราะห์ alerts หลายรายการ | วางแผน |
+| `POST` | `/alerts/infer/batch` | วิเคราะห์ alerts หลายรายการ สูงสุด 25 รายการ | ใช้งานได้ |
 | `GET` | `/taxonomy/techniques` | แสดง Technique ใน pinned subset; filter ตาม tactic ได้ | ใช้งานได้ |
 | `GET` | `/taxonomy/techniques/{id}` | ดูรายละเอียด Technique รายตัว | ใช้งานได้ |
-| `POST` | `/rag/search` | ดู candidates ที่ retriever ค้นได้ก่อน inference | วางแผน |
+| `POST` | `/rag/search` | ดู candidates ที่ retriever ค้นได้ก่อน inference | ใช้งานได้ |
 | `POST` | `/evaluate` | ประเมิน predictions เทียบ gold dataset | วางแผน |
 
 ## Contract หลัก: infer alert
@@ -127,6 +129,37 @@ Grounding Judge จะบังคับ human review หาก Technique ID/nam
 
 `candidates_considered` อาจมี candidate ที่ Retriever พบได้ แม้ `inferred_techniques` จะว่าง เพราะ Inferencer อาจไม่พบคำสนับสนุนเพียงพอสำหรับ candidate เหล่านั้น
 
+## Contract: batch inference
+
+เรียก `POST /alerts/infer/batch` โดยส่ง alert 1–25 รายการ:
+
+```json
+{
+  "alerts": [
+    {"alert_id": "batch-001", "narrative": "Multiple failed logins were detected."},
+    {"alert_id": "batch-002", "narrative": "Encoded PowerShell was executed."}
+  ]
+}
+```
+
+ผลลัพธ์อยู่ใน `results` ตามลำดับ input และแต่ละรายการใช้ `ATTACKInferenceResult` เดิม หากรายการหนึ่งเกิด timeout/error ระบบจะคืน safe no-match พร้อม `needs_human_review=true` ให้รายการนั้นโดยไม่ใส่ exception ลงใน prediction หรือ evidence
+
+## Contract: RAG search
+
+เรียก `POST /rag/search` เพื่อดู candidates จาก BM25 ก่อน inference:
+
+```json
+{
+  "narrative": "encoded PowerShell execution",
+  "tactic": ["execution"],
+  "top_k": 5
+}
+```
+
+`top_k` อยู่ในช่วง 1–25 และ tactic รับเฉพาะ `initial-access`, `execution` และ `credential-access`; เมื่อไม่ส่ง tactic หรือส่ง list ว่าง ระบบค้นทั้ง scope
+
+ทุก response มี `X-Request-ID` สำหรับ tracing และ `X-MITRE-ATTaCK-Version` สำหรับ pinned taxonomy metadata ค่า request ID ไม่ใช่ `alert_id`
+
 ## ขอบเขตและ guardrails ที่ API ต้องบังคับ
 
 - รับเฉพาะ alert text ที่ถือเป็น untrusted input และไม่ให้ข้อความนั้นควบคุม pipeline
@@ -142,6 +175,6 @@ Grounding Judge จะบังคับ human review หาก Technique ID/nam
 
 1. เติม platform/source metadata ให้ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
 2. เพิ่ม semantic grounding และ evaluation เพื่อวัด false positive/grounding rate
-3. เพิ่ม `/rag/search`, batch และ evaluation endpoint
-4. เพิ่ม typed error handling, request ID, timeout/retry, structured logging และ tests ที่ไม่เรียก Gemini จริง
-5. เพิ่ม UI, deployment controls และ acceptance/security tests
+3. เพิ่ม `/evaluate` หลังสาย C พร้อม
+4. ปิด semantic grounding และประเมิน pipeline จริงกับ quality gates
+5. เลือก authentication/rate limiting, privacy/retention และ acceptance/security tests ตาม deployment target

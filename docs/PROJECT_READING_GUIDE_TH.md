@@ -1,12 +1,14 @@
 # คู่มืออ่านโปรเจกต์ Security-Alert
 
+อัปเดต: 7 กันยายน 2026
+
 เอกสารนี้เป็นลำดับการอ่านสำหรับคนที่เพิ่งเข้ามาในโครงการ เพื่อเข้าใจเป้าหมาย สถานะปัจจุบัน โค้ดที่ทำงานแล้ว และงานที่ยังเหลืออยู่
 
 ## สรุปในหนึ่งนาที
 
 Security-Alert รับข้อความ security alert แล้วมีเป้าหมายจะแนะนำ MITRE ATT&CK Enterprise Technique 1–3 รายการ พร้อม confidence, tactic และ evidence spans ให้ analyst ตรวจสอบต่อ
 
-ปัจจุบัน repository มี knowledge base ที่กรองจาก MITRE STIX, Pydantic schemas, taxonomy endpoints และ pipeline baseline แล้ว: `/alerts/infer` เชื่อม parser, router, BM25 retrieval, inference, evidence และ grounding อยู่ ส่วน evaluation, API contract ที่เหลือ และ production controls ยังอยู่ระหว่างพัฒนา
+ปัจจุบันบน `feature-d-integration` งาน A+B+D เชื่อมแล้ว: มี pinned knowledge base, schema, single/batch inference, RAG search, taxonomy API, request tracing, offline CI และ local UI ส่วน dataset/evaluation ของ C, semantic grounding และ production controls ยังอยู่ระหว่างดำเนินการ
 
 ## ลำดับการอ่านที่แนะนำ
 
@@ -39,7 +41,7 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 
 ### 3. เช็กว่างานเดินถึงขั้นไหน
 
-อ่าน [WORK_PLAN_TH.md](WORK_PLAN_TH.md) ซึ่งเป็นสถานะงานล่าสุด แล้วดู [TEAM_WORK_PARALLEL_PROPOSAL_TH.md](TEAM_WORK_PARALLEL_PROPOSAL_TH.md) สำหรับหน้าที่และจุดส่งต่องานของแต่ละสาย
+อ่าน [WORK_PLAN_TH.md](WORK_PLAN_TH.md) ซึ่งเป็นสถานะงานล่าสุด แล้วอ่าน [D_IMPLEMENTATION_SUMMARY_TH.md](D_IMPLEMENTATION_SUMMARY_TH.md) สำหรับจุดส่งต่อก่อนรวม C และดู [TEAM_WORK_PARALLEL_PROPOSAL_TH.md](TEAM_WORK_PARALLEL_PROPOSAL_TH.md) สำหรับหน้าที่ของแต่ละสาย
 
 สถานะปัจจุบันโดยย่อ:
 
@@ -48,10 +50,11 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 | STIX ingestion และ pinned subset | ทำแล้ว |
 | Schemas และ taxonomy API | ทำแล้ว |
 | `/alerts/infer` | pipeline baseline ใช้งานได้ พร้อม human-review guardrail |
+| `/alerts/infer/batch` และ `/rag/search` | ใช้งานได้ พร้อม validation และ safe failure behavior |
 | Retriever / RAG | BM25 baseline พร้อมใช้; platform/source metadata และ subset decision ยังเหลือ |
 | Inference, evidence และ grounding | เชื่อมแล้ว; semantic grounding ยังเหลือ |
-| Evaluation | กำลังพัฒนาโดยสาย C |
-| API integration, CI และ UI | กำลังพัฒนาโดยสาย D |
+| Evaluation | สาย C มี branch แยกและต้องแก้ review items ก่อนรวม; `/evaluate` ยังไม่เปิดใช้ |
+| API integration, CI และ UI | local MVP พร้อมบน `feature-d-integration`; production controls รอ deployment target |
 
 ### 4. ดูภาพรวม API ก่อนอ่าน routes
 
@@ -69,6 +72,8 @@ src/schemas.py
   → src/api/main.py
   → src/api/routes/taxonomy.py
   → src/api/routes/alerts.py
+  → src/api/routes/rag.py
+  → ui/index.html
 ```
 
 | ไฟล์ | หน้าที่ |
@@ -78,6 +83,8 @@ src/schemas.py
 | `src/api/main.py` | สร้าง FastAPI app, register routes และเพิ่ม MITRE version header |
 | `src/api/routes/taxonomy.py` | list/detail API ของ Technique จาก processed candidates |
 | `src/api/routes/alerts.py` | endpoint infer ที่เรียก `src/inference_pipeline.py` |
+| `src/api/routes/rag.py` | endpoint inspect BM25 candidates ด้วย tactic/top-k validation |
+| `ui/index.html` | local analyst UI ที่อ่าน `ATTACKInferenceResult` |
 
 อ่าน `src/inference_pipeline.py` ต่อจาก route เพื่อเห็นการเชื่อม parser/router → retriever → inferencer → evidence linker → grounding judge. Retriever และ agents อยู่ในระดับ baseline; evaluation และ semantic grounding ยังเป็นงานถัดไป
 
@@ -91,6 +98,9 @@ tests/test_alerts_api.py
 tests/test_agents.py
 tests/test_inference_guardrails.py
 tests/test_retriever.py
+tests/test_rag_api.py
+tests/test_gemini_client.py
+tests/test_api.py
 ```
 
 tests บอกพฤติกรรมที่ระบบรับประกันได้แล้วในปัจจุบัน เช่น format ของ Technique ID, การกรอง STIX, taxonomy endpoints, pipeline `/alerts/infer`, BM25 retrieval และ guardrails ของสาย B
@@ -121,4 +131,4 @@ flowchart TD
 
 ## ถ้าจะเริ่มพัฒนาต่อ
 
-ทำตาม [WORK_PLAN_TH.md](WORK_PLAN_TH.md): ปิด gap ของ A/B (metadata, subset และ semantic grounding), C ปิด evaluation และ D เติม API/CI/UI ที่เหลือ
+ทำตาม [D_IMPLEMENTATION_SUMMARY_TH.md](D_IMPLEMENTATION_SUMMARY_TH.md): merge D เข้า `mai-work` ก่อน จากนั้นให้ C ใช้ฐานล่าสุด แก้ evaluation review items และเชื่อม `/evaluate`; A/B ยังต้องปิด metadata, subset และ semantic-grounding gaps

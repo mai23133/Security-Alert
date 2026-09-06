@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` เชื่อม parser, router, BM25 retrieval, inference และ grounding แบบ baseline แล้ว โดย retrieval/inference ทำงานแบบ deterministic จาก pinned subset; ยังต้องทำ evaluation, API ที่เหลือ และ production controls
+> สถานะปัจจุบันบน `feature-d-integration`: A+B+D พร้อมสำหรับ local MVP มี single/batch inference, RAG search, taxonomy API, request tracing, offline CI และ analyst UI แล้ว งานถัดไปคือรวมสาย C สำหรับ dataset/evaluation และปิด quality/deployment gaps
 
 ## ขอบเขตปัจจุบัน
 
@@ -40,7 +40,7 @@ Library หลักที่โปรเจกต์ใช้:
 | `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
 | `rank-bm25` | `0.2.2` | retrieval baseline แบบ offline |
 
-ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 42 tests
+ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 62 tests
 
 ## ติดตั้งจากศูนย์ด้วย Conda
 
@@ -214,6 +214,9 @@ Endpoint ส่ง candidates จาก pinned subset ให้ inferencer เ�
 - `GET /taxonomy/techniques` สำหรับ list technique candidates
 - `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
 - `POST /alerts/infer` สำหรับรับ alert narrative และคืนผลจาก deterministic retrieval/inference pipeline พร้อม human-review guardrail
+- `POST /alerts/infer/batch` สำหรับวิเคราะห์ 1–25 alerts โดยรักษาลำดับและใช้ safe no-match เมื่อบางรายการล้ม
+- `POST /rag/search` สำหรับตรวจ BM25 candidates ด้วย tactic และ top-k ที่ validate แล้ว
+- `GET /ui` สำหรับ local analyst demo ที่แสดงผลตาม `ATTACKInferenceResult`
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
 - `src/agents/gemini_client.py` เป็น provider ของ parser/router เมื่อมี API key; หากใช้ไม่ได้ pipeline จะ fallback แบบปลอดภัย
 - `src/rag/retriever.py` สำหรับ BM25 retrieval แบบ allowlist/tactic-filtered
@@ -236,15 +239,15 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `42 passed`
+- `python -m pytest -q`: `62 passed`
 
 ## Roadmap
 
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
 - ทำ evaluation dataset และ metrics
-- เพิ่ม `/alerts/infer/batch`, `/rag/search` และ `/evaluate` ตาม API contract
-- เพิ่ม typed errors, request ID, timeout/retry, structured logging และ CI
+- เพิ่ม `/evaluate` หลัง evaluation pack ของสาย C พร้อม
+- ประเมิน pipeline จริงและปิด semantic grounding
 - ยืนยัน/เติม metadata platform และ source ของ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
 - ปรับ CORS, authentication/rate limiting และ privacy controls สำหรับ production
 

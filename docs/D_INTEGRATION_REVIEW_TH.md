@@ -1,11 +1,17 @@
 # รายการแก้ไขสาย D ก่อนรวมเข้ากับ A+B
 
-อัปเดต: 7 กันยายน 2026  
-สาขาที่ตรวจ: `feature-branch` ที่ commit `c35c1562133776c8f35acc5c773d485a9e0509ac`  
-สาขาปลายทาง: `mai-work`  
+อัปเดต: 7 กันยายน 2026
+สาขาที่ตรวจ: `feature-branch` ที่ commit `c35c1562133776c8f35acc5c773d485a9e0509ac`
+สาขาปลายทาง: `mai-work`
 Source of Truth: `security-alert-attack-technique-inference.md`
 
-## สรุปสถานะ
+> เอกสารนี้เป็น review ก่อนแก้ของ `feature-branch` เดิม รายการคำว่า “ยังไม่มี/ต้องแก้” ด้านล่างอธิบายสถานะก่อน implementation สำหรับผลหลังแก้และจุดส่งต่อ C ให้อ่าน `D_IMPLEMENTATION_SUMMARY_TH.md`
+
+> สถานะการนำไปทำ: implementation สำหรับ local MVP ถูกสร้างบน branch `feature-d-integration` แล้วเมื่อ 7 กันยายน 2026 รายการ production authentication/rate limiting และ privacy acceptance ยังต้องกำหนดตาม deployment target
+
+> การรักษาที่มาของงาน: branch นี้ merge commit `c35c156` ของ `thitareesangrasamepen-cyber` เข้ามาเป็นประวัติโดยตรง UI analyst workflow/layout และ product-shell test scenarios ใช้งานต่อจากงานเดิมแล้วปรับ data binding, endpoint และ security behavior ให้ตรงกับ `ATTACKInferenceResult` และ A+B pipeline
+
+## สรุปสถานะก่อนแก้
 
 สาย A+B บน `mai-work` เชื่อม pipeline จริงระดับ baseline เข้ากับ `POST /alerts/infer` แล้ว โดยใช้ลำดับ:
 

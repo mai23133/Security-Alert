@@ -1,5 +1,11 @@
 # รายการแก้ไขสาย C ก่อนรวมงาน
 
+อัปเดตบริบท: 7 กันยายน 2026
+ฐานที่สาย C ต้องใช้ก่อน integration: `mai-work` หลัง merge `feature-d-integration`
+สถานะ branch ที่ตรวจล่าสุด: `origin/yean-work` commit `cf1bbbf`
+
+> ก่อนเริ่มรวมให้อ่าน `D_IMPLEMENTATION_SUMMARY_TH.md` และคง single/batch inference, `/rag/search`, request headers, CI และ UI ปัจจุบันไว้
+
 เอกสารนี้สรุปผล review branch `yean-work` ของสาย C (Dataset และ Evaluation) เพื่อใช้แก้ไขก่อน merge เข้า `mai-work`.
 
 ## สถานะโดยย่อ
@@ -73,13 +79,13 @@ not_a_runtime_quality_gate: true
 
 ## 5. แก้ conflict เอกสารก่อน merge
 
-`yean-work` แก้ `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md` จากฐานเอกสารเก่า ซึ่ง conflict กับสถานะล่าสุดบน `mai-work`.
+`yean-work` แก้ `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md` จากฐานเอกสารเก่า ซึ่ง conflict กับสถานะล่าสุดหลัง A+B+D.
 
 แนวทาง merge:
 
-- ใช้ไฟล์จาก `mai-work` เป็นฐาน เพราะสะท้อน A+B ที่เชื่อมแล้ว
+- ใช้ไฟล์จาก `mai-work` หลัง merge D เป็นฐาน เพราะสะท้อน A+B+D ที่เชื่อมแล้ว
 - นำเฉพาะรายละเอียดของ C เช่น dataset, metrics, runner และ acceptance criteria ที่ยังขาดเข้ามา
-- ห้ามคืนสถานะ `/alerts/infer` ไปเป็น no-match stub หรือบอกว่า A/B ยังไม่เชื่อม
+- ห้ามคืนสถานะ `/alerts/infer` ไปเป็น no-match stub หรือบอกว่า A/B/D ยังไม่เชื่อม และห้ามลบ batch/search/UI/CI
 
 ## ก่อนส่งให้ merge อีกครั้ง
 
