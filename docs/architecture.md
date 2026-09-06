@@ -83,4 +83,4 @@ flowchart TD
 
 ## Planned Evolution
 
-เติม semantic grounding, platform/source metadata, subset decision, batch/search/evaluate endpoints, typed errors/request ID/timeout/retry, CI, UI และ deployment controls โดยคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client
+สาย D เติม batch/search endpoints, typed errors/request ID, timeout/retry, offline CI และ local UI แล้วบน `feature-d-integration`. งานวิวัฒนาการถัดไปคือ semantic grounding, platform/source metadata, subset decision, evaluate endpoint และ production deployment controls โดยคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client

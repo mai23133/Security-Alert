@@ -1,0 +1,27 @@
+name: Security-Alert CI
+
+on:
+  push:
+    branches: [main, mai-work, feature-d-integration]
+  pull_request:
+    branches: [main, mai-work]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run offline test suite
+        env:
+          GOOGLE_API_KEY: ""
+          GEMINI_API_KEY: ""
+        run: python -m pytest -q
+      - name: Check whitespace errors
+        run: git diff --check

@@ -5,6 +5,8 @@
 สาขาปลายทาง: `mai-work`  
 Source of Truth: `security-alert-attack-technique-inference.md`
 
+> สถานะการนำไปทำ: implementation สำหรับ local MVP ถูกสร้างบน branch `feature-d-integration` แล้วเมื่อ 7 กันยายน 2026 รายการ production authentication/rate limiting และ privacy acceptance ยังต้องกำหนดตาม deployment target
+
 ## สรุปสถานะ
 
 สาย A+B บน `mai-work` เชื่อม pipeline จริงระดับ baseline เข้ากับ `POST /alerts/infer` แล้ว โดยใช้ลำดับ:

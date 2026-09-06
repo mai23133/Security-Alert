@@ -1,7 +1,7 @@
 # เอกสารส่งต่องาน Security-Alert
 
-อัปเดต: 1 กันยายน 2026
-สถานะ: สาย A และ B ถูกเชื่อมกับ `/alerts/infer` แล้วระดับ baseline; C และงาน API/deployment ที่เหลือยังดำเนินต่อ
+อัปเดต: 7 กันยายน 2026
+สถานะ: สาย A+B และ product shell ของสาย D เชื่อมแล้วบน `feature-d-integration`; สาย C และ production deployment controls ยังดำเนินต่อ
 
 ## ภาพรวมสำหรับผู้รับงาน
 
@@ -22,7 +22,7 @@ Security-Alert รับข้อความ alert และมีเป้า�
 | สาย A | BM25 retrieval baseline พร้อมใช้งาน; ยังไม่มี platform/source metadata และมี 127 candidates |
 | สาย B | candidate-bounded inference และ structural grounding พร้อมใช้งาน; semantic grounding ยังเป็น gap |
 | สาย C | กำลังทำ dataset/metrics |
-| สาย D | API integration ของ infer เสร็จแล้ว; batch/search, typed errors, CI และ UI ยังเหลือ |
+| สาย D | local MVP พร้อม: single/batch infer, RAG search, typed errors/request ID, timeout/retry, CI และ UI; auth/rate limit/privacy acceptance รอ deployment target |
 
 ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 42 tests
 

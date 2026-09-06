@@ -4,14 +4,14 @@
 
 อ้างอิงหลัก: `security-alert-attack-technique-inference.md`
 
-## สถานะการทำงานล่าสุด (1 กันยายน 2026)
+## สถานะการทำงานล่าสุด (7 กันยายน 2026)
 
 | สายงาน | สถานะ | จุดส่งต่องานถัดไป |
 | --- | --- | --- |
 | A — Retrieval | baseline เชื่อมแล้ว | BM25 deterministic retrieval ใช้กับ API แล้ว; platform/source metadata และ subset decision ยังเหลือ |
 | B — Inference, evidence และ guardrails | baseline เชื่อมแล้ว | pipeline เรียก infer/evidence/judge แล้ว; semantic grounding ยังเหลือ |
 | C — Dataset และ evaluation | กำลังทำ | ส่ง gold dataset, metrics และ reproducible report |
-| D — API, CI และ UI | กำลังทำ | `/alerts/infer` เชื่อม A+B แล้ว; batch/search, typed errors, CI และ UI ยังเหลือ |
+| D — API, CI และ UI | เสร็จแล้วสำหรับ local MVP | single/batch infer, RAG search, typed errors/request ID, timeout/retry, offline CI และ UI พร้อม; production controls รอ deployment target |
 
 ไฟล์ `TEAM_WORK_BREAKDOWN_TH.md` ถูกยกเลิกและลบออกแล้ว; เอกสารนี้เป็นแหล่งอ้างอิงเดียวสำหรับการแบ่งงานสี่สาย
 

@@ -214,6 +214,9 @@ Endpoint ส่ง candidates จาก pinned subset ให้ inferencer เ�
 - `GET /taxonomy/techniques` สำหรับ list technique candidates
 - `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
 - `POST /alerts/infer` สำหรับรับ alert narrative และคืนผลจาก deterministic retrieval/inference pipeline พร้อม human-review guardrail
+- `POST /alerts/infer/batch` สำหรับวิเคราะห์ 1–25 alerts โดยรักษาลำดับและใช้ safe no-match เมื่อบางรายการล้ม
+- `POST /rag/search` สำหรับตรวจ BM25 candidates ด้วย tactic และ top-k ที่ validate แล้ว
+- `GET /ui` สำหรับ local analyst demo ที่แสดงผลตาม `ATTACKInferenceResult`
 - `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
 - `src/agents/gemini_client.py` เป็น provider ของ parser/router เมื่อมี API key; หากใช้ไม่ได้ pipeline จะ fallback แบบปลอดภัย
 - `src/rag/retriever.py` สำหรับ BM25 retrieval แบบ allowlist/tactic-filtered
@@ -236,15 +239,15 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `42 passed`
+- `python -m pytest -q`: `59 passed`
 
 ## Roadmap
 
 แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
 
 - ทำ evaluation dataset และ metrics
-- เพิ่ม `/alerts/infer/batch`, `/rag/search` และ `/evaluate` ตาม API contract
-- เพิ่ม typed errors, request ID, timeout/retry, structured logging และ CI
+- เพิ่ม `/evaluate` หลัง evaluation pack ของสาย C พร้อม
+- ประเมิน pipeline จริงและปิด semantic grounding
 - ยืนยัน/เติม metadata platform และ source ของ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
 - ปรับ CORS, authentication/rate limiting และ privacy controls สำหรับ production
 

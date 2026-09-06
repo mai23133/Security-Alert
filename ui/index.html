@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security Alert ATT&amp;CK Advisor</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #f3f4f6; color: #172033; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    section { background: white; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 10px #0001; }
+    textarea { box-sizing: border-box; width: 100%; min-height: 9rem; padding: .75rem; border: 1px solid #9ca3af; border-radius: 8px; }
+    button { margin-top: .75rem; padding: .65rem 1rem; border: 0; border-radius: 8px; background: #155eef; color: white; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .muted { color: #596579; }
+    .review { color: #8a4b00; font-weight: 700; }
+    .ok { color: #087443; font-weight: 700; }
+    .error { color: #b42318; }
+    .card { border: 1px solid #d8dee9; border-radius: 8px; padding: 1rem; margin-top: .75rem; }
+    .disclaimer { border-left: 4px solid #b42318; }
+    ul { padding-left: 1.4rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Security Alert → MITRE ATT&amp;CK</h1>
+    <p class="muted">เครื่องมือช่วยแนะนำ Technique สำหรับการตรวจสอบโดยนักวิเคราะห์</p>
+
+    <section>
+      <label for="narrative"><strong>Alert narrative</strong></label>
+      <textarea id="narrative" maxlength="20000" placeholder="วางข้อความ Security Alert ที่ผ่านการ sanitize แล้ว"></textarea>
+      <button id="analyze" type="button">วิเคราะห์</button>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="result" hidden>
+      <h2>ผลการวิเคราะห์</h2>
+      <p>Alert ID: <code id="alert-id"></code></p>
+      <p id="review-status"></p>
+      <div id="techniques"></div>
+      <h3>Candidates ที่พิจารณา</h3>
+      <ul id="candidates"></ul>
+    </section>
+
+    <section class="disclaimer">
+      <strong>คำเตือน</strong>
+      <p id="disclaimer">ผลลัพธ์เป็นคำแนะนำเท่านั้น ต้องให้ผู้เชี่ยวชาญตรวจสอบก่อนดำเนินการใด ๆ</p>
+    </section>
+  </main>
+
+  <script>
+    const narrative = document.getElementById("narrative");
+    const analyze = document.getElementById("analyze");
+    const result = document.getElementById("result");
+    const error = document.getElementById("error");
+
+    function appendTextElement(parent, tag, text) {
+      const element = document.createElement(tag);
+      element.textContent = text;
+      parent.appendChild(element);
+      return element;
+    }
+
+    function renderTechnique(parent, technique) {
+      const card = document.createElement("article");
+      card.className = "card";
+      appendTextElement(card, "h3", `${technique.technique_id} — ${technique.technique_name}`);
+      appendTextElement(card, "p", `Tactic: ${technique.tactic}`);
+      appendTextElement(card, "p", `Confidence: ${(technique.confidence * 100).toFixed(0)}%`);
+      appendTextElement(card, "p", `Evidence: ${technique.evidence_spans.join(" | ") || "ไม่มีหลักฐานที่ผ่านการตรวจ"}`);
+      const link = appendTextElement(card, "a", "เปิดหน้า MITRE ATT&CK");
+      link.href = technique.mitre_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      parent.appendChild(card);
+    }
+
+    analyze.addEventListener("click", async () => {
+      const text = narrative.value.trim();
+      if (!text) {
+        error.textContent = "กรุณากรอก Alert narrative";
+        error.hidden = false;
+        return;
+      }
+
+      analyze.disabled = true;
+      analyze.textContent = "กำลังวิเคราะห์…";
+      error.hidden = true;
+      result.hidden = true;
+
+      try {
+        const response = await fetch("/alerts/infer", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({narrative: text})
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          const message = data.detail?.message || "ไม่สามารถวิเคราะห์ Alert ได้";
+          const requestId = response.headers.get("X-Request-ID");
+          throw new Error(requestId ? `${message} (Request ID: ${requestId})` : message);
+        }
+
+        document.getElementById("alert-id").textContent = data.alert_id;
+        const review = document.getElementById("review-status");
+        review.textContent = data.needs_human_review ? "ต้องให้มนุษย์ตรวจสอบ" : "ผ่าน structural grounding";
+        review.className = data.needs_human_review ? "review" : "ok";
+
+        const techniques = document.getElementById("techniques");
+        techniques.replaceChildren();
+        if (data.inferred_techniques.length === 0) {
+          appendTextElement(techniques, "p", "ไม่พบ Technique ที่มีหลักฐานเพียงพอ");
+        } else {
+          data.inferred_techniques.forEach(item => renderTechnique(techniques, item));
+        }
+
+        const candidates = document.getElementById("candidates");
+        candidates.replaceChildren();
+        if (data.candidates_considered.length === 0) {
+          appendTextElement(candidates, "li", "ไม่มี candidate");
+        } else {
+          data.candidates_considered.forEach(item => {
+            appendTextElement(candidates, "li", `${item.technique_id} — ${item.technique_name} (${item.tactic})`);
+          });
+        }
+        document.getElementById("disclaimer").textContent = data.disclaimer;
+        result.hidden = false;
+      } catch (caught) {
+        error.textContent = caught instanceof Error ? caught.message : "ไม่สามารถวิเคราะห์ Alert ได้";
+        error.hidden = false;
+      } finally {
+        analyze.disabled = false;
+        analyze.textContent = "วิเคราะห์";
+      }
+    });
+  </script>
+</body>
+</html>

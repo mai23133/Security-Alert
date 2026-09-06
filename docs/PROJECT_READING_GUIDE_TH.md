@@ -51,7 +51,7 @@ conda run -n sec-alert311 python -m uvicorn src.api.main:app --reload
 | Retriever / RAG | BM25 baseline พร้อมใช้; platform/source metadata และ subset decision ยังเหลือ |
 | Inference, evidence และ grounding | เชื่อมแล้ว; semantic grounding ยังเหลือ |
 | Evaluation | กำลังพัฒนาโดยสาย C |
-| API integration, CI และ UI | กำลังพัฒนาโดยสาย D |
+| API integration, CI และ UI | local MVP พร้อมบน `feature-d-integration`; production controls รอ deployment target |
 
 ### 4. ดูภาพรวม API ก่อนอ่าน routes
 
