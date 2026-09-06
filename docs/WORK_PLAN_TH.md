@@ -18,7 +18,7 @@ Source of Truth: `security-alert-attack-technique-inference.md`
 | สาย C — Dataset และ evaluation | กำลังทำ | ต้องส่ง gold dataset, metrics และ reproducible report |
 | สาย D — API, CI และ UI | เสร็จแล้วสำหรับ local MVP | มี single/batch inference, RAG search, validation, typed errors, request ID, bounded provider timeout/retry, offline CI และ UI; production auth/rate limit/privacy acceptance ยังขึ้นกับ deployment target |
 
-ผลตรวจล่าสุดบน `feature-d-integration`: `python -m pytest -q` ผ่าน 59 tests, compileall และ `git diff --check` ผ่าน
+ผลตรวจล่าสุดบน `feature-d-integration`: `python -m pytest -q` ผ่าน 62 tests, compileall และ `git diff --check` ผ่าน
 
 ## ลำดับการรวมงาน
 

@@ -239,7 +239,7 @@ python -m pytest -q
 ผลตรวจล่าสุดใน `sec-alert311`:
 
 - `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `59 passed`
+- `python -m pytest -q`: `62 passed`
 
 ## Roadmap
 

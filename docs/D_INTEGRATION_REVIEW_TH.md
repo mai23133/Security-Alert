@@ -7,6 +7,8 @@ Source of Truth: `security-alert-attack-technique-inference.md`
 
 > สถานะการนำไปทำ: implementation สำหรับ local MVP ถูกสร้างบน branch `feature-d-integration` แล้วเมื่อ 7 กันยายน 2026 รายการ production authentication/rate limiting และ privacy acceptance ยังต้องกำหนดตาม deployment target
 
+> การรักษาที่มาของงาน: branch นี้ merge commit `c35c156` ของ `thitareesangrasamepen-cyber` เข้ามาเป็นประวัติโดยตรง UI analyst workflow/layout และ product-shell test scenarios ใช้งานต่อจากงานเดิมแล้วปรับ data binding, endpoint และ security behavior ให้ตรงกับ `ATTACKInferenceResult` และ A+B pipeline
+
 ## สรุปสถานะ
 
 สาย A+B บน `mai-work` เชื่อม pipeline จริงระดับ baseline เข้ากับ `POST /alerts/infer` แล้ว โดยใช้ลำดับ:
