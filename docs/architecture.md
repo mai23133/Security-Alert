@@ -1,10 +1,12 @@
 # System and Agent Architecture
 
+อัปเดต: 7 กันยายน 2026
+
 ## Overview
 
 Security Alert รับข้อความแจ้งเตือนด้านความปลอดภัยผ่าน FastAPI แล้วส่งคืนผลการอนุมาน MITRE ATT&CK Technique ในรูปแบบ JSON ที่ตรวจสอบด้วย Pydantic
 
-ระบบมีสถานะเป็น **early MVP ที่เชื่อม pipeline baseline แล้ว**: `/alerts/infer` เรียก parser, router, BM25 retriever, inferencer, evidence linker และ grounding judge ตามลำดับ ส่วน evaluation, API ที่เหลือ และ production integration ยังอยู่ระหว่างพัฒนา
+ระบบบน `feature-d-integration` เป็น **local MVP ที่เชื่อม A+B+D แล้ว**: single/batch inference ใช้ pipeline จริง, RAG search ใช้ BM25, taxonomy API และ local UI พร้อมใช้งาน ส่วน evaluation ของ C, semantic grounding และ production integration ยังอยู่ระหว่างพัฒนา
 
 ## Current Architecture
 
@@ -55,6 +57,9 @@ flowchart TD
 | Method | Endpoint | Input | Output |
 | --- | --- | --- | --- |
 | `POST` | `/alerts/infer` | Alert narrative | `ATTACKInferenceResult` |
+| `POST` | `/alerts/infer/batch` | Alert 1–25 รายการ | ordered `ATTACKInferenceResult` list |
+| `POST` | `/rag/search` | narrative, tactics, top-k | `TechniqueCandidate` list |
+| `GET` | `/ui` | local browser request | analyst UI |
 
 ผลลัพธ์ประกอบด้วย:
 

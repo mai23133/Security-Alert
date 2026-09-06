@@ -1,5 +1,7 @@
 # ภาพรวม API — Security Alert → MITRE ATT&CK Inference
 
+อัปเดต: 7 กันยายน 2026 (`feature-d-integration` commit `5718f2a`)
+
 เอกสารนี้อธิบายภาพรวม API เป้าหมายของโครงการสำหรับใช้คุยงานและดูความสัมพันธ์ระหว่าง client, FastAPI และ inference pipeline
 
 > แหล่งอ้างอิงหลัก: `security-alert-attack-technique-inference.md`
@@ -7,7 +9,7 @@
 > Taxonomy ที่ใช้: MITRE ATT&CK Enterprise STIX 2.1 รุ่นตรึง `enterprise-attack-19.1`
 > ผลลัพธ์เป็นคำแนะนำ (advisory) เท่านั้น ไม่สั่งตอบสนองหรือบล็อกเหตุการณ์โดยอัตโนมัติ
 >
-> สถานะปัจจุบัน: `POST /alerts/infer` เชื่อม parser, router, BM25 retriever, inferencer, evidence linker และ grounding judge แล้ว; endpoint ที่เหลือใน API contract ยังเป็นงานถัดไป
+> สถานะปัจจุบัน: single/batch inference, RAG search, taxonomy API และ local UI พร้อมแล้ว; `/evaluate` รอรวมสาย C
 
 ## ภาพรวม
 

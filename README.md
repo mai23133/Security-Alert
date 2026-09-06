@@ -2,7 +2,7 @@
 
 Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` เชื่อม parser, router, BM25 retrieval, inference และ grounding แบบ baseline แล้ว โดย retrieval/inference ทำงานแบบ deterministic จาก pinned subset; ยังต้องทำ evaluation, API ที่เหลือ และ production controls
+> สถานะปัจจุบันบน `feature-d-integration`: A+B+D พร้อมสำหรับ local MVP มี single/batch inference, RAG search, taxonomy API, request tracing, offline CI และ analyst UI แล้ว งานถัดไปคือรวมสาย C สำหรับ dataset/evaluation และปิด quality/deployment gaps
 
 ## ขอบเขตปัจจุบัน
 
@@ -40,7 +40,7 @@ Library หลักที่โปรเจกต์ใช้:
 | `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
 | `rank-bm25` | `0.2.2` | retrieval baseline แบบ offline |
 
-ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 42 tests
+ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 62 tests
 
 ## ติดตั้งจากศูนย์ด้วย Conda
 

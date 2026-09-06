@@ -4,6 +4,8 @@
 
 อ้างอิงหลัก: `security-alert-attack-technique-inference.md`
 
+จุดส่งต่อปัจจุบัน: อ่าน `D_IMPLEMENTATION_SUMMARY_TH.md`; merge D เข้า `mai-work` ก่อนนำ C มารวม
+
 ## สถานะการทำงานล่าสุด (7 กันยายน 2026)
 
 | สายงาน | สถานะ | จุดส่งต่องานถัดไป |
@@ -102,6 +104,8 @@ Metric ขั้นต่ำคือ Exact technique F1, parent technique recal
 
 ## สายงาน D — Product shell: API, CI และ UI
 
+> สถานะล่าสุด: ส่งมอบ local MVP แล้วบน `feature-d-integration`; รายละเอียด implementation และจุดส่งต่ออยู่ใน `D_IMPLEMENTATION_SUMMARY_TH.md`
+
 **เป้าหมาย:** เติม product surface รอบถัดไปบน pipeline จริงที่เชื่อมแล้ว โดยคง tests ให้ใช้ fixture/mock และไม่เรียก provider จริง
 
 | หัวข้อ | รายละเอียด |
@@ -110,7 +114,7 @@ Metric ขั้นต่ำคือ Exact technique F1, parent technique recal
 | Fake dependency | mock provider หรือ test double เฉพาะจุด; ห้ามเรียก Gemini/network จริง |
 | ไฟล์หลัก | `src/api/`, API tests, CI workflow, `ui/`, documentation ของ error behavior |
 | ไม่แตะ | algorithm ใน `src/rag/`, rule implementation ใน agents, dataset/metrics |
-| ส่งมอบที่เหลือ | batch endpoint, search endpoint, request ID/typed safe errors, CI smoke test และ UI skeleton |
+| ส่งมอบแล้ว | batch endpoint, search endpoint, request ID/typed safe errors, CI smoke test และ local UI |
 
 UI ของ MVP แสดง narrative, prediction, confidence, evidence, candidate list และ human-review status; ข้อมูลต้องแสดง disclaimer เสมอ. CORS/auth/rate limit ให้เลือกตาม deployment target และไม่เปิดใช้กับข้อมูล Alert จริงก่อนกำหนด privacy/retention policy.
 

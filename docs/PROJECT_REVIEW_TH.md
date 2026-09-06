@@ -2,7 +2,7 @@
 
 วันที่ตรวจ: 24 สิงหาคม 2026
 
-> หมายเหตุ: เอกสารนี้เป็นรายงานย้อนหลัง ณ วันที่ระบุ ไม่ใช่สถานะล่าสุดของโครงการ โปรดใช้ `WORK_PLAN_TH.md` และ `TEAM_WORK_PARALLEL_PROPOSAL_TH.md` สำหรับสถานะงานปัจจุบัน
+> หมายเหตุ: เอกสารนี้เป็นรายงานย้อนหลัง ณ วันที่ระบุ ไม่ใช่สถานะล่าสุดของโครงการ โปรดใช้ `WORK_PLAN_TH.md`, `D_IMPLEMENTATION_SUMMARY_TH.md` และ `TEAM_WORK_PARALLEL_PROPOSAL_TH.md` สำหรับสถานะงานปัจจุบัน
 
 ขอบเขตการตรวจ: เอกสาร โค้ด ข้อมูล processed และ automated tests ใน branch `mai-work`
 

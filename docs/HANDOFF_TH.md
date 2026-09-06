@@ -12,6 +12,7 @@ Security-Alert รับข้อความ alert และมีเป้า�
 1. `security-alert-attack-technique-inference.md` — Source of Truth
 2. `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md` — หน้าที่ของ A/B/C/D และ integration contract
 3. `docs/WORK_PLAN_TH.md` — สถานะล่าสุดและงานคงเหลือ
+4. `docs/D_IMPLEMENTATION_SUMMARY_TH.md` — สถานะ A+B+D และ contract ก่อนรวม C
 
 ## สถานะ repository ที่ยืนยันแล้ว
 
@@ -24,7 +25,11 @@ Security-Alert รับข้อความ alert และมีเป้า�
 | สาย C | กำลังทำ dataset/metrics |
 | สาย D | local MVP พร้อม: single/batch infer, RAG search, typed errors/request ID, timeout/retry, CI และ UI; auth/rate limit/privacy acceptance รอ deployment target |
 
-ผลตรวจล่าสุด: `python -m pytest -q` ผ่าน 42 tests
+ผลตรวจล่าสุดบน `feature-d-integration` commit `5718f2a`: `python -m pytest -q` ผ่าน 62 tests, compileall และ `git diff --check` ผ่าน
+
+## จุดส่งต่อถัดไป
+
+merge `feature-d-integration` เข้า `mai-work` ก่อน แล้วให้สาย C อัปเดตฐานจาก `mai-work`; ห้ามนำเอกสารสถานะเก่าหรือ API stub จาก `yean-work` มาทับ single/batch inference, RAG search, CI และ UI ที่เชื่อมแล้ว
 
 ## Contract ที่ใช้งานจริง
 

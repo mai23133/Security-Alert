@@ -3,6 +3,7 @@
 อัปเดต: 7 กันยายน 2026
 Source of Truth: `security-alert-attack-technique-inference.md`
 การแบ่งงานที่ใช้งานอยู่: `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md`
+จุดส่งต่อ D → C: `docs/D_IMPLEMENTATION_SUMMARY_TH.md`
 
 ## เป้าหมาย MVP
 
@@ -36,6 +37,8 @@ API request
 D เป็นเจ้าภาพ integration เมื่อ A ส่ง retriever แล้ว โดยคง schema และ disclaimer เดิมไว้ทั้งหมด. `/alerts/infer` เชื่อม A+B แล้ว; tests ต้องไม่เรียก Gemini หรือ network จริง
 
 ## งานคงเหลือก่อน MVP พร้อมประเมิน
+
+ลำดับปัจจุบันคือ merge `feature-d-integration` เข้า `mai-work` ก่อน แล้วให้สาย C ใช้ `mai-work` ล่าสุดเป็นฐานสำหรับแก้ review items และ integration
 
 1. A เติม metadata platform/source หรือบันทึกเหตุผลที่ schema ปัจจุบันยังไม่มี; ตัดสินใจกับทีม/ผู้สอนเรื่อง 127 candidates เทียบเป้าหมาย 30–50
 2. B เพิ่ม semantic grounding ที่ตรวจว่า evidence สนับสนุน Technique นั้นจริง ไม่ใช่เพียง substring ทั่วไป
