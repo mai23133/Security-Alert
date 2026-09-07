@@ -11,7 +11,8 @@ from src.schemas import ATTACKInferenceResult
 
 
 def run_inference(
-    *, alert_id: str, narrative: str, retriever: BaselineRetriever, top_k: int = 5
+    *, alert_id: str, narrative: str, retriever: BaselineRetriever, top_k: int = 5,
+    use_provider: bool = True,
 ) -> ATTACKInferenceResult:
     """Run parser → router → retriever → inference → grounding.
 
@@ -19,8 +20,16 @@ def run_inference(
     and all in-scope tactics, so the endpoint remains deterministic and does
     not require Gemini credentials to operate safely.
     """
-    parsed = parse_alert(narrative)
-    tactics = route_tactics(parsed)
+    if use_provider:
+        parsed = parse_alert(narrative)
+        tactics = route_tactics(parsed)
+    else:
+        # Explicit offline evaluation, regardless of .env or process keys.
+        def offline_generate(_prompt: str) -> str:
+            raise RuntimeError("Provider disabled for offline evaluation")
+
+        parsed = parse_alert(narrative, generate=offline_generate)
+        tactics = route_tactics(parsed, generate=offline_generate)
     candidates = retriever.search(parsed.narrative, tactic=tactics, top_k=top_k)
     inferred = infer_techniques(parsed.narrative, candidates)
     grounded = link_evidence(parsed.narrative, inferred)

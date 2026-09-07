@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 
 from src.api.routes.alerts import router as alerts_router
+from src.api.routes.evaluate import router as evaluate_router
 from src.api.routes.rag import router as rag_router
 from src.api.routes.taxonomy import router as taxonomy_router
 
@@ -67,6 +68,7 @@ async def add_trace_headers(request: Request, call_next):
     return response
 
 app.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
+app.include_router(evaluate_router, tags=["evaluation"])
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
 app.include_router(taxonomy_router, prefix="/taxonomy", tags=["taxonomy"])
 

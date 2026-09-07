@@ -2,7 +2,7 @@
 
 ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-สถานะตรวจวันที่ 7 กันยายน 2026: branch mai-work ที่ commit f567aa3 รวม A+B+D ผ่าน PR #4 แล้ว และรวม CI fix ec73b10 ส่วน evaluation ของ C ยังไม่อยู่ในฐานนี้ ระบบเป็น local baseline ที่รันได้ แต่ยังไม่มีหลักฐานผ่าน quality gates ของรายวิชา
+สถานะ 7 กันยายน 2026: feature-c-integration รวม mai-work e2ee2da กับ yean-work 5d56d31 แล้ว มี dataset/metrics/runner และ /evaluate พร้อมผล runtime จริง ยังไม่ผ่าน quality gates หรือการรับรอง gold labels ดู [สรุปการรวม C](docs/C_IMPLEMENTATION_SUMMARY_TH.md)
 
 ## เริ่มอ่าน
 
@@ -27,9 +27,9 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
 git diff --check
 ~~~
 
-ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
+ก่อน C integration เข้า mai-work ต้องใช้ checkout ของ feature-c-integration เพื่อรัน /evaluate และ runner ใหม่ ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
 
-ผลตรวจรอบนี้: Python 3.11.15 ใน .venv, tests 62 passed ทั้ง workspace และสำเนา tracked files ที่สร้าง knowledge base ใหม่; compileall ผ่าน รายงานนี้ไม่ใช่ผล GitHub Actions run ล่าสุดหรือผล accuracy ของโมเดล
+ใช้ Python 3.11.15 ใน .venv; ผลตรวจ integration ล่าสุดดู docs/C_IMPLEMENTATION_SUMMARY_TH.md ไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
 
 requirements.txt ตรึงบาง package เช่น FastAPI, HTTPX และ rank-bm25 แต่หลายรายการใช้ช่วงเวอร์ชัน จึงยังไม่ใช่ dependency lock ที่ทำซ้ำได้ทุกเวอร์ชัน
 
@@ -56,7 +56,7 @@ main.py โหลด .env ด้วย python-dotenv; การกำหนด k
 | POST /rag/search | BM25 candidates ใน wrapper candidates; top_k 1–25 |
 | GET /taxonomy/techniques | list/filter tactic จาก processed candidates |
 | GET /taxonomy/techniques/{id} | รายละเอียด candidate; ไม่พบคืน 404 |
-| POST /evaluate | ยังไม่มี route; ไฟล์ implementation ว่าง |
+| POST /evaluate | ประเมิน bundled dataset 35 alerts แบบ fixture/runtime โดยปิด provider เสมอ |
 
 รายละเอียด request/response และข้อจำกัด errors อยู่ใน [API overview](docs/API_OVERVIEW_TH.md)
 
@@ -78,7 +78,7 @@ Retriever ใช้ BM25 ในหน่วยความจำ; TextEmbedder.e
 
 ## CI และขอบเขตการตรวจ
 
-.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
+.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → fixture evaluation smoke → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration/feature-c-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
 
 ~~~bash
 python -m compileall -q src eval tests
@@ -89,9 +89,20 @@ git status --short
 
 Tests ที่ผ่านไม่ยืนยัน F1, semantic safety, browser workflow หรือ production readiness และยังไม่มี global network-blocking test fixture
 
-## งานต่อไปและ privacy
+## ประเมินผล (offline แม้มี key)
 
-รวม C หลังตรวจ dataset/metrics/runner และแยก fixture report ออกจาก runtime quality report; ปิด semantic grounding, subset และ metadata gaps ตาม [handoff](docs/HANDOFF_TH.md)
+~~~bash
+python -m eval.run_eval --mode fixture
+python -m eval.run_eval --mode runtime
+python -m eval.run_eval --mode runtime --require-quality-gates
+curl -X POST http://127.0.0.1:8000/evaluate -H 'Content-Type: application/json' -d '{"mode":"runtime","top_k":5}'
+~~~
+
+CLI default เป็น fixture เพื่อเข้ากับงาน C เดิม แต่ API default runtime; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
+
+## งานต่อไปและ privacy (หลัง integration)
+
+C integration มี fixture/runtime report แล้ว งานต่อคือปิด semantic grounding, ตรวจ gold labels, subset และ metadata gaps ตาม [handoff](docs/HANDOFF_TH.md)
 
 CORS default จำกัด localhost แต่ยังไม่มี authentication/rate limiting/retention enforcement การเปิด provider ส่งข้อความออกนอกเครื่อง และ error logging ยังมี traceback จึงต้องกำหนด privacy controls ก่อนใช้ alert จริง
 

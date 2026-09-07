@@ -1,6 +1,6 @@
 # API contract ปัจจุบัน
 
-ตรวจ 7 กันยายน 2026 จาก mai-work f567aa3; [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
+ตรวจ 7 กันยายน 2026 จาก feature-c-integration (ฐาน mai-work e2ee2da + C 5d56d31); [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
 
 ## เตรียมระบบ
 
@@ -17,7 +17,7 @@
 | POST /rag/search | narrative, tactic list optional, top_k | {"candidates":[TechniqueCandidate,...]} |
 | GET /taxonomy/techniques | tactic query optional | {"count":จำนวน,"techniques":[...]} |
 | GET /taxonomy/techniques/{technique_id} | ID ไม่สนตัวพิมพ์ | TechniqueCandidate หรือ 404 |
-| POST /evaluate | ยังไม่กำหนด | ยังไม่ register route; โดยปกติ 404 |
+| POST /evaluate | mode=runtime/fixture, top_k=1–25 | report metrics/metadata/quality_gates/disclaimer จาก bundled dataset |
 
 FastAPI มี /docs, /redoc และ /openapi.json เพิ่มโดย framework UI /ui ไม่อยู่ใน OpenAPI schema
 
@@ -77,7 +77,15 @@ top_k เป็น strict integer 1–25 ค่า default 5 ไม่รับ 
 
 Taxonomy list กรอง tactic แบบ exact match ไม่มี validation แบบ RAG: ค่าไม่รู้จักคืน count=0; หากไฟล์ candidates หายหลัง app import แล้วจะคืน list ว่าง ไม่ใช่ 503
 
-## Headers และ errors
+## Evaluation
+
+POST /evaluate รับ {"mode":"runtime","top_k":5} หรือ {} (default runtime/5) mode fixture ใช้ saved predictions ส่วน runtime เรียก pipeline จริงโดย use_provider=False ปิด Gemini แม้มี key ใน .env
+
+ใช้เฉพาะ dataset จำลองที่ bundle มา 35 alerts ห้าม field dataset/output/path/provider หรือ input เพิ่มเติม; top_k strict integer 1–25 route sync ทำงานใน worker thread ไม่ block event loop และไม่บันทึก report/alert ลง disk
+
+Response มี metadata (versions/hashes/provider mode), metrics, quality_gates, numeric_gates_passed, acceptance_ready=false และ disclaimer HTTP 200 หมายถึงประเมินเสร็จ ไม่ใช่ผ่าน F1 gates; 422 สำหรับ request ผิด, 503 EVALUATION_UNAVAILABLE สำหรับข้อมูล/KB ผิดหรือหาย, 500 EVALUATION_FAILED สำหรับ unexpected failure ไม่มี exception ดิบ
+
+## Headers และ errors (ทุก API)
 
 Middleware เพิ่ม X-Request-ID และ X-MITRE-ATTaCK-Version: enterprise-attack-19.1 ให้ response ที่ผ่าน call_next สำเร็จ ค่า stix_version ใน JSON candidates/health เป็น 19.1
 

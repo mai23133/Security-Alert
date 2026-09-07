@@ -2,7 +2,7 @@ name: Security-Alert CI
 
 on:
   push:
-    branches: [main, mai-work, feature-d-integration]
+    branches: [main, mai-work, feature-d-integration, feature-c-integration]
   pull_request:
     branches: [main, mai-work]
 
@@ -25,5 +25,7 @@ jobs:
           GOOGLE_API_KEY: ""
           GEMINI_API_KEY: ""
         run: python -m pytest -q
+      - name: Validate bundled evaluation fixture
+        run: python -m eval.run_eval --mode fixture
       - name: Check whitespace errors
         run: git diff --check

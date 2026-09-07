@@ -1,18 +1,18 @@
 # รายงานตรวจโครงการปัจจุบัน
 
-ตรวจวันที่ 7 กันยายน 2026 บน mai-work commit f567aa3 (รวม D และ CI fix ec73b10) อ้างอิง [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ 3–10 และ milestones
+ตรวจวันที่ 7 กันยายน 2026 บน feature-c-integration (mai-work e2ee2da + yean-work 5d56d31) อ้างอิง [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ 3–10 และ milestones
 
 ## ผลรวม
 
-A+B+D เชื่อมเป็น local baseline แล้ว มี single/batch inference, RAG search, taxonomy และ UI จริง C ยังไม่รวม: eval/metrics.py, eval/run_eval.py และ src/api/routes/evaluate.py ว่าง ไม่มี tracked dataset ใน data/eval/ ยังไม่พร้อมประกาศผ่าน MVP quality gates หรือ production
+A+B+D เชื่อมเป็น local baseline แล้ว มี single/batch inference, RAG search, taxonomy และ UI จริง C มี RC dataset, fixture/runtime metrics runner และ /evaluate แล้ว ยังไม่พร้อมประกาศผ่าน MVP quality gates หรือ production
 
-ตรวจ tracked source, tests, UI, workflow, dependency declaration, prompts และเอกสารใน repository; ตรวจ raw STIX ด้วย ingestion และตรวจสำเนา clean checkout โดยใช้ Python environment เดิม ไม่ได้ทดสอบ live Gemini, browser automation, load test, cloud deployment หรือดึงสถานะ C/CI ล่าสุดจาก GitHub ในรอบนี้ ไม่เปิดอ่านค่า secret ใน .env
+ตรวจ tracked source, tests, UI, workflow, dependency declaration, prompts และเอกสารใน repository; ตรวจ raw STIX ด้วย ingestion และตรวจสำเนา clean checkout โดยใช้ Python environment เดิม ไม่ได้ทดสอบ live Gemini, browser automation, load test, cloud deployment หรือยืนยัน GitHub Actions run ล่าสุด; ตรวจ C 5d56d31 จาก remote และรวมแล้ว ไม่เปิดอ่านค่า secret ใน .env
 
 ## Findings เรียงตามผลกระทบ
 
 | ระดับ | หลักฐาน | ผลกระทบและแนวทางเสนอ |
 | --- | --- | --- |
-| สูง | eval/metrics.py, eval/run_eval.py, routes/evaluate.py ว่าง | ยังวัด quality gates ไม่ได้; รวม C พร้อม validation และ runtime report |
+| สูง | Runtime evaluation ของ C เชื่อมแล้ว | Exact F1 34.55% และ parent recall 52.70% ยังไม่ผ่านเป้าหมาย; ใช้ report ปรับ A/B ต่อ |
 | สูง | inferencer จับคำร่วมอย่างน้อย 2 คำ; linker ตรวจ substring; judge คืน bool | ไม่เข้าใจ negation/benign context/semantic ambiguity; เพิ่มการตรวจเชิงความหมายและ negative tests ก่อนรับมอบ |
 | สูง | alerts.py สร้าง RETRIEVER ระดับ module | clean startup ที่ไม่มี processed files ล้มก่อน route จัดการ 503; ingestion ใน CI แก้ขั้นเตรียมข้อมูลแล้ว แต่ lifecycle error handling ยังต้องพัฒนา |
 | สูงก่อนใช้ข้อมูลจริง | main.py โหลด .env; parser/router ส่ง narrative ให้ provider เมื่อมี key | ยังไม่มี consent/redaction/retention enforcement; กำหนด sandbox และนโยบายก่อนเปิด provider กับ raw alerts |
@@ -28,7 +28,7 @@ A+B+D เชื่อมเป็น local baseline แล้ว มี single/b
 | ต่ำ | taxonomy รับ tactic ที่ไม่รู้จักแล้วคืน empty list | พฤติกรรมต่างจาก rag/search ที่ 422; บันทึก contract ก่อนตัดสินใจ normalize |
 | ต่ำ | UI ส่งเฉพาะ single infer และทดสอบเพียง HTML served | ยังไม่มี batch/search/evaluate controls หรือ browser E2E; อย่าอ้างว่าทดสอบ workflow browser ครบ |
 
-ข้อขัดแย้งกับ specification ถูกบันทึกไว้ที่นี่ งานรอบนี้แก้เอกสารเท่านั้น ยังไม่เปลี่ยน architecture, schema, subset หรือ source code เพื่อกลบข้อขัดแย้ง
+ข้อขัดแย้งกับ specification ถูกบันทึกไว้ที่นี่ รอบนี้เพิ่ม evaluation integration และ explicit offline pipeline option โดยไม่เปลี่ยน canonical schema, subset, gold labels หรือ lexical rules เพื่อกลบข้อขัดแย้ง
 
 ## การตรวจที่ทำซ้ำได้
 
@@ -42,7 +42,7 @@ git diff --check
 git status --short
 ~~~
 
-ทดสอบ workspace: 62 passed ไม่มี skipped tests ใน run นี้ ตรวจสำเนา tracked files ที่ไม่มี .env/data/processed/.venv และใช้ interpreter เดิม จากนั้น ingestion → pytest: 62 passed
+Baseline ก่อน C: 62 passed; ชุด C เดิมร่วม A+B+D: 77 passed ส่วนผล integration รอบนี้ดู [C_IMPLEMENTATION_SUMMARY_TH.md](C_IMPLEMENTATION_SUMMARY_TH.md)
 
 Ingestion พบ 25,843 STIX objects และ 127 candidates/IDs: credential-access 58, execution 48, initial-access 21 มี T1110 และ T1059.001; generated files ในสำเนาอยู่ใต้ /tmp ไม่ได้เพิ่มเข้า Git
 
@@ -59,17 +59,17 @@ Compileall ผ่าน ผล whitespace/status ตรวจซ้ำหลั�
 
 ตัวอย่างแรกไม่คืน T1110 แม้ข้อความพูดถึง failed authentication; ตัวอย่างที่สองไม่ส่ง human review แม้มี benign/negation context เป็นหลักฐานว่าจับคำและ structural checks ยังไม่พอสำหรับตัดสินเจตนาหรือความกำกวม ผลนี้ไม่ใช่การคำนวณ F1/FPR บน dataset และยังไม่สรุป gold labels ของแต่ละรายการแทนผู้สอน
 
-ตรวจ candidates/allowlist ใน workspace เท่ากัน 127 IDs และ candidate version ทุกตัวเป็น 19.1; OpenAPI ยืนยันไม่มี /evaluate
+ตรวจ candidates/allowlist ใน workspace เท่ากัน 127 IDs และ candidate version ทุกตัวเป็น 19.1; OpenAPI มี /evaluate แล้วหลัง C integration
 
-## เกณฑ์ที่ยังไม่มีผลวัด (dataset evaluation)
+## ผล runtime evaluation บน RC dataset 35 alerts
 
 | เกณฑ์ specification | เป้าหมาย | สถานะ |
 | --- | --- | --- |
-| Exact technique F1 | ≥70% | ยังไม่มี runtime report |
-| Parent technique recall | ≥90% | ต้องตกลงสูตร partial credit และประเมิน |
-| Hallucinated ID rate | 0 | มี guardrail tests แต่ยังไม่มี dataset report |
-| Evidence grounding rate | ≥85% | ต้องนิยาม structural/semantic และวัด |
-| False-positive rate | รายงานบน benign controls | ยังไม่มี report |
+| Exact technique F1 | ≥70% | 34.55% ยังไม่ผ่าน |
+| Parent technique recall | ≥90% | 52.70% ยังไม่ผ่าน; ใช้ partial credit 0.5 จาก C |
+| Hallucinated ID rate | 0 | 0% ใน runtime run นี้ |
+| Evidence grounding rate | ≥85% | substring 100%; ยังไม่พิสูจน์ semantic grounding |
+| False-positive rate | รายงานบน benign controls | 40% หรือ 2/5 negatives |
 
 ข้อกำหนดกล่าวถึง 35 alerts, ambiguous/multi-technique 10 และ negative 5 แต่ไม่ชัดว่ากลุ่มย่อยนับรวม 35 หรือเพิ่มเป็น 50; แผน C เดิมตีความเป็น 35 รวมทั้งหมด ต้องยืนยันกับผู้สอนก่อนล็อก dataset อย่าอ้างว่าการแบ่ง 20/5/5/5 เป็นข้อกำหนดตายตัว
 

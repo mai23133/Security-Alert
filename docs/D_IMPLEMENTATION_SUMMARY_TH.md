@@ -20,7 +20,7 @@
 | CORS | จำกัด local origins ปรับผ่าน environment |
 | CI | install → ingestion → offline pytest → whitespace check |
 
-CI fix ec73b10 เพิ่ม python -m src.rag.ingest_stix ก่อน pytest เพราะ generated KB ไม่อยู่ใน clean checkout ผลตรวจล่าสุดในรอบ review: 62 passed ทั้ง workspace และ clean copy ที่ ingestion ใหม่ ไม่ได้ตรวจ run GitHub ล่าสุดในรอบนี้
+CI fix ec73b10 เพิ่ม python -m src.rag.ingest_stix ก่อน pytest เพราะ generated KB ไม่อยู่ใน clean checkout ผลตรวจเดิมก่อน C: 62 passed ทั้ง workspace และ clean copy ที่ ingestion ใหม่ ไม่ได้ตรวจ run GitHub ล่าสุดในรอบนี้
 
 ## สิ่งที่ปรับจาก D เดิม
 
@@ -34,4 +34,4 @@ Parser/router จับ provider failure แล้ว fallback ดังนั�
 
 ## จุดส่งต่อ C
 
-D merge แล้ว ให้ C ใช้ mai-work ล่าสุด ตรวจ [C checklist](C_EVALUATION_REVIEW_TH.md) ก่อนนำ dataset/metrics/runner/tests มาเชื่อม /evaluate โดยคง API/schema/UI และ CI ingestion อ่าน [รายงานรวม](PROJECT_REVIEW_TH.md) สำหรับ subset/semantic/evaluation gaps
+D merge แล้ว และ C integration พร้อม /evaluate อยู่บน feature-c-integration ดู [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) โดยคง API/schema/UI และ CI ingestion อ่าน [รายงานรวม](PROJECT_REVIEW_TH.md) สำหรับ subset/semantic/evaluation gaps

@@ -1,6 +1,6 @@
 # แผนผังและสรุปไฟล์ทั้งโปรเจกต์
 
-ตรวจวันที่ 7 กันยายน 2026 จาก mai-work f567aa3 หลังรวม A+B+D เอกสารนี้อธิบาย tracked files ทั้งชุดและ local generated files ที่เกี่ยวข้อง งานรอบนี้อัปเดตเอกสารเท่านั้น
+ตรวจ 7 กันยายน 2026 บน feature-c-integration หลังรวม A+B+C+D; ดู C_IMPLEMENTATION_SUMMARY_TH.md สำหรับไฟล์ integration ที่เพิ่ม
 
 ## ภาพรวมการใช้งาน
 
@@ -19,7 +19,7 @@ data/raw/enterprise-attack-19.1.json
     → data/processed/{technique_candidates,technique_ids}.json
     → BM25 ตอน import API และ taxonomy ตอนรับ request
 
-eval/ และ routes/evaluate.py → ยังว่าง รอ C
+eval/ และ routes/evaluate.py → fixture/runtime evaluation พร้อม /evaluate
 ~~~
 
 ลำดับที่ต้องเตรียมคือ install dependencies → ingestion → tests/API ไม่สามารถ clone แล้วข้าม ingestion ได้
@@ -83,12 +83,12 @@ Tactic ที่เก็บเป็นค่าเดียวจาก sorted
 | ไฟล์ | หน้าที่ | ข้อจำกัดที่เกี่ยวข้อง |
 | --- | --- | --- |
 | [src/api/__init__.py](../src/api/__init__.py) | package marker | ว่างโดยตั้งใจ |
-| [src/api/main.py](../src/api/main.py) | FastAPI app, .env, CORS, middleware, health, /ui, route registration | /ui อ่าน HTML ทุก request; ไม่มี auth/rate limit; ไม่ register evaluate |
+| [src/api/main.py](../src/api/main.py) | FastAPI app, .env, CORS, middleware, health, /ui, route registration | /ui อ่าน HTML ทุก request; ไม่มี auth/rate limit; register evaluate แล้ว |
 | [src/api/routes/__init__.py](../src/api/routes/__init__.py) | package marker | ว่างโดยตั้งใจ |
 | [src/api/routes/alerts.py](../src/api/routes/alerts.py) | AlertRequest/BatchAlertRequest/BatchInferenceResult, single และ batch | global RETRIEVER โหลดตอน import; จำกัด narrative/ID/batch, แปลง errors ที่จับได้ |
 | [src/api/routes/rag.py](../src/api/routes/rag.py) | RAGSearchRequest/RAGSearchResult, /rag/search | แชร์ retriever จาก alerts, top_k strict 1–25, tactic list validation |
 | [src/api/routes/taxonomy.py](../src/api/routes/taxonomy.py) | list/detail taxonomy | อ่าน candidates file ทุก request, tactic unknown→empty, ID unknown→404 |
-| [src/api/routes/evaluate.py](../src/api/routes/evaluate.py) | ตำแหน่งสำหรับ /evaluate | 0 bytes ยังไม่มี route/function |
+| [src/api/routes/evaluate.py](../src/api/routes/evaluate.py) | /evaluate ของ bundled dataset | mode/top_k bounded, ห้าม client paths, worker thread, safe errors |
 
 ดู [API overview](API_OVERVIEW_TH.md) สำหรับ payload และ error handling จริง การขาด KB ตั้งแต่ import ไม่ถูกครอบด้วย handler 503
 
@@ -100,7 +100,7 @@ Tactic ที่เก็บเป็นค่าเดียวจาก sorted
 
 tests ยืนยันว่า HTML ถูก serve และมี field binding แต่ยังไม่ทดสอบ JavaScript/browser interaction จริง
 
-## Prompts และ evaluation ที่ยังไม่ทำ
+## Prompts และ evaluation
 
 | ไฟล์ | สถานะ |
 | --- | --- |
@@ -108,11 +108,11 @@ tests ยืนยันว่า HTML ถูก serve และมี field bin
 | [prompts/v1/tactic_router.txt](../prompts/v1/tactic_router.txt) | ว่าง; runtime prompt อยู่ใน tactic_router.py |
 | [prompts/v1/inferencer.txt](../prompts/v1/inferencer.txt) | ว่าง; inferencer ปัจจุบันเป็น lexical rules |
 | [prompts/v1/grounding_judge.txt](../prompts/v1/grounding_judge.txt) | ว่าง; judge ปัจจุบันเป็น Python checks |
-| [eval/metrics.py](../eval/metrics.py) | ว่าง ไม่มี metric functions |
-| [eval/run_eval.py](../eval/run_eval.py) | ว่าง ไม่มี runner/report |
-| data/eval/ | ยังไม่มี tracked dataset ใน mai-work ที่ตรวจ |
+| [eval/metrics.py](../eval/metrics.py) | Exact micro F1, partial parent recall, substring grounding, hallucination, FPR, review และ Recall@k |
+| [eval/run_eval.py](../eval/run_eval.py) | CLI, dataset/prediction validation และ gold isolation |
+| data/eval/ | RC dataset 35 alerts, saved fixture, allowlist snapshot และ report ของ C |
 
-เก็บ placeholders เพื่อเป็นจุดรับงาน C/งาน prompt ที่วางไว้ ไม่อ้างว่ามี versioned prompt loading หรือ evaluation ที่ทำงานแล้ว
+มี evaluation แล้ว; placeholders ที่เหลือคือ prompts/v1 และ embed() เท่านั้น
 
 ## ชุดทดสอบรายไฟล์
 
@@ -131,9 +131,9 @@ tests ยืนยันว่า HTML ถูก serve และมี field bin
 | [tests/test_taxonomy_api.py](../tests/test_taxonomy_api.py) | health/header, list/filter/detail, lowercase ID, 404 และ file missing หลัง app import |
 | [tests/test_api.py](../tests/test_api.py) | D product-shell contract scenarios: root/single/batch |
 
-62 test cases ผ่านเมื่อเตรียม KB และตั้ง key ว่าง การนับรวมมี parametrized cases ไม่ใช่จำนวน functions; ไม่ได้รายงาน coverage percentage เพราะไม่ได้วัด
+62 test cases เป็นผลก่อน C; ผล integration ล่าสุดดู C_IMPLEMENTATION_SUMMARY_TH.md การนับรวมมี parametrized cases ไม่ใช่จำนวน functions; ไม่ได้รายงาน coverage percentage เพราะไม่ได้วัด
 
-Retriever tests ใช้ processed files และมี skip เมื่อไม่พบไฟล์; API collection ต้องใช้ KB ตั้งแต่ import จึงยังไม่ใช่ isolated tests ทั้งหมด CI เพิ่ม ingestion เพื่อให้พร้อม ชุดนี้ไม่มี metrics tests หรือ browser E2E และไม่ได้มี global network sentinel
+Retriever tests ใช้ processed files และมี skip เมื่อไม่พบไฟล์; API collection ต้องใช้ KB ตั้งแต่ import จึงยังไม่ใช่ isolated tests ทั้งหมด CI เพิ่ม ingestion เพื่อให้พร้อม มี metrics/integration tests และ network sentinel เฉพาะ evaluation; ยังไม่มี browser E2E/global network sentinel
 
 ## เอกสารรายไฟล์
 
@@ -153,7 +153,21 @@ Retriever tests ใช้ processed files และมี skip เมื่อ�
 | [D_INTEGRATION_REVIEW_TH.md](D_INTEGRATION_REVIEW_TH.md) | ปิด review เก่า ไม่ใช่คำสั่ง merge ซ้ำ |
 | [C_EVALUATION_REVIEW_TH.md](C_EVALUATION_REVIEW_TH.md) | เกณฑ์ตรวจ C; ไม่รับรองสถานะ branch ล่าสุด |
 
-## ไฟล์ local ที่ไม่ใช่ source ส่งมอบ
+## ไฟล์ที่เพิ่ม/นำเข้าตอนรวม C
+
+| ไฟล์ | หน้าที่ |
+| --- | --- |
+| [eval/evaluator.py](../eval/evaluator.py) | service สร้าง fixture/runtime report, pinned snapshot checks, metadata hashes และ offline adapter |
+| [tests/test_metrics.py](../tests/test_metrics.py) | formulas และ validation tests จาก C เดิม |
+| [tests/test_evaluation_integration.py](../tests/test_evaluation_integration.py) | gold overwrite, narrative/snapshot/version, network sentinel, runtime adapter และ /evaluate errors |
+| [data/eval/README.md](../data/eval/README.md) | dataset contract, RC review status และวิธีรัน |
+| [data/eval/alerts-v1.0.json](../data/eval/alerts-v1.0.json) | 35 synthetic gold alerts ยังรอ review |
+| [data/eval/saved_predictions-v1.0.json](../data/eval/saved_predictions-v1.0.json) | fixture predictions สำหรับตรวจ metrics |
+| [data/eval/technique_ids-v19.1.json](../data/eval/technique_ids-v19.1.json) | snapshot บังคับเท่ากับ generated allowlist |
+| [data/eval/report-v1.0.json](../data/eval/report-v1.0.json) | report fixture ที่นำเข้าจาก C ไม่ใช่ runtime acceptance |
+| [C_IMPLEMENTATION_SUMMARY_TH.md](C_IMPLEMENTATION_SUMMARY_TH.md) | รายงานการรวม แก้ ทดสอบ ผลจริง และงานรับรองที่ค้าง |
+
+## ไฟล์ local ที่ไม่ใช่ source ส่งมอบ (ต่อ)
 
 .env เป็น secret config; .venv/ เป็น local packages; .pytest_cache/ และ __pycache__/ เป็น cache; data/processed/ เป็น generated KB ทั้งหมดถูก ignore อย่าส่งทั้ง directory งานในเครื่องเป็น deliverable
 
@@ -161,4 +175,4 @@ Retriever tests ใช้ processed files และมี skip เมื่อ�
 
 ## สิ่งที่ควรทำต่อ
 
-อ่าน findings และตัวอย่าง inference ใน [PROJECT_REVIEW_TH.md](PROJECT_REVIEW_TH.md) ก่อนรวม C: ระบบมี API/UI ที่รันได้ แต่ยังขาด evaluation จริง, semantic grounding, subset decision และ operational controls งานเอกสารไม่เปลี่ยน algorithm หรือรับรองคุณภาพแทน tests/dataset
+อ่าน findings และตัวอย่าง inference ใน [PROJECT_REVIEW_TH.md](PROJECT_REVIEW_TH.md) หลังรวม C: ระบบมี API/UI และ evaluation จริงแล้ว แต่ยังขาด semantic grounding, subset decision และ operational controls

@@ -1,6 +1,6 @@
 # คู่มือเอกสาร
 
-อัปเดต 7 กันยายน 2026 หลัง A+B+D merge เข้า mai-work ที่ f567aa3
+อัปเดต 7 กันยายน 2026: A+B+C+D บน feature-c-integration อ่าน [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) ก่อน
 
 ## ลำดับอ่าน
 
@@ -18,7 +18,7 @@
 ## เอกสารเฉพาะสาย
 
 - [TEAM_WORK_PARALLEL_PROPOSAL_TH](TEAM_WORK_PARALLEL_PROPOSAL_TH.md): เจ้าภาพ A/B/C/D และขอบเขตการแก้ไฟล์
-- [C_EVALUATION_REVIEW_TH](C_EVALUATION_REVIEW_TH.md): เกณฑ์ตรวจ C ก่อนรวม ไม่ใช่ผลรับรอง branch C ล่าสุด
+- [C_EVALUATION_REVIEW_TH](C_EVALUATION_REVIEW_TH.md): สถานะปิดประเด็น review C และข้อจำกัดคงเหลือ
 - [D_IMPLEMENTATION_SUMMARY_TH](D_IMPLEMENTATION_SUMMARY_TH.md): งาน D ที่รวมแล้ว เครดิต และข้อจำกัด
 - [D_INTEGRATION_REVIEW_TH](D_INTEGRATION_REVIEW_TH.md): บันทึกปิด review D เดิม ย่อแทนคู่มือ merge ที่หมดอายุ
 - [A_B_PIPELINE_INTEGRATION_TH](A_B_PIPELINE_INTEGRATION_TH.md): contract ระหว่าง A/B กับ API

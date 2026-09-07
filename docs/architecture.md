@@ -1,6 +1,6 @@
 # สถาปัตยกรรมปัจจุบัน
 
-ตรวจ 7 กันยายน 2026: mai-work f567aa3 รวม A+B+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
+ตรวจ 7 กันยายน 2026: feature-c-integration รวม A+B+C+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
 
 ## เส้นทางข้อมูล
 
@@ -21,7 +21,7 @@ flowchart TD
     T -. "เมื่อเปิด key" .-> G
 ~~~
 
-ไม่มี dense vector database; TextEmbedder ใช้ tokenize เท่านั้น embed() ยังคืน [] ส่วน eval และ prompt files เป็น placeholders
+ไม่มี dense vector database; TextEmbedder ใช้ tokenize เท่านั้น embed() ยังคืน [] eval มี fixture/runtime runner และ /evaluate แล้ว; prompt files ยังเป็น placeholders
 
 ## Runtime
 
@@ -44,6 +44,12 @@ flowchart TD
 - Provider เป็น external boundary; ข้อมูลอาจออกนอกเครื่องเมื่อมี key ต้องผ่านนโยบาย sandbox ก่อนใช้ข้อมูลจริง
 - Async route เรียก synchronous SDK/pipeline; batch วนทีละ alert ยังไม่มี worker/total deadline
 
-## งานที่ยังไม่อยู่ใน architecture
+## Evaluation architecture
 
-/evaluate, metrics runner, locked evaluation dataset, semantic judge, calibrated confidence, operational privacy/auth/rate limiting และ reproducibility metadata ดู [แผนงาน](WORK_PLAN_TH.md) ก่อนเปลี่ยน schema หรือ subset
+CLI หรือ /evaluate → eval/evaluator.py → validate dataset/allowlist → fixture หรือ run_inference(use_provider=False) → adapter candidates_considered เป็น candidates → eval/metrics.py → report
+
+Runtime output ที่มี quality error ยังถูกส่งเข้า metrics ไม่ผ่าน strict fixture validator จึงวัด hallucinated IDs และ invalid evidence ได้ /evaluate รับเฉพาะ mode/top_k ของ bundled dataset และไม่เขียนไฟล์ Provider ถูกปิดแบบ explicit ใน evaluation โดย single/batch inference เดิมยังทำงานตาม key
+
+## งานที่ยังไม่อยู่ใน architecture (คงเหลือ)
+
+locked evaluation dataset, semantic judge, calibrated confidence, operational privacy/auth/rate limiting และ dependency lock ดู [แผนงาน](WORK_PLAN_TH.md) ก่อนเปลี่ยน schema หรือ subset
