@@ -1,180 +1,104 @@
-# ภาพรวม API — Security Alert → MITRE ATT&CK Inference
+# API contract ปัจจุบัน
 
-อัปเดต: 7 กันยายน 2026 (`feature-d-integration` commit `5718f2a`)
+ตรวจ 7 กันยายน 2026 จาก mai-work f567aa3; [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
 
-เอกสารนี้อธิบายภาพรวม API เป้าหมายของโครงการสำหรับใช้คุยงานและดูความสัมพันธ์ระหว่าง client, FastAPI และ inference pipeline
+## เตรียมระบบ
 
-> แหล่งอ้างอิงหลัก: `security-alert-attack-technique-inference.md`
->
-> Taxonomy ที่ใช้: MITRE ATT&CK Enterprise STIX 2.1 รุ่นตรึง `enterprise-attack-19.1`
-> ผลลัพธ์เป็นคำแนะนำ (advisory) เท่านั้น ไม่สั่งตอบสนองหรือบล็อกเหตุการณ์โดยอัตโนมัติ
->
-> สถานะปัจจุบัน: single/batch inference, RAG search, taxonomy API และ local UI พร้อมแล้ว; `/evaluate` รอรวมสาย C
+รัน python -m src.rag.ingest_stix ก่อน import app หรือเปิด uvicorn เพราะ alerts.py สร้าง retriever ทันที ทั้ง single และ search ใช้ retriever ชุดเดียวกันในหน่วยความจำ หลัง rebuild ต้อง restart server เพื่อให้ inference กับ taxonomy ใช้ข้อมูลชุดเดียวกัน
 
-## ภาพรวม
+## Endpoints
 
-```mermaid
-flowchart LR
-    U["SOC analyst / UI / API client"] -->|"HTTP JSON"| A["FastAPI"]
+| Method/path | Input | Response |
+| --- | --- | --- |
+| GET / | ไม่มี | {"status":"ok","stix_version":"19.1"} |
+| GET /ui | ไม่มี | HTML UI วิเคราะห์ alert เดี่ยว |
+| POST /alerts/infer | alert_id optional, narrative | ATTACKInferenceResult |
+| POST /alerts/infer/batch | alerts 1–25 รายการ | {"results":[ATTACKInferenceResult,...]} |
+| POST /rag/search | narrative, tactic list optional, top_k | {"candidates":[TechniqueCandidate,...]} |
+| GET /taxonomy/techniques | tactic query optional | {"count":จำนวน,"techniques":[...]} |
+| GET /taxonomy/techniques/{technique_id} | ID ไม่สนตัวพิมพ์ | TechniqueCandidate หรือ 404 |
+| POST /evaluate | ยังไม่กำหนด | ยังไม่ register route; โดยปกติ 404 |
 
-    subgraph API["Security Alert API"]
-        A --> V["Request validation"]
-        V --> P["Inference pipeline"]
-        P --> R["Response validation"]
-    end
+FastAPI มี /docs, /redoc และ /openapi.json เพิ่มโดย framework UI /ui ไม่อยู่ใน OpenAPI schema
 
-    subgraph KB["Pinned knowledge base"]
-        S["Enterprise ATT&CK STIX 2.1\nenterprise-attack-19.1"]
-        L["Allowed technique IDs\nWindows/Linux, 3 tactics"]
-    end
+## Single inference
 
-    S --> P
-    L --> P
-    R -->|"ATTACKInferenceResult"| U
-```
-
-Client ส่ง narrative ของ security alert เข้ามา แล้ว API คืน Technique ที่เกี่ยวข้องสูงสุด 1–3 รายการพร้อม confidence, tactic และข้อความหลักฐานที่พบจริงใน narrative
-
-## เส้นทางของ `POST /alerts/infer`
-
-```mermaid
-flowchart TD
-    A["POST /alerts/infer\nalert_id + narrative"] --> B["Pydantic validation"]
-    B --> C["Alert Parser\nแยก assets, actions, IOCs"]
-    C --> D["Tactic Router\nInitial Access / Execution / Credential Access"]
-    D --> E["Technique Retriever\nค้น top-k candidates"]
-    E --> F["Technique Inferencer\nเลือก 1–3 IDs"]
-    F --> G["Evidence Linker\nผูก evidence spans"]
-    G --> H["Grounding Judge\nตรวจ ID, tactic และหลักฐาน"]
-    H --> I["ATTACKInferenceResult"]
-    H -->|"ไม่ผ่านหรือไม่มั่นใจ"| J["No-match / human review"]
-    J --> I
-```
-
-Grounding Judge จะบังคับ human review หาก Technique ID/name/tactic ไม่ตรง candidate, evidence ไม่พบจริง, confidence ต่ำ, no-match, prediction ซ้ำ หรือเกิน 3 รายการ ขอบเขตปัจจุบันยังเป็น structural grounding: ยังไม่ได้พิสูจน์ semantic relationship ระหว่าง evidence กับ Technique
-
-## Endpoint เป้าหมาย
-
-| Method | Endpoint | หน้าที่ | สถานะปัจจุบัน |
-| --- | --- | --- | --- |
-| `GET` | `/` | health check และ STIX version | ใช้งานได้ |
-| `POST` | `/alerts/infer` | วิเคราะห์ alert เดี่ยวและคืน `ATTACKInferenceResult` | ใช้งานได้ระดับ baseline |
-| `POST` | `/alerts/infer/batch` | วิเคราะห์ alerts หลายรายการ สูงสุด 25 รายการ | ใช้งานได้ |
-| `GET` | `/taxonomy/techniques` | แสดง Technique ใน pinned subset; filter ตาม tactic ได้ | ใช้งานได้ |
-| `GET` | `/taxonomy/techniques/{id}` | ดูรายละเอียด Technique รายตัว | ใช้งานได้ |
-| `POST` | `/rag/search` | ดู candidates ที่ retriever ค้นได้ก่อน inference | ใช้งานได้ |
-| `POST` | `/evaluate` | ประเมิน predictions เทียบ gold dataset | วางแผน |
-
-## Contract หลัก: infer alert
-
-### Request
-
-```json
+~~~json
 {
   "alert_id": "demo-001",
-  "narrative": "Host WIN-SRV-04 logged 847 failed RDP authentication attempts, followed by execution of encoded PowerShell."
+  "narrative": "Encoded PowerShell commands were executed."
 }
-```
+~~~
 
-`alert_id` เป็น optional; API สร้าง ID ให้เมื่อไม่ได้ส่งมา
+alert_id ยาวไม่เกิน 128 และหากส่งต้องไม่ว่างหลัง trim; narrative ยาว 1–20,000 ตัวอักษรหลัง trim หากไม่ส่ง ID หรือส่ง null จะสร้าง UUID
 
-### ตัวอย่าง response เมื่อ inference ผ่าน structural grounding
+ATTACKInferenceResult มี alert_id, inferred_techniques, candidates_considered, needs_human_review และ disclaimer
 
-```json
+Prediction แต่ละรายการมี technique_id, technique_name, tactic, confidence, evidence_spans, mitre_url ส่วน candidate มี technique_id, technique_name, tactic, description_excerpt, stix_version
+
+ตัวอย่างรูปแบบ no-match (ไม่ใช่ผลที่รับประกันสำหรับ narrative ด้านบน):
+
+~~~json
 {
   "alert_id": "demo-001",
-  "inferred_techniques": [
-    {
-      "technique_id": "T1110",
-      "technique_name": "Brute Force",
-      "tactic": "credential-access",
-      "confidence": 0.91,
-      "evidence_spans": ["847 failed RDP authentication attempts"],
-      "mitre_url": "https://attack.mitre.org/techniques/T1110/"
-    },
-    {
-      "technique_id": "T1059.001",
-      "technique_name": "PowerShell",
-      "tactic": "execution",
-      "confidence": 0.87,
-      "evidence_spans": ["execution of encoded PowerShell"],
-      "mitre_url": "https://attack.mitre.org/techniques/T1059/001/"
-    }
-  ],
-  "candidates_considered": [
-    {
-      "technique_id": "T1110",
-      "technique_name": "Brute Force",
-      "tactic": "credential-access",
-      "description_excerpt": "Adversaries may use password-guessing...",
-      "stix_version": "19.1"
-    }
-  ],
-  "needs_human_review": false,
-  "disclaimer": "Advisory tagging only. Not autonomous SOC action. Verify with senior analyst."
-}
-```
-
-### Response เมื่อไม่มี inference ที่ผ่านเกณฑ์
-
-```json
-{
-  "alert_id": "benign-001",
   "inferred_techniques": [],
   "candidates_considered": [],
   "needs_human_review": true,
   "disclaimer": "Advisory tagging only. Not autonomous SOC action. Verify with senior analyst."
 }
-```
+~~~
 
-`candidates_considered` อาจมี candidate ที่ Retriever พบได้ แม้ `inferred_techniques` จะว่าง เพราะ Inferencer อาจไม่พบคำสนับสนุนเพียงพอสำหรับ candidate เหล่านั้น
+candidates_considered อาจไม่ว่างแม้ predictions ว่าง ผล 0–3 รายการเป็น baseline แบบจับคำ; confidence เป็น heuristic ไม่ใช่ probability ที่ผ่าน calibration
 
-## Contract: batch inference
+## Batch
 
-เรียก `POST /alerts/infer/batch` โดยส่ง alert 1–25 รายการ:
-
-```json
+~~~json
 {
   "alerts": [
-    {"alert_id": "batch-001", "narrative": "Multiple failed logins were detected."},
-    {"alert_id": "batch-002", "narrative": "Encoded PowerShell was executed."}
+    {"alert_id": "a-001", "narrative": "Encoded PowerShell commands."},
+    {"narrative": "Routine patch management completed."}
   ]
 }
-```
+~~~
 
-ผลลัพธ์อยู่ใน `results` ตามลำดับ input และแต่ละรายการใช้ `ATTACKInferenceResult` เดิม หากรายการหนึ่งเกิด timeout/error ระบบจะคืน safe no-match พร้อม `needs_human_review=true` ให้รายการนั้นโดยไม่ใส่ exception ลงใน prediction หรือ evidence
+ประมวลผลตามลำดับ ไม่ใช่ parallel batch หาก validation ผิดจะ 422 ทั้ง request หาก error รายการหนึ่งถูกแปลงเป็น HTTPException ใน _run_alert จะคืน no-match/review ใน results ของรายการนั้นและ HTTP 200 ของ batch ไม่มี per-item error code ใน schema ปัจจุบัน จึงแยก benign no-match กับ processing failure จาก body เพียงอย่างเดียวไม่ได้
 
-## Contract: RAG search
+## RAG search
 
-เรียก `POST /rag/search` เพื่อดู candidates จาก BM25 ก่อน inference:
-
-```json
+~~~json
 {
   "narrative": "encoded PowerShell execution",
   "tactic": ["execution"],
   "top_k": 5
 }
-```
+~~~
 
-`top_k` อยู่ในช่วง 1–25 และ tactic รับเฉพาะ `initial-access`, `execution` และ `credential-access`; เมื่อไม่ส่ง tactic หรือส่ง list ว่าง ระบบค้นทั้ง scope
+top_k เป็น strict integer 1–25 ค่า default 5 ไม่รับ bool/string; tactic รับเฉพาะ initial-access/execution/credential-access ซ้ำถูกตัดออก, []/null/ไม่ส่งหมายถึงไม่กรอง narrative ใช้ขีดจำกัดเดียวกับ single
 
-ทุก response มี `X-Request-ID` สำหรับ tracing และ `X-MITRE-ATTaCK-Version` สำหรับ pinned taxonomy metadata ค่า request ID ไม่ใช่ `alert_id`
+Taxonomy list กรอง tactic แบบ exact match ไม่มี validation แบบ RAG: ค่าไม่รู้จักคืน count=0; หากไฟล์ candidates หายหลัง app import แล้วจะคืน list ว่าง ไม่ใช่ 503
 
-## ขอบเขตและ guardrails ที่ API ต้องบังคับ
+## Headers และ errors
 
-- รับเฉพาะ alert text ที่ถือเป็น untrusted input และไม่ให้ข้อความนั้นควบคุม pipeline
-- คืนได้เฉพาะ Technique ใน subset ที่ตรึงไว้; ตัด deprecated และ revoked ออก
-- จำกัด prediction เป็น 1–3 Technique ต่อ alert
-- `evidence_spans` ต้องเป็นข้อความที่พบจริงใน `narrative`
-- ใส่ disclaimer และ `needs_human_review` ในทุกผลลัพธ์
-- ใส่ header `X-MITRE-ATTaCK-Version: enterprise-attack-19.1` ในทุก response
-- ก่อน deploy จริง ต้องจำกัด CORS และเพิ่ม authentication/rate limiting ตาม deployment target
-- ไม่เก็บข้อความ Alert นอก course sandbox และไม่มี automated response capability
+Middleware เพิ่ม X-Request-ID และ X-MITRE-ATTaCK-Version: enterprise-attack-19.1 ให้ response ที่ผ่าน call_next สำเร็จ ค่า stix_version ใน JSON candidates/health เป็น 19.1
 
-## สิ่งที่ต้องทำก่อน API ถึงภาพเป้าหมาย
+Request ID ยอมรับ ASCII letters/numbers และ . _ : - ความยาว 1–128; ค่าไม่ผ่านถูกแทน UUID ต่างจาก alert_id ไม่ควรรับประกัน headers บน unhandled exception ทุกกรณี
 
-1. เติม platform/source metadata ให้ retrieval candidates และตัดสินใจเรื่อง subset 127 รายการเทียบเป้าหมาย 30–50
-2. เพิ่ม semantic grounding และ evaluation เพื่อวัด false positive/grounding rate
-3. เพิ่ม `/evaluate` หลังสาย C พร้อม
-4. ปิด semantic grounding และประเมิน pipeline จริงกับ quality gates
-5. เลือก authentication/rate limiting, privacy/retention และ acceptance/security tests ตาม deployment target
+| HTTP | Body/เงื่อนไข |
+| --- | --- |
+| 422 | FastAPI validation detail list; ไม่ใช่ typed error wrapper เดียวกับ 500 |
+| 404 | taxonomy detail ไม่พบ ID; detail เป็น string |
+| 503 | detail.code=KNOWLEDGE_BASE_UNAVAILABLE เมื่อ OSError/FileNotFoundError หลุดถึง try ของ single/search |
+| 504 | detail.code=INFERENCE_TIMEOUT เมื่อ TimeoutError หลุดถึง single route |
+| 500 | detail.code=INTERNAL_ERROR สำหรับ Exception ที่ single จับได้ |
+
+~~~json
+{"detail":{"code":"INFERENCE_TIMEOUT","message":"Inference timed out. Human review is required."}}
+~~~
+
+ถ้า processed files ไม่มีตั้งแต่เริ่ม server จะล้มตอน import ก่อนถึง handler 503 ส่วน Gemini exception ใน parser/router ถูกจับแล้ว fallback จึงไม่จำเป็นต้องได้ 504 และไม่มี total request deadline
+
+CORS default คือ http://127.0.0.1:8000 และ http://localhost:8000 ปรับผ่าน CORS_ALLOWED_ORIGINS (comma-separated); allow GET/POST และ Content-Type/X-Request-ID ยังไม่ได้ตั้ง expose_headers ให้ frontend ข้าม origin อ่าน custom response headers
+
+## ขอบเขตความปลอดภัย
+
+Response inference มี advisory disclaimer แต่ taxonomy/search/health ไม่ได้ใช้ ATTACKInferenceResult จึงไม่มี disclaimer field แบบเดียวกัน logs ของ middleware ไม่เก็บ narrative โดยตรง แต่ exception logging ยังต้องตรวจ privacy เพิ่ม ไม่มี auth/rate limiting และยังไม่ถือว่าพร้อม production ดู [รายงาน](PROJECT_REVIEW_TH.md)

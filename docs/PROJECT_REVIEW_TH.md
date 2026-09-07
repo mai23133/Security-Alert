@@ -1,157 +1,76 @@
-# รายงานรีวิวโครงการ Security-Alert
+# รายงานตรวจโครงการปัจจุบัน
 
-วันที่ตรวจ: 24 สิงหาคม 2026
+ตรวจวันที่ 7 กันยายน 2026 บน mai-work commit f567aa3 (รวม D และ CI fix ec73b10) อ้างอิง [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ 3–10 และ milestones
 
-> หมายเหตุ: เอกสารนี้เป็นรายงานย้อนหลัง ณ วันที่ระบุ ไม่ใช่สถานะล่าสุดของโครงการ โปรดใช้ `WORK_PLAN_TH.md`, `D_IMPLEMENTATION_SUMMARY_TH.md` และ `TEAM_WORK_PARALLEL_PROPOSAL_TH.md` สำหรับสถานะงานปัจจุบัน
+## ผลรวม
 
-ขอบเขตการตรวจ: เอกสาร โค้ด ข้อมูล processed และ automated tests ใน branch `mai-work`
+A+B+D เชื่อมเป็น local baseline แล้ว มี single/batch inference, RAG search, taxonomy และ UI จริง C ยังไม่รวม: eval/metrics.py, eval/run_eval.py และ src/api/routes/evaluate.py ว่าง ไม่มี tracked dataset ใน data/eval/ ยังไม่พร้อมประกาศผ่าน MVP quality gates หรือ production
 
-ข้อกำหนดอ้างอิงหลัก: `security-alert-attack-technique-inference.md` (MITRE Enterprise ATT&CK STIX 2.1 `enterprise-attack-19.1`)
+ตรวจ tracked source, tests, UI, workflow, dependency declaration, prompts และเอกสารใน repository; ตรวจ raw STIX ด้วย ingestion และตรวจสำเนา clean checkout โดยใช้ Python environment เดิม ไม่ได้ทดสอบ live Gemini, browser automation, load test, cloud deployment หรือดึงสถานะ C/CI ล่าสุดจาก GitHub ในรอบนี้ ไม่เปิดอ่านค่า secret ใน .env
 
-## บทสรุป
+## Findings เรียงตามผลกระทบ
 
-โปรเจกต์มี **walking skeleton ที่ปลอดภัยและทดสอบได้** สำหรับส่วนฐานข้อมูล MITRE ATT&CK และ API taxonomy แต่ยัง **ไม่ใช่ระบบอนุมาน ATT&CK ที่ทำงานจริง**. `POST /alerts/infer` รับและตรวจรูปแบบ Alert ได้ ทว่าเจตนาคือคืน no-match เสมอพร้อมส่งให้มนุษย์ตรวจ จึงไม่เรียก Gemini และไม่เดา Technique โดยไม่มีหลักฐาน
-
-สิ่งที่ทำเสร็จแล้วสอดคล้องกับฐานรากของแผนงาน: schema, ingestion ของ STIX ที่ตรึงเวอร์ชัน, allowlist และ taxonomy API. ส่วนที่ยังไม่ทำคือ retrieval/index, inference/evidence/grounding, endpoint ตาม API contract ที่เหลือ, evaluation, CI และ UI/deployment. ดังนั้นสถานะที่ถูกต้องคือ **Foundation เสร็จเป็นส่วนใหญ่; Retrieval และ pipeline จริงยังไม่เริ่ม**.
-
-ผลตรวจ ณ วันที่รายงาน:
-
-```text
-python -m pytest -q  ->  17 passed in 0.16s
-git diff --check     ->  ผ่าน
-git status --short   ->  ไม่มีไฟล์เปลี่ยนแปลงก่อนเริ่มเขียนรายงานนี้
-```
-
-ไฟล์ processed มี candidate 127 รายการ และ allowlist 127 ID; ทุก candidate อยู่ใน allowlist และใช้ STIX version `19.1`:
-
-| Tactic | จำนวน candidate |
-| --- | ---: |
-| `credential-access` | 58 |
-| `execution` | 48 |
-| `initial-access` | 21 |
-
-## สิ่งที่ระบบทำได้ในปัจจุบัน
-
-```mermaid
-flowchart LR
-    A[Client / SOC analyst] -->|POST /alerts/infer| B[FastAPI + Pydantic validation]
-    B --> C[Deterministic no-match]
-    C --> D[ATTACKInferenceResult]
-    D --> E[Human review = true]
-    F[Pinned STIX 19.1] --> G[Ingestion]
-    G --> H[127 technique candidates + allowlist]
-    H --> I[GET /taxonomy/techniques]
-    H --> J[GET /taxonomy/techniques/:id]
-```
-
-เส้นทางด้านบนแยกเป็นสองส่วน: API inference ยังเป็น stub เพื่อความปลอดภัย ส่วน taxonomy API อ่านผลจาก ingestion ที่สร้างเสร็จแล้ว. ทั้งสองส่วนยังไม่เชื่อมกันเป็น RAG pipeline.
-
-## คำอธิบายโค้ดรายส่วน
-
-### Schema: `src/schemas.py`
-
-เป็นสัญญาข้อมูลกลางด้วย Pydantic และตอนนี้ใช้ชื่อฟิลด์ `tactic: str` ตรงตาม specification แล้ว.
-
-| Model | หน้าที่ | การตรวจสอบที่มี |
+| ระดับ | หลักฐาน | ผลกระทบและแนวทางเสนอ |
 | --- | --- | --- |
-| `ParsedAlert` | แทน Alert ที่แยก narrative, asset, action และ IOC | บังคับ field ตามชนิดข้อมูล |
-| `TechniqueCandidate` | Technique จาก knowledge base สำหรับให้ retriever พิจารณา | ตรวจ ID รูปแบบ `T####`/`T####.###` |
-| `InferredTechnique` | Prediction ที่ต้องส่งให้ผู้ใช้ | ตรวจ ID และ confidence ให้อยู่ในช่วง 0–1 |
-| `ATTACKInferenceResult` | response หลักของ `/alerts/infer` | บังคับ alert ID, predictions, candidates, review flag และ disclaimer |
+| สูง | eval/metrics.py, eval/run_eval.py, routes/evaluate.py ว่าง | ยังวัด quality gates ไม่ได้; รวม C พร้อม validation และ runtime report |
+| สูง | inferencer จับคำร่วมอย่างน้อย 2 คำ; linker ตรวจ substring; judge คืน bool | ไม่เข้าใจ negation/benign context/semantic ambiguity; เพิ่มการตรวจเชิงความหมายและ negative tests ก่อนรับมอบ |
+| สูง | alerts.py สร้าง RETRIEVER ระดับ module | clean startup ที่ไม่มี processed files ล้มก่อน route จัดการ 503; ingestion ใน CI แก้ขั้นเตรียมข้อมูลแล้ว แต่ lifecycle error handling ยังต้องพัฒนา |
+| สูงก่อนใช้ข้อมูลจริง | main.py โหลด .env; parser/router ส่ง narrative ให้ provider เมื่อมี key | ยังไม่มี consent/redaction/retention enforcement; กำหนด sandbox และนโยบายก่อนเปิด provider กับ raw alerts |
+| กลาง | SDK timeout 10,000 ms/3 attempts; parser/router จับ Exception แล้ว fallback | HTTP 504 ใช้ได้เมื่อ TimeoutError หลุดถึง route ไม่ใช่ทุก provider timeout; ไม่มี deadline รวมและ async route เรียก synchronous pipeline ซึ่งบล็อก event loop |
+| กลาง | inference score เริ่ม 0.45 + 0.10 ต่อ matched term และชื่อ; cap 0.90 | ผ่าน 2 คำได้อย่างน้อย 0.65 เท่ากับ review threshold จึงไม่มี low-confidence flag จาก prediction ปกติ; ยังไม่มี calibration/ambiguity detector |
+| กลาง | ingest_stix ได้ 127 candidates | ขัดกับเป้าหมาย 30–50; เลือกลด subset หรือให้ทีม/ผู้สอนอนุมัติแก้ข้อกำหนด ห้ามลดตามอำเภอใจ |
+| กลาง | candidate มี tactic เดียว เลือกตาม sorted tactics; description 300 ตัวอักษร | สูญเสีย multi-tactic context และไม่มี platform/source metadata ตาม milestone; เสนอ sidecar metadata หรือ contract revision ที่ทีมเห็นชอบ |
+| กลาง | schema ตรวจ ID format/confidence แต่ไม่บังคับ allowlist/evidence/candidate membership | ต้องใช้ pipeline guardrails; judge เพียงตั้ง review ไม่ได้ลบทุก prediction ที่ผิดเอง |
+| กลาง | logger.exception ใน alerts.py; middleware log path และ alert error log มี client alert_id | client error body ถูกทำให้ทั่วไป แต่ยังรับประกันไม่ได้ว่า logs ไม่มี sensitive data; เพิ่ม redaction และ policy |
+| กลาง | requirements ใช้ทั้ง == และ >=; prompts/v1 ทุกไฟล์ว่าง | dependency/prompt/model reproducibility ยังไม่ครบ; ทำ lock และ prompt metadata เมื่อมี evaluation |
+| กลาง | tests/test_retriever.py skip ถ้า processed files หาย | test collection ของ API ล้มก่อน skip ใน fresh checkout; CI ต้อง ingestion และควรเพิ่ม independent fixtures/network sentinel |
+| ต่ำ | taxonomy อ่าน JSON ทุก request แต่ retriever cache ตอน import | หาก regenerate ขณะ server ทำงาน taxonomy กับ inference อาจไม่ตรงกัน; restart หลัง rebuild |
+| ต่ำ | taxonomy รับ tactic ที่ไม่รู้จักแล้วคืน empty list | พฤติกรรมต่างจาก rag/search ที่ 422; บันทึก contract ก่อนตัดสินใจ normalize |
+| ต่ำ | UI ส่งเฉพาะ single infer และทดสอบเพียง HTML served | ยังไม่มี batch/search/evaluate controls หรือ browser E2E; อย่าอ้างว่าทดสอบ workflow browser ครบ |
 
-ข้อดีคือ validation ของ ID และ confidence ป้องกัน output โครงสร้างผิดระดับหนึ่ง. ข้อจำกัดคือ schema เพียงอย่างเดียวไม่ได้ยืนยันว่า ID อยู่ใน allowlist, prediction อยู่ใน candidate ที่ค้นมา หรือ evidence เป็นข้อความย่อยของ narrative; การยืนยันเหล่านี้ต้องอยู่ใน pipeline/grounding judge ซึ่งยังไม่มี.
+ข้อขัดแย้งกับ specification ถูกบันทึกไว้ที่นี่ งานรอบนี้แก้เอกสารเท่านั้น ยังไม่เปลี่ยน architecture, schema, subset หรือ source code เพื่อกลบข้อขัดแย้ง
 
-### Knowledge base ingestion: `src/rag/ingest_stix.py`
+## การตรวจที่ทำซ้ำได้
 
-โมดูลนี้แปลง STIX bundle ที่ตรึงไว้จาก `data/raw/enterprise-attack-19.1.json` เป็นข้อมูลใช้งานของ MVP.
+Python .venv 3.11.15, provider keys ทั้งสองว่าง:
 
-1. `load_stix_objects()` อ่านรายการ STIX objects จาก bundle.
-2. `external_id()` ดึง ATT&CK ID จาก reference ที่มี `source_name = mitre-attack`.
-3. `in_scope()` คัดเฉพาะ object ประเภท `attack-pattern` ที่ไม่ deprecated/revoked, มี tactic ใน `initial-access`, `execution`, หรือ `credential-access`, และรองรับ Windows หรือ Linux.
-4. `to_candidate()` สร้าง `TechniqueCandidate`; หาก technique อยู่ได้หลาย tactic จะเลือก tactic ในขอบเขตที่เรียงตามตัวอักษรเป็นค่าเดียวอย่าง deterministic.
-5. `main()` เขียน `technique_ids.json` (allowlist) และ `technique_candidates.json` ลง `data/processed/`.
+~~~bash
+python -m src.rag.ingest_stix
+GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
+python -m compileall -q src eval tests
+git diff --check
+git status --short
+~~~
 
-ผลนี้ตรงกับ guardrail สำคัญ: ไม่ให้ใช้ revoked/deprecated technique และยึด pinned STIX `19.1`. จุดที่ควรระวังคือ candidate เก็บ tactic ได้เพียงค่าเดียว แม้ STIX ต้นทางอาจผูกหลาย tactic; ข้อตกลงนี้ระบุอยู่ใน `WORK_PLAN_TH.md` และ consumer ในอนาคตต้องยอมรับข้อจำกัดดังกล่าว.
+ทดสอบ workspace: 62 passed ไม่มี skipped tests ใน run นี้ ตรวจสำเนา tracked files ที่ไม่มี .env/data/processed/.venv และใช้ interpreter เดิม จากนั้น ingestion → pytest: 62 passed
 
-### RAG: `src/rag/embedder.py` และ `src/rag/retriever.py`
+Ingestion พบ 25,843 STIX objects และ 127 candidates/IDs: credential-access 58, execution 48, initial-access 21 มี T1110 และ T1059.001; generated files ในสำเนาอยู่ใต้ /tmp ไม่ได้เพิ่มเข้า Git
 
-ทั้งสองไฟล์ว่าง จึงยังไม่มี embedding backend, index หรือการค้นหา top-k. นี่เป็นช่องว่างหลักที่ทำให้ระบบยังจับคู่ Alert กับ Technique ไม่ได้ และยังไม่มี Recall@k baseline.
+Compileall ผ่าน ผล whitespace/status ตรวจซ้ำหลังแก้เอกสาร ไม่ได้ยืนยันว่าติดตั้ง dependencies ใหม่ทุกตัวใน fresh venv หรือ GitHub Actions ล่าสุดผ่าน
 
-### Agent ที่เตรียมไว้: `src/agents/`
+## ตัวอย่างตรวจพฤติกรรมจริงแบบ offline
 
-| ไฟล์ | สิ่งที่โค้ดทำ | สถานะใช้งาน |
+เรียก run_inference กับ RETRIEVER จริงโดย key ทั้งสองว่าง ใช้ข้อความจำลอง ไม่ใช่ข้อมูลลูกค้าหรือ gold dataset ที่ผู้สอนรับรอง:
+
+| Narrative | Predictions (confidence) | needs_human_review |
 | --- | --- | --- |
-| `gemini_client.py` | อ่าน `GOOGLE_API_KEY` หรือ `GEMINI_API_KEY`, สร้าง Google GenAI client แล้วส่ง prompt | helper ที่ยังไม่มี timeout/retry/error normalization |
-| `alert_parser.py` | ส่ง narrative ให้ Gemini แยก assets, actions และ IOCs เป็น `ParsedAlert`; บังคับ narrative ใน output ให้เท่าข้อความต้นฉบับ | ยังไม่ถูกเรียกจาก API; parse JSON แบบเปราะเมื่อ model ตอบผิดรูปแบบ |
-| `tactic_router.py` | ขอให้ Gemini เลือก tactic ใน 3 ค่า; กรองค่าที่อยู่นอก scope และ fallback ไปค้นทั้งสาม tactic | ยังไม่ถูกเรียกจาก API; ยังไม่มี structured-output enforcement หรือ test |
-| `technique_inferencer.py` | ไม่มีโค้ด | ยังไม่ทำ |
-| `evidence_linker.py` | ไม่มีโค้ด | ยังไม่ทำ |
-| `grounding_judge.py` | ไม่มีโค้ด | ยังไม่ทำ |
+| Host WIN-SRV-04 logged 847 failed RDP authentication attempts, followed by execution of encoded PowerShell. | T1059.001 (0.75), T1574.014 (0.65) | false |
+| Authorized administrator used PowerShell commands for routine maintenance. No malicious activity was observed. | T1059.001 (0.75), T1072 (0.75), T1204 (0.65) | false |
 
-โค้ด parser/router แสดงทิศทางที่ตั้งใจไว้ แต่ไม่ควรเปิดใช้ในสภาพนี้: Alert เป็น untrusted input ตาม specification, ข้อความถูกต่อเข้ากับ prompt โดยตรง และยังไม่มี guardrail สำหรับ prompt injection, timeout, retry, typed error หรือ mock test. การที่ API ปัจจุบันไม่เรียกโค้ดชุดนี้จึงเป็นสถานะที่ปลอดภัยกว่า.
+ตัวอย่างแรกไม่คืน T1110 แม้ข้อความพูดถึง failed authentication; ตัวอย่างที่สองไม่ส่ง human review แม้มี benign/negation context เป็นหลักฐานว่าจับคำและ structural checks ยังไม่พอสำหรับตัดสินเจตนาหรือความกำกวม ผลนี้ไม่ใช่การคำนวณ F1/FPR บน dataset และยังไม่สรุป gold labels ของแต่ละรายการแทนผู้สอน
 
-### FastAPI: `src/api/`
+ตรวจ candidates/allowlist ใน workspace เท่ากัน 127 IDs และ candidate version ทุกตัวเป็น 19.1; OpenAPI ยืนยันไม่มี /evaluate
 
-`src/api/main.py` สร้างแอป FastAPI, โหลด `.env`, register routes และเติม header `X-MITRE-ATTaCK-Version: enterprise-attack-19.1` ให้ทุก response เพื่อ attribution/version traceability. `GET /` เป็น health check.
+## เกณฑ์ที่ยังไม่มีผลวัด (dataset evaluation)
 
-| Endpoint | พฤติกรรมปัจจุบัน | สถานะเทียบ specification |
+| เกณฑ์ specification | เป้าหมาย | สถานะ |
 | --- | --- | --- |
-| `GET /` | คืน `status` และ STIX version | มีเพิ่มจาก contract เพื่อ health check |
-| `GET /taxonomy/techniques` | โหลด processed candidates และ filter แบบ exact match ด้วย `tactic` ได้ | ทำแล้ว |
-| `GET /taxonomy/techniques/{id}` | ค้นแบบไม่สนตัวพิมพ์; ไม่พบคืน 404 | ทำแล้ว |
-| `POST /alerts/infer` | validate `alert_id`/`narrative`, สร้าง ID หากไม่ส่งมา, คืน lists ว่างและ `needs_human_review=true` | เป็น safe stub ยังไม่ infer |
-| `POST /alerts/infer/batch` | ไม่มี | ยังไม่ทำ |
-| `POST /rag/search` | ไม่มี | ยังไม่ทำ |
-| `POST /evaluate` | ไม่มี; `evaluate.py` ว่างและไม่ได้ register route | ยังไม่ทำ |
+| Exact technique F1 | ≥70% | ยังไม่มี runtime report |
+| Parent technique recall | ≥90% | ต้องตกลงสูตร partial credit และประเมิน |
+| Hallucinated ID rate | 0 | มี guardrail tests แต่ยังไม่มี dataset report |
+| Evidence grounding rate | ≥85% | ต้องนิยาม structural/semantic และวัด |
+| False-positive rate | รายงานบน benign controls | ยังไม่มี report |
 
-`main.py` เปิด CORS ทุก origin (`*`). เหมาะกับการพัฒนาเฉพาะที่ แต่ต้องจำกัด origin และเพิ่ม authentication/rate limit ก่อน deploy ตามแผน Week 6.
+ข้อกำหนดกล่าวถึง 35 alerts, ambiguous/multi-technique 10 และ negative 5 แต่ไม่ชัดว่ากลุ่มย่อยนับรวม 35 หรือเพิ่มเป็น 50; แผน C เดิมตีความเป็น 35 รวมทั้งหมด ต้องยืนยันกับผู้สอนก่อนล็อก dataset อย่าอ้างว่าการแบ่ง 20/5/5/5 เป็นข้อกำหนดตายตัว
 
-### Prompts, evaluation และ UI
-
-มีไฟล์ prompt เวอร์ชัน `v1` สำหรับ parser/router/inferencer/grounding judge ซึ่งเป็นจุดเริ่มต้นที่ดีสำหรับ prompt versioning แต่ยังไม่มีโค้ดใน inferencer/judge ใช้จริง. `eval/metrics.py` และ `eval/run_eval.py` ว่าง, ไม่มี evaluation dataset ที่ใช้งานได้ใน `data/eval`, และ `ui/` ว่าง. ดังนั้นยังวัด Exact F1, parent recall, grounding rate, hallucinated-ID rate หรือ false-positive rate ไม่ได้ และยังไม่มีหน้าจอสำหรับ analyst.
-
-## การทดสอบที่มีและสิ่งที่ยังขาด
-
-17 tests ปัจจุบันครอบคลุม:
-
-- schema ขั้นต้นของ `TechniqueCandidate`;
-- logic คัด STIX ตาม tactic/platform/deprecated/revoked และการเขียน processed files ด้วย fixture;
-- health/header, taxonomy list/filter/detail/404 และกรณี processed file ไม่มี;
-- `/alerts/infer` ที่ต้องคืน no-match และ human-review flag.
-
-สิ่งที่ยังไม่มีคือ test ของ parser/router/Gemini, retriever, allowlist enforcement จาก end-to-end inference, evidence span, grounding judge, batch/search/evaluate endpoints, malformed/timeout/provider error, prompt injection, metrics และ evaluation dataset. Test ที่ผ่านจึงยืนยันฐานรากและ safe stub ได้ แต่ยังไม่ใช่หลักฐานว่าโมเดล infer ATT&CK ได้ถูกต้อง.
-
-## ช่องว่างและความเสี่ยงตามลำดับความสำคัญ
-
-| ระดับ | ประเด็น | ผลกระทบ | แนวทางที่ควรทำ |
-| --- | --- | --- | --- |
-| สูง | ไม่มี retrieval, inferencer, evidence linker และ grounding judge | เป้าหมายหลักคือคืน 1–3 technique พร้อม evidence ยังทำไม่ได้ | ปิด Week 2–3 ตามลำดับ: deterministic retriever ก่อน แล้วจึงสร้าง inference/grounding |
-| สูง | `/alerts/infer` ยังเป็น stub และสาม endpoint ตาม API contract ยังไม่มี | client ใช้ workflow ตาม specification ครบไม่ได้ | เชื่อม pipeline แบบ mockable แล้วเพิ่ม batch, search และ evaluate เมื่อ component พร้อม |
-| สูง | Gemini path ยังไม่มี guardrails เชิงปฏิบัติการ | เสี่ยง prompt injection, output ผิดรูปแบบ และ failure ที่คาดเดาไม่ได้เมื่อเปิดใช้ | แยก untrusted alert ออกจากคำสั่ง, validate structured output, timeout/retry, typed errors และ mock tests |
-| สูง | ไม่มี evaluation pack/metrics | ยืนยัน quality gate ของ F1, recall, grounding และ hallucination rate ไม่ได้ | สร้าง dataset ตามจำนวน/ประเภทที่ specification กำหนดและ runner ที่ทำซ้ำได้ |
-| กลาง | ไม่มี CI, lock file และ reproducible retrieval decision | ผลทดสอบ/ผล retrieval อาจเปลี่ยนตาม environment หรือ dependency | เลือก backend/index, บันทึก decision, pin/lock dependencies และทำ CI smoke test |
-| กลาง | CORS เปิดกว้าง, ไม่มี auth/rate limit/request ID/logging/privacy policy | ยังไม่พร้อม deploy หรือรับ Alert จริง | ทำ controls ตาม deployment model ใน Week 6; ห้ามส่ง raw alert ออกนอก course sandbox |
-| ต่ำ | taxonomy โหลด JSON ใหม่ทุก request และ filter tactic ไม่ validate | ยังไม่กระทบ MVP ขนาดเล็ก แต่ scaling/error UX จำกัด | cache หลังมี lifecycle ที่ชัดเจน และคืน 422 สำหรับ tactic ที่ไม่รองรับหากเป็น contract ที่ทีมตกลง |
-
-## แผนทำงานที่แนะนำ
-
-```mermaid
-flowchart LR
-    A[1. ตัดสินใจ embedding/index] --> B[2. Build index จาก pinned candidates]
-    B --> C[3. Deterministic retriever + Recall@k]
-    C --> D[4. Inferencer + evidence + grounding]
-    D --> E[5. เชื่อม /alerts/infer และ mock tests]
-    E --> F[6. Dataset + metrics + evaluation report]
-    F --> G[7. CI, UI และ deployment guardrails]
-```
-
-1. บันทึก decision ของ embedding backend, metadata/index format และขั้นตอน rebuild; ต้องใช้ `data/processed` และ allowlist ที่ตรึงไว้เท่านั้น.
-2. ทำ retriever ที่กำหนด top-k, filter tactic และมีผลเรียงลำดับซ้ำได้; เพิ่ม test allowlist/determinism พร้อม Recall@1/@3/@5 baseline.
-3. ทำ inferencer ให้เลือกได้เฉพาะ retrieved candidates; evidence linker ต้องยืนยันว่า spans ปรากฏจริงใน narrative; grounding judge ต้อง reject candidate/ID/evidence ที่ไม่ผ่านและตั้ง human review ในกรณีเสี่ยง.
-4. เชื่อม pipeline เข้ากับ `/alerts/infer` ด้วย interface ที่ mock ได้ แล้วเพิ่ม API contract ที่ขาดโดยไม่เรียก provider จริงใน test.
-5. สร้าง evaluation pack ตาม specification (35 alerts, 10 ambiguous/multi-technique, 5 negative controls), metrics และ report ที่เก็บ STIX/model/prompt/dataset versions.
-6. ก่อน deploy จึงทำ CI, CORS allowlist, authentication/rate limiting ตาม environment, request ID/logging, privacy/retention, UI และ acceptance/security tests.
-
-## ข้อสรุปการรับมอบ
-
-โครงการพร้อมเป็นฐานสำหรับพัฒนา MVP ต่อ: STIX subset, schema และ taxonomy API มีหลักฐานทดสอบ และ safe no-match behavior ไม่ละเมิดข้อห้ามเรื่องการสร้าง ATT&CK ID เอง. อย่างไรก็ตาม ยังไม่ควรนำเสนอว่าเป็นระบบ ATT&CK inference สำเร็จรูปหรือใช้ประเมิน quality gate จนกว่าจะมี retrieval, evidence grounding, evaluation และ deployment guardrails ตามรายการข้างต้น.
+ดูรายละเอียดไฟล์ใน [PROJECT_FILE_MAP_TH.md](PROJECT_FILE_MAP_TH.md) และลำดับแก้ใน [WORK_PLAN_TH.md](WORK_PLAN_TH.md)

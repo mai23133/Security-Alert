@@ -1,101 +1,44 @@
-# รายการแก้ไขสาย C ก่อนรวมงาน
+# Checklist สาย C ก่อนรวมเข้า mai-work
 
-อัปเดตบริบท: 7 กันยายน 2026
-ฐานที่สาย C ต้องใช้ก่อน integration: `mai-work` หลัง merge `feature-d-integration`
-สถานะ branch ที่ตรวจล่าสุด: `origin/yean-work` commit `cf1bbbf`
+อัปเดต 7 กันยายน 2026 หลัง D merge f567aa3; เอกสารนี้เป็นเกณฑ์ตรวจรับ ไม่ใช่ผล review branch C ล่าสุด
 
-> ก่อนเริ่มรวมให้อ่าน `D_IMPLEMENTATION_SUMMARY_TH.md` และคง single/batch inference, `/rag/search`, request headers, CI และ UI ปัจจุบันไว้
+Review เดิมอ้าง origin/yean-work cf1bbbf ซึ่งเก่ากว่า remote-tracking ref ที่เคยพบ 5d56d31 รอบนี้ตรวจโครงการบน mai-work เท่านั้น จึงไม่ยืนยันว่าข้อแก้ใดเสร็จหรือยังค้างบน C ปัจจุบัน ต้องเทียบ diff และรัน tests จาก branch C ใหม่ก่อน merge
 
-เอกสารนี้สรุปผล review branch `yean-work` ของสาย C (Dataset และ Evaluation) เพื่อใช้แก้ไขก่อน merge เข้า `mai-work`.
+## สถานะในฐานรวม
 
-## สถานะโดยย่อ
+eval/metrics.py, eval/run_eval.py และ src/api/routes/evaluate.py ว่าง ไม่มี tracked data/eval/; การรัน module runner ว่างแล้ว exit 0 ไม่ได้แปลว่า evaluation สำเร็จ
 
-งานสาย C มี foundation ที่ดีและรันแบบ offline ได้:
+## 1. ยืนยัน dataset contract
 
-- Dataset synthetic/sanitized 35 alerts
-- 5 multi-technique และ 5 ambiguous alerts รวม 10 กรณีพิเศษ
-- 5 negative controls
-- Metrics, evaluation runner, saved predictions และ report
-- ไม่เรียก Gemini หรือ network
+Spec ระบุ 35 alerts, ambiguous/multi-technique 10 และ negative controls 5 แต่ไม่ชัดว่ารวมใน 35 หรือแยกเพิ่ม แผนเดิม C ใช้รวม 35 แบ่ง 20 positive/5 multi/5 ambiguous/5 negative ให้ยืนยันการนับกับผู้สอนก่อนล็อก ไม่ถือรายละเอียดแบ่งย่อยนี้เป็นข้อกำหนดใหม่
 
-อย่างไรก็ตาม ยังมีรายการต่อไปนี้ที่ต้องแก้หรือยืนยันก่อน merge เพื่อให้ตรงกับ `security-alert-attack-technique-inference.md`.
+ตรวจ unique alert_id, category ที่ตกลง, nonempty narrative, gold IDs 1–3 ในกรณีโจมตีและ [] สำหรับ negative; IDs ต้องอยู่ pinned allowlist Labels ต้องผ่านการตรวจของผู้สอนและระบุ provenance/sanitization/version
 
-## 1. แก้ Parent Technique Recall ให้เป็น partial credit
+## 2. Metrics ต้องวัดข้อผิดพลาดได้จริง
 
-ข้อกำหนดระบุว่า เมื่อทำนาย parent ของ gold sub-technique ต้องได้ **คะแนนบางส่วน** ไม่ใช่คะแนนเต็ม
+Exact multi-label F1, parent recall แบบ partial credit, evidence grounding, hallucinated IDs, false positives บน negative controls รวม top-k recall/human-review ตาม milestones
 
-โค้ดปัจจุบันใน `eval/metrics.py` ให้คะแนนเต็ม เช่น:
+กำหนดน้ำหนัก parent match เช่น 0.5 เป็นข้อเสนอ ไม่ใช่ค่าที่ spec กำหนด พร้อมทดสอบ exact/parent/sibling/empty cases และ denominator ของทุก metric
 
-```text
-gold:      T1059.001
-predicted: T1059
-ผลปัจจุบัน: parent recall = 1.0
-```
+ตรวจ duplicate/missing/extra prediction alert IDs แยก schema errors จาก quality errors: runtime prediction ที่มี hallucinated ID ต้องนับใน metric หรือรายงานผิด contract อย่างชัดเจน ไม่กรองทิ้งเงียบ ๆ จนได้ hallucinated-ID rate=0
 
-สิ่งที่ต้องทำ:
+## 3. ผูก taxonomy กับ pinned source
 
-1. ทีมกำหนดน้ำหนัก partial credit ที่ใช้ร่วมกัน เช่น `0.5` หรือค่าอื่นที่ตกลง
-2. เขียน constant และอธิบายสูตรใน docstring/README ของ evaluation
-3. แก้ `parent_technique_recall()` ให้ exact match ได้ 1.0 และ parent match ได้เฉพาะน้ำหนัก partial credit
-4. แก้ test ที่ปัจจุบันคาด `1.0` ให้ตรวจค่าน้ำหนักใหม่
+ใช้ processed technique_ids.json ที่สร้างจาก raw 19.1 เป็น default หรือถ้ามี snapshot ต้องตรวจ equality/hash/version หลัง ingestion ไม่สร้าง allowlist อีกชุดที่ล้าสมัย
 
-## 2. เพิ่ม validation ความสมบูรณ์ของ dataset และ predictions
+## 4. แยก fixture report กับ runtime report
 
-`validate_dataset()` ปัจจุบันตรวจจำนวนรวม, 10 กรณีพิเศษ, 5 negative และ gold IDs ใน allowlist แล้ว แต่ควรเพิ่มการตรวจดังนี้:
+Saved predictions ที่สร้างให้ถูกใช้ทดสอบ metrics เท่านั้น ระบุ report_kind=fixture_validation และ not_a_runtime_quality_gate=true
 
-- `alert_id` ของ dataset ต้องไม่ซ้ำ
-- `alert_id` ของ saved predictions ต้องไม่ซ้ำ และมีจำนวนเท่ากับ dataset
-- category ต้องเป็นหนึ่งใน `positive`, `multi_technique`, `ambiguous`, `negative`
-- ต้องมี 20 positive, 5 multi-technique, 5 ambiguous และ 5 negative
-- negative control ต้องมี `gold_technique_ids=[]`
-- positive/multi/ambiguous ต้องมี gold IDs 1–3 รายการ
-- ทุก prediction/candidate ID ต้องตรวจรูปแบบและอยู่ใน allowlist เมื่อเป็นผล fixture ที่อ้างว่าใช้ pinned subset
+Runtime report ต้องมาจาก run_inference/API จริง เก็บ commit, dataset/STIX/prompt/model versions, timestamp, provider/fallback mode และ parameters; ห้ามตีความ fixture 100% ว่าโมเดลผ่าน gates
 
-ควรเพิ่ม test สำหรับทุกกรณีผิดรูปแบบข้างต้น เพื่อให้ runner fail เร็วและอธิบายสาเหตุได้ชัดเจน
+## 5. รวมงานตามลำดับ
 
-## 3. ผูก evaluation allowlist กับ source of truth
+1. อัปเดต branch C จาก mai-work หลังรวม D และตรวจ conflicts รายไฟล์
+2. ตรวจ data/metrics/runner/tests และรายงานก่อนรวม
+3. กำหนด contract ของ /evaluate และวิธีเลือก dataset ที่ validate ได้ ไม่ยอมให้ client อ่าน path ใดก็ได้
+4. คง single/batch/search/UI และ workflow ingestion พร้อม empty provider keys
+5. รัน pytest และ runner ที่มี implementation จริง แล้วตรวจผล gates ตาม specification
+6. ใช้เอกสารสถานะ mai-work เป็นฐาน เพิ่มรายละเอียด C ที่ยืนยันแล้วเท่านั้น
 
-ไฟล์ `data/eval/technique_ids-v19.1.json` ตรงกับ `data/processed/technique_ids.json` ในปัจจุบัน (127 IDs) แต่เป็น snapshot แยก จึงเสี่ยงล้าสมัยเมื่อ regenerate taxonomy
-
-เลือกอย่างใดอย่างหนึ่ง:
-
-1. ใช้ `data/processed/technique_ids.json` เป็น default allowlist ของ runner โดยตรง หรือ
-2. เก็บ snapshot ต่อไป แต่เพิ่ม test ที่บังคับให้ snapshot เท่ากับ allowlist หลักทุก ID ก่อนรัน evaluation
-
-ต้องคง `data/raw/enterprise-attack-19.1.json` และ processed allowlist เป็น taxonomy source of truth ตาม specification
-
-## 4. แยก report สำหรับ fixture ออกจากผล pipeline จริง
-
-`saved_predictions-v1.0.json` ตั้งใจเป็น fixture สำหรับทดสอบ metric และให้ผลสมบูรณ์ จึงทำให้ report ได้ F1/grounding 100%.
-
-สิ่งนี้เหมาะกับการทดสอบ framework แต่ **ไม่ใช่ผลคุณภาพของ `/alerts/infer` จริง**. ให้เพิ่ม metadata หรือข้อความใน report/README เช่น:
-
-```text
-report_kind: fixture_validation
-not_a_runtime_quality_gate: true
-```
-
-เมื่อ pipeline จริงพร้อมประเมิน ให้สร้าง report แยกที่ระบุ model, prompt, dataset และ STIX version ของ run นั้น
-
-## 5. แก้ conflict เอกสารก่อน merge
-
-`yean-work` แก้ `docs/TEAM_WORK_PARALLEL_PROPOSAL_TH.md` จากฐานเอกสารเก่า ซึ่ง conflict กับสถานะล่าสุดหลัง A+B+D.
-
-แนวทาง merge:
-
-- ใช้ไฟล์จาก `mai-work` หลัง merge D เป็นฐาน เพราะสะท้อน A+B+D ที่เชื่อมแล้ว
-- นำเฉพาะรายละเอียดของ C เช่น dataset, metrics, runner และ acceptance criteria ที่ยังขาดเข้ามา
-- ห้ามคืนสถานะ `/alerts/infer` ไปเป็น no-match stub หรือบอกว่า A/B/D ยังไม่เชื่อม และห้ามลบ batch/search/UI/CI
-
-## ก่อนส่งให้ merge อีกครั้ง
-
-รันจาก root ของ repository:
-
-```bash
-python -m pytest -q
-python -m eval.run_eval
-git diff --check
-git status --short
-```
-
-และให้สมาชิกทีมคนที่สอง review gold labels ก่อนเปลี่ยน dataset จาก `1.0.0-rc1` เป็น version ที่ล็อกแล้ว
+เกณฑ์ quality gates และ gaps รวมอยู่ใน [PROJECT_REVIEW_TH.md](PROJECT_REVIEW_TH.md); วิธีเตรียมระบบใน [README](../README.md)
