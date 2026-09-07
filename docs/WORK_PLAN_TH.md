@@ -1,6 +1,6 @@
 # แผนงานหลังรวม C
 
-อัปเดต 7 กันยายน 2026 บน feature-c-integration: ฐาน mai-work e2ee2da รวม yean-work 5d56d31 แล้ว [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) ยังคงเดิม
+อัปเดต 7 กันยายน 2026 บน mai-work: ฐาน e2ee2da รวม yean-work 5d56d31 ที่ commit 6b3a38c แล้ว [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) ยังคงเดิม
 
 | สาย | ส่งมอบ | งานคงเหลือ |
 | --- | --- | --- |

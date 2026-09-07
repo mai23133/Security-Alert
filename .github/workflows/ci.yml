@@ -26,6 +26,6 @@ jobs:
           GEMINI_API_KEY: ""
         run: python -m pytest -q
       - name: Validate bundled evaluation fixture
-        run: python -m eval.run_eval --mode fixture
+        run: python -m eval.run_eval --mode fixture --subset iteration-2
       - name: Check whitespace errors
         run: git diff --check

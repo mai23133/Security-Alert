@@ -1,6 +1,6 @@
 # แผนผังและสรุปไฟล์ทั้งโปรเจกต์
 
-ตรวจ 7 กันยายน 2026 บน feature-c-integration หลังรวม A+B+C+D; ดู C_IMPLEMENTATION_SUMMARY_TH.md สำหรับไฟล์ integration ที่เพิ่ม
+ตรวจ 7 กันยายน 2026 บน mai-work หลังรวม A+B+C+D; ดู C_IMPLEMENTATION_SUMMARY_TH.md สำหรับไฟล์ integration ที่เพิ่ม
 
 ## ภาพรวมการใช้งาน
 
@@ -109,8 +109,11 @@ tests ยืนยันว่า HTML ถูก serve และมี field bin
 | [prompts/v1/inferencer.txt](../prompts/v1/inferencer.txt) | ว่าง; inferencer ปัจจุบันเป็น lexical rules |
 | [prompts/v1/grounding_judge.txt](../prompts/v1/grounding_judge.txt) | ว่าง; judge ปัจจุบันเป็น Python checks |
 | [eval/metrics.py](../eval/metrics.py) | Exact micro F1, partial parent recall, substring grounding, hallucination, FPR, review และ Recall@k |
-| [eval/run_eval.py](../eval/run_eval.py) | CLI, dataset/prediction validation และ gold isolation |
-| data/eval/ | RC dataset 35 alerts, saved fixture, allowlist snapshot และ report ของ C |
+| [eval/evaluator.py](../eval/evaluator.py) | สร้าง fixture/runtime report, metadata/hash และเลือก release subset |
+| [eval/run_eval.py](../eval/run_eval.py) | CLI, dataset/prediction validation, gold isolation และ `--subset iteration-2|full` |
+| data/eval/ | RC course pack 35 alerts, saved fixture, allowlist snapshot และ subset release 10 alerts |
+| [eval_report.md](../eval_report.md) | ผล runtime จริงของ v0.2.0 subset; ไม่อ้างว่าเป็น final quality gate |
+| [RELEASE_NOTES_v0.2.0.md](../RELEASE_NOTES_v0.2.0.md) | release assets, agents, RAG sources และสถานะ v0.2.0 |
 
 มี evaluation แล้ว; placeholders ที่เหลือคือ prompts/v1 และ embed() เท่านั้น
 

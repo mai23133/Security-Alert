@@ -12,6 +12,9 @@ alert data. All narratives are synthetic and sanitized.
 - `technique_ids-v19.1.json`: an evaluation snapshot of the Windows/Linux IDs in
   the three in-scope tactics from pinned Enterprise ATT&CK 19.1. It is not a new
   taxonomy source; `data/raw/enterprise-attack-19.1.json` remains authoritative.
+- `iteration-2-v0.2.0-subset.json`: the fixed 10-alert release subset. It keeps
+  the full 35-item course pack intact while giving Iteration 2 a bounded,
+  reproducible evaluation target.
 
 Categories contain 20 single-label positives, 5 multi-technique examples, 5
 ambiguous examples, and 5 negative controls. Ambiguous examples may still have a
@@ -19,13 +22,15 @@ reviewed expected label but are expected to set `needs_human_review`.
 
 ## Reproduction
 
-Integrated on feature-c-integration from yean-work 5d56d31. Run
+Integrated into mai-work from yean-work 5d56d31. Run
 python -m src.rag.ingest_stix first. The generated allowlist is now the default;
 the snapshot must match it exactly. Dataset narratives must be nonempty text,
 and predictions may not contain gold labels, category, or narrative fields.
 
-Use python -m eval.run_eval --mode fixture for the original saved fixture or
-python -m eval.run_eval --mode runtime for the actual offline A+B pipeline.
+Use `python -m eval.run_eval --mode fixture --subset iteration-2` for the
+original saved fixture or `python -m eval.run_eval --mode runtime --subset
+iteration-2` for the actual offline A+B pipeline. Use `--subset full` only when
+checking the complete 35-alert course pack.
 Runtime disables the provider explicitly, including when API keys are present.
 POST /evaluate exposes the same bundled-dataset evaluation without accepting paths.
 The tracked report-v1.0.json is the original C fixture report, not runtime quality.

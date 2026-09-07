@@ -17,4 +17,4 @@
 
 ย่อขั้นตอนสร้าง branch, checklist เปิด PR และ error-model ข้อเสนอเดิมออกจากเอกสารใช้งาน เพราะงานดังกล่าวเสร็จแล้วและบางข้อเสนอไม่ใช่ contract ที่เลือกจริง เนื้อหาเดิมเรียกดูจาก Git history ก่อนการอัปเดตรอบนี้ได้
 
-งานที่ยังเหลือให้ดู [รายงานล่าสุด](PROJECT_REVIEW_TH.md); รายละเอียด D และเครดิตอยู่ใน [D_IMPLEMENTATION_SUMMARY_TH.md](D_IMPLEMENTATION_SUMMARY_TH.md) รวม C บน feature-c-integration แล้ว; เกณฑ์ต่อไปคือปิด quality/deployment gaps
+งานที่ยังเหลือให้ดู [รายงานล่าสุด](PROJECT_REVIEW_TH.md); รายละเอียด D และเครดิตอยู่ใน [D_IMPLEMENTATION_SUMMARY_TH.md](D_IMPLEMENTATION_SUMMARY_TH.md) รวม C เข้า mai-work แล้ว; เกณฑ์ต่อไปคือปิด quality/deployment gaps

@@ -1,6 +1,6 @@
 # สถาปัตยกรรมปัจจุบัน
 
-ตรวจ 7 กันยายน 2026: feature-c-integration รวม A+B+C+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
+ตรวจ 7 กันยายน 2026: mai-work รวม A+B+C+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
 
 ## เส้นทางข้อมูล
 

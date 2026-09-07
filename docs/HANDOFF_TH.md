@@ -1,6 +1,6 @@
 # ส่งต่องานหลังรวม A+B+C+D
 
-อัปเดต 7 กันยายน 2026: feature-c-integration รวม C 5d56d31 บนฐาน mai-work e2ee2da และแก้ evaluation integration แล้ว อ่าน [สรุปงาน C](C_IMPLEMENTATION_SUMMARY_TH.md) ก่อน
+อัปเดต 7 กันยายน 2026: mai-work รวม C 5d56d31 บนฐาน e2ee2da ที่ commit 6b3a38c และแก้ evaluation integration แล้ว อ่าน [สรุปงาน C](C_IMPLEMENTATION_SUMMARY_TH.md) ก่อน
 
 ## เตรียมระบบ
 

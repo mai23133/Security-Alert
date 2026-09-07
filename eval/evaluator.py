@@ -16,6 +16,7 @@ from eval.run_eval import (
 from src.schemas import ATTACKInferenceResult
 
 SNAPSHOT = PROJECT_ROOT / "data/eval/technique_ids-v19.1.json"
+ITERATION_2_SUBSET = PROJECT_ROOT / "data/eval/iteration-2-v0.2.0-subset.json"
 STIX_VERSION = "enterprise-attack-19.1"
 DISCLAIMER = "Advisory evaluation only. Dataset labels require review; substring grounding is not semantic validation."
 
@@ -69,11 +70,44 @@ def runtime_predictions(dataset: dict, retriever, *, top_k: int = 5) -> dict:
     return {"predictions": predictions}
 
 
+def _select_iteration_subset(
+    dataset: dict, predictions: dict, subset_path: Path | None
+) -> tuple[dict, dict, dict]:
+    """Return a validated 5--10 item release subset, or the complete pack."""
+    if subset_path is None:
+        return dataset, predictions, {"scope": "full_course_pack", "alert_count": len(dataset["alerts"])}
+    subset = _json(subset_path)
+    alert_ids = subset.get("alert_ids")
+    if (
+        not isinstance(alert_ids, list)
+        or not 5 <= len(alert_ids) <= 10
+        or any(not isinstance(alert_id, str) or not alert_id for alert_id in alert_ids)
+        or len(alert_ids) != len(set(alert_ids))
+    ):
+        raise ValueError("evaluation subset must contain 5-10 unique nonempty alert IDs")
+    dataset_by_id = {alert["alert_id"]: alert for alert in dataset["alerts"]}
+    prediction_by_id = {prediction["alert_id"]: prediction for prediction in predictions["predictions"]}
+    missing = set(alert_ids) - set(dataset_by_id)
+    if missing:
+        raise ValueError("evaluation subset references an unknown alert ID")
+    return (
+        {**dataset, "alerts": [dataset_by_id[alert_id] for alert_id in alert_ids]},
+        {**predictions, "predictions": [prediction_by_id[alert_id] for alert_id in alert_ids]},
+        {
+            "scope": subset.get("scope", "named_subset"),
+            "version": subset.get("version", "unspecified"),
+            "alert_count": len(alert_ids),
+            "sha256": _hash(subset_path),
+        },
+    )
+
+
 def create_report(
     *, mode: Literal["fixture", "runtime"] = "runtime", top_k: int = 5,
     dataset_path: Path = DEFAULT_DATASET,
     predictions_path: Path = DEFAULT_PREDICTIONS,
     allowlist_path: Path = DEFAULT_ALLOWLIST,
+    subset_path: Path | None = None,
 ) -> dict:
     if mode not in {"fixture", "runtime"}:
         raise ValueError("mode must be fixture or runtime")
@@ -117,7 +151,10 @@ def create_report(
         prediction_hash = hashlib.sha256(
             json.dumps(predictions, sort_keys=True).encode()
         ).hexdigest()
-    records = build_records(dataset, predictions)
+    selected_dataset, selected_predictions, subset_metadata = _select_iteration_subset(
+        dataset, predictions, subset_path
+    )
+    records = build_records(selected_dataset, selected_predictions)
     metrics = evaluate(records, allowlist)
     gates = {
         "exact_f1_at_least_0_70": metrics["exact_technique"]["f1"] >= 0.70,
@@ -134,6 +171,10 @@ def create_report(
             "code_sha256": _code_hash(),
             "dataset_version": metadata["dataset_version"],
             "dataset_sha256": _hash(dataset_path),
+            "evaluation_scope": subset_metadata["scope"],
+            "evaluated_alert_count": subset_metadata["alert_count"],
+            "evaluation_subset_version": subset_metadata.get("version"),
+            "evaluation_subset_sha256": subset_metadata.get("sha256"),
             "label_review_status": metadata.get("label_review_status", "unspecified"),
             "stix_version": STIX_VERSION,
             "stix_sha256": _hash(PROJECT_ROOT / "data/raw/enterprise-attack-19.1.json"),

@@ -1,6 +1,6 @@
 # สรุปการรวมสาย C และผลการตรวจ
 
-อัปเดต 7 กันยายน 2026 บน feature-c-integration ฐาน mai-work e2ee2da รวม origin/yean-work 5d56d31 โดยรักษาประวัติและผลงานผู้พัฒนาสาย C ผ่าน merge
+อัปเดต 7 กันยายน 2026: งาน C ถูกรวมจาก origin/yean-work 5d56d31 ผ่าน feature-c-integration และ fast-forward เข้า mai-work ที่ commit 6b3a38c โดยรักษาประวัติและผลงานผู้พัฒนาสาย C
 
 ## ขอบเขตที่ทำเสร็จ
 
@@ -29,6 +29,7 @@
 | Gates กับ acceptance สับสน | แยก numeric_gates_passed และ acceptance_ready=false; fixture ไม่ใช่ runtime gate |
 | /evaluate ยังว่าง | เพิ่ม bundled-dataset endpoint, bounded input, safe errors และ worker thread |
 | Conflicts เอกสาร | แก้ 2 ไฟล์โดยยึดสถานะ mai-work แล้วอัปเดตผล C ปัจจุบัน |
+| Iteration 2 ไม่มี subset/release assets | เพิ่ม subset คงที่ 10 alerts, `eval_report.md`, `RELEASE_NOTES_v0.2.0.md` และ CI fixture smoke บน subset โดยไม่เปลี่ยน 35-item course pack |
 
 Commit metadata ระบุ HEAD ขณะรัน; หากมีงานค้าง code_sha256 ระบุ source bytes จริงได้ การรันซ้ำ metrics/prediction hash ต้องตรงกัน แต่ timestamp/commit อาจเปลี่ยน ไม่เปรียบเทียบ report ทั้งไฟล์แบบ byte-for-byte
 
@@ -40,13 +41,13 @@ Commit metadata ระบุ HEAD ขณะรัน; หากมีงาน�
 python -m pip install -r requirements.txt
 python -m src.rag.ingest_stix
 GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
-python -m eval.run_eval --mode fixture
-python -m eval.run_eval --mode runtime
+python -m eval.run_eval --mode fixture --subset iteration-2
+python -m eval.run_eval --mode runtime --subset iteration-2
 python -m eval.run_eval --mode runtime --output /tmp/security-alert-runtime.json
 python -m eval.run_eval --mode runtime --require-quality-gates
 ~~~
 
-Default CLI เป็น fixture ตาม runner เดิม Default API เป็น runtime การเพิ่ม --require-quality-gates ใช้ได้เฉพาะ runtime; exit 0 เมื่อ numeric gates ผ่าน, exit 1 เมื่อประเมินสำเร็จแต่คะแนนไม่ผ่าน, exit 2 เมื่อ input/configuration ผิด ส่วน run ปกติคืน 0 เมื่อสร้าง report สำเร็จแม้คุณภาพยังไม่ผ่าน
+Default CLI เป็น fixture บน subset 10 items; `--subset full` ใช้ตรวจ 35-item course pack. Default API เป็น runtime/full pack การเพิ่ม --require-quality-gates ใช้ได้เฉพาะ runtime; exit 0 เมื่อ numeric gates ผ่าน, exit 1 เมื่อประเมินสำเร็จแต่คะแนนไม่ผ่าน, exit 2 เมื่อ input/configuration ผิด ส่วน run ปกติคืน 0 เมื่อสร้าง report สำเร็จแม้คุณภาพยังไม่ผ่าน
 
 ## API
 
@@ -88,7 +89,7 @@ Workspace: 100 passed; clean copy ที่ไม่มี .env/data/processed �
 
 ผล runtime ของ clean copy ตรงกับ workspace; code_sha256 คือ 866dd769305b0484e0d9d563646df704173577bc472812053991f315d96c13bc และ prediction_sha256 คือ 9afa0609f1b89d4e7cf996fac98f136ed5248ec104c6ebf146b2c6dcd944a2a1 สำหรับ source ที่ตรวจครั้งนี้
 
-งานรวมอยู่บน feature-c-integration เพื่อ review ก่อนเข้า mai-work; การตรวจ local ไม่ใช่ผลรับรอง CI บน GitHub
+งานรวมเข้า mai-work แล้ว; การตรวจ local ไม่ใช่ผลรับรอง CI บน GitHub
 
 ## สิ่งที่ยังต้องให้ทีม/ผู้สอนรับรอง
 

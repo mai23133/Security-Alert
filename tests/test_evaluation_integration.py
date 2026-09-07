@@ -85,6 +85,15 @@ def test_fixture_and_runtime_are_distinct_and_offline(monkeypatch):
     assert calls == []
 
 
+def test_iteration_2_release_subset_is_bounded_and_reported():
+    report = evaluator.create_report(
+        mode="runtime", subset_path=evaluator.ITERATION_2_SUBSET
+    )
+    assert report["metadata"]["evaluation_scope"] == "iteration_2_v0.2.0"
+    assert report["metadata"]["evaluated_alert_count"] == 10
+    assert report["metrics"]["alert_count"] == 10
+
+
 def test_runtime_quality_errors_reach_metrics(monkeypatch):
     import src.inference_pipeline as pipeline
 

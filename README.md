@@ -2,13 +2,14 @@
 
 ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-สถานะ 7 กันยายน 2026: feature-c-integration รวม mai-work e2ee2da กับ yean-work 5d56d31 แล้ว มี dataset/metrics/runner และ /evaluate พร้อมผล runtime จริง ยังไม่ผ่าน quality gates หรือการรับรอง gold labels ดู [สรุปการรวม C](docs/C_IMPLEMENTATION_SUMMARY_TH.md)
+สถานะ 7 กันยายน 2026: `mai-work` รวม C แล้ว มี dataset/metrics/runner, release subset 10 รายการ, `eval_report.md` และ `/evaluate` พร้อมผล runtime จริง ยังไม่ผ่าน final-demo quality gates หรือการรับรอง gold labels ดู [สรุปการรวม C](docs/C_IMPLEMENTATION_SUMMARY_TH.md) และ [release notes v0.2.0](RELEASE_NOTES_v0.2.0.md)
 
 ## เริ่มอ่าน
 
 - [ข้อกำหนดหลัก](security-alert-attack-technique-inference.md) — Source of Truth
 - [รายงานตรวจล่าสุด](docs/PROJECT_REVIEW_TH.md) — สิ่งที่ทำได้ ข้อจำกัด และผลทดสอบ
 - [สรุปไฟล์ทั้งโปรเจกต์](docs/PROJECT_FILE_MAP_TH.md) — หน้าที่และความสัมพันธ์รายไฟล์
+- [คู่มือโครงการฉบับเต็ม](docs/COMPLETE_PROJECT_GUIDE_TH.md) — data flow, การเรียกโค้ดต่อกัน, เหตุผลการออกแบบ และไฟล์ทุกกลุ่ม
 - [แผนงาน](docs/WORK_PLAN_TH.md) — งานคงเหลือและลำดับก่อนรวม C
 - [คู่มือเอกสาร](docs/PROJECT_READING_GUIDE_TH.md) — เอกสารใดใช้อ่านเรื่องอะไร
 
@@ -27,7 +28,7 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
 git diff --check
 ~~~
 
-ก่อน C integration เข้า mai-work ต้องใช้ checkout ของ feature-c-integration เพื่อรัน /evaluate และ runner ใหม่ ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
+ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
 
 ใช้ Python 3.11.15 ใน .venv; ผลตรวจ integration ล่าสุดดู docs/C_IMPLEMENTATION_SUMMARY_TH.md ไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
 
@@ -78,7 +79,7 @@ Retriever ใช้ BM25 ในหน่วยความจำ; TextEmbedder.e
 
 ## CI และขอบเขตการตรวจ
 
-.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → fixture evaluation smoke → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration/feature-c-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
+.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → fixture evaluation subset smoke → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration/feature-c-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
 
 ~~~bash
 python -m compileall -q src eval tests
@@ -92,13 +93,13 @@ Tests ที่ผ่านไม่ยืนยัน F1, semantic safety, brow
 ## ประเมินผล (offline แม้มี key)
 
 ~~~bash
-python -m eval.run_eval --mode fixture
-python -m eval.run_eval --mode runtime
+python -m eval.run_eval --mode fixture --subset iteration-2
+python -m eval.run_eval --mode runtime --subset iteration-2
 python -m eval.run_eval --mode runtime --require-quality-gates
 curl -X POST http://127.0.0.1:8000/evaluate -H 'Content-Type: application/json' -d '{"mode":"runtime","top_k":5}'
 ~~~
 
-CLI default เป็น fixture เพื่อเข้ากับงาน C เดิม แต่ API default runtime; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
+CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
 
 ## งานต่อไปและ privacy (หลัง integration)
 

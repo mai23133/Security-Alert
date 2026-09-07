@@ -1,6 +1,6 @@
 # API contract ปัจจุบัน
 
-ตรวจ 7 กันยายน 2026 จาก feature-c-integration (ฐาน mai-work e2ee2da + C 5d56d31); [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
+ตรวจ 7 กันยายน 2026 บน mai-work (ฐาน e2ee2da + C 5d56d31 ผ่าน 6b3a38c); [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
 
 ## เตรียมระบบ
 

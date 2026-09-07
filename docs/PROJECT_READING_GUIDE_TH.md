@@ -1,6 +1,6 @@
 # คู่มือเอกสาร
 
-อัปเดต 7 กันยายน 2026: A+B+C+D บน feature-c-integration อ่าน [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) ก่อน
+อัปเดต 7 กันยายน 2026: A+B+C+D อยู่บน mai-work อ่าน [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) ก่อน
 
 ## ลำดับอ่าน
 
@@ -10,10 +10,12 @@
 | 2 | [README](../README.md) | ติดตั้ง ingestion ทดสอบและเปิด UI อย่างไร |
 | 3 | [PROJECT_REVIEW_TH](PROJECT_REVIEW_TH.md) | ตอนนี้ทำได้อะไร มีข้อจำกัดอะไร ผลตรวจพิสูจน์แค่ไหน |
 | 4 | [PROJECT_FILE_MAP_TH](PROJECT_FILE_MAP_TH.md) | ทุกไฟล์ทำอะไร เชื่อมกันอย่างไร |
+| 4.1 | [COMPLETE_PROJECT_GUIDE_TH](COMPLETE_PROJECT_GUIDE_TH.md) | อ่าน flow โค้ด end-to-end, เหตุผลที่ออกแบบ และสิ่งที่ยังเหลือ |
 | 5 | [architecture](architecture.md) | เส้นทางข้อมูลและ provider boundaries |
 | 6 | [API_OVERVIEW_TH](API_OVERVIEW_TH.md) | request/response/errors จริง |
 | 7 | [WORK_PLAN_TH](WORK_PLAN_TH.md) | งานถัดไปตามลำดับ |
 | 8 | [HANDOFF_TH](HANDOFF_TH.md) | checklist สำหรับคนรับงาน C |
+| 9 | [RELEASE_NOTES_v0.2.0](../RELEASE_NOTES_v0.2.0.md) และ [eval_report](../eval_report.md) | สิ่งที่ส่งมอบใน Iteration 2 และผล runtime subset จริง |
 
 ## เอกสารเฉพาะสาย
 

@@ -181,6 +181,10 @@ def main() -> int:
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--predictions", type=Path, default=DEFAULT_PREDICTIONS)
     parser.add_argument("--allowlist", type=Path, default=DEFAULT_ALLOWLIST)
+    parser.add_argument(
+        "--subset", choices=["full", "iteration-2"], default="iteration-2",
+        help="Evaluate the v0.2.0 10-alert release subset (default) or the full course pack.",
+    )
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--require-quality-gates", action="store_true")
@@ -191,6 +195,10 @@ def main() -> int:
         report = create_report(
             mode=args.mode, top_k=args.top_k, dataset_path=args.dataset,
             predictions_path=args.predictions, allowlist_path=args.allowlist,
+            subset_path=(
+                PROJECT_ROOT / "data/eval/iteration-2-v0.2.0-subset.json"
+                if args.subset == "iteration-2" else None
+            ),
         )
     except (OSError, ValueError, TypeError, KeyError) as exc:
         parser.exit(2, f"Evaluation input/configuration error: {type(exc).__name__}\n")

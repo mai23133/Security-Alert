@@ -34,4 +34,4 @@ Parser/router จับ provider failure แล้ว fallback ดังนั�
 
 ## จุดส่งต่อ C
 
-D merge แล้ว และ C integration พร้อม /evaluate อยู่บน feature-c-integration ดู [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) โดยคง API/schema/UI และ CI ingestion อ่าน [รายงานรวม](PROJECT_REVIEW_TH.md) สำหรับ subset/semantic/evaluation gaps
+D merge แล้ว และ C integration พร้อม /evaluate อยู่บน mai-work ดู [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) โดยคง API/schema/UI และ CI ingestion อ่าน [รายงานรวม](PROJECT_REVIEW_TH.md) สำหรับ subset/semantic/evaluation gaps

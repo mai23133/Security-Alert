@@ -1,6 +1,6 @@
 # รายงานตรวจโครงการปัจจุบัน
 
-ตรวจวันที่ 7 กันยายน 2026 บน feature-c-integration (mai-work e2ee2da + yean-work 5d56d31) อ้างอิง [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ 3–10 และ milestones
+ตรวจวันที่ 7 กันยายน 2026 บน mai-work (e2ee2da + yean-work 5d56d31 ผ่าน 6b3a38c) อ้างอิง [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ 3–10 และ milestones
 
 ## ผลรวม
 

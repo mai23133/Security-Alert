@@ -1,6 +1,6 @@
 # สถานะ review C หลังแก้ integration
 
-อัปเดต 7 กันยายน 2026: รวม yean-work 5d56d31 บน feature-c-integration จาก mai-work e2ee2da รายละเอียดผลส่งมอบอยู่ใน [C_IMPLEMENTATION_SUMMARY_TH.md](C_IMPLEMENTATION_SUMMARY_TH.md)
+อัปเดต 7 กันยายน 2026: รวม yean-work 5d56d31 เข้า mai-work จากฐาน e2ee2da ที่ commit 6b3a38c รายละเอียดผลส่งมอบอยู่ใน [C_IMPLEMENTATION_SUMMARY_TH.md](C_IMPLEMENTATION_SUMMARY_TH.md)
 
 ## ปิดแล้ว
 

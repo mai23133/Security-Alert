@@ -25,6 +25,6 @@ Parser/router เรียก provider เมื่อมี keyและ fallba
 
 ## API ที่ใช้ contract นี้
 
-Single และ batch เรียก src/inference_pipeline.py; RAG search เรียก retriever ตรง ทั้งสาม endpoint เชื่อมแล้ว ส่วน /evaluate ประเมินผ่าน runtime adapter ที่ใช้ run_inference(use_provider=False) แล้วบน feature-c-integration
+Single และ batch เรียก src/inference_pipeline.py; RAG search เรียก retriever ตรง ทั้งสาม endpoint เชื่อมแล้ว ส่วน /evaluate ประเมินผ่าน runtime adapter ที่ใช้ run_inference(use_provider=False) แล้วบน mai-work
 
 62 tests คือ baseline ก่อนรวม C; ผลชุดรวมล่าสุดดู C_IMPLEMENTATION_SUMMARY_TH.md ดู [รายงาน](PROJECT_REVIEW_TH.md) และ [API overview](API_OVERVIEW_TH.md) สำหรับผลจริงและข้อจำกัด แทนตัวเลข 42 tests ของ snapshot ก่อน D
