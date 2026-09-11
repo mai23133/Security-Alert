@@ -44,7 +44,14 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m uvicorn src.api.main:app --reload
 
 main.py โหลด .env ด้วย python-dotenv; การกำหนด key ทั้งสองเป็นค่าว่างใน environment ช่วยกันค่าจาก .env เปิด provider โดยไม่ตั้งใจ หากต้องการเปิด Gemini ให้ตั้ง GOOGLE_API_KEY หรือ GEMINI_API_KEY ใน environment/.env ภายใน sandbox ที่อนุญาตก่อนรัน ตรวจ .env.example เป็นตัวอย่างและห้าม commit secret
 
-เมื่อไม่มี key: parser คง narrative แต่คืน assets/actions/IOCs ว่าง, router ค้นทั้งสาม tactics ส่วน BM25 และ inferencer ทำงานต่อได้ เมื่อมี key: parser/router อาจส่ง narrative ไป Google; ยังไม่ได้ตรวจบริการจริงหรือการรองรับ model ที่ตั้งในโค้ดในรอบนี้
+ตรวจเส้นทาง LLM จริงด้วย sample ที่ validate ผลลัพธ์ผ่าน Pydantic และจะ fail หาก
+Gemini ตอบไม่สำเร็จครบ Parser, Router และ Technique Inferencer:
+
+```bash
+python -m scripts.live_llm_smoke
+```
+
+เมื่อไม่มี key: parser คง narrative แต่คืน assets/actions/IOCs ว่าง, router ค้นทั้งสาม tactics ส่วน BM25 และ inferencer ทำงานต่อได้ เมื่อมี key: parser/router/inferencer ส่ง narrative ไป Google การตรวจ live smoke ล่าสุดผ่านด้วย `gemini-3.5-flash`
 
 ## ระบบทำอะไรได้
 
@@ -75,7 +82,11 @@ curl -X POST http://127.0.0.1:8000/alerts/infer \
 
 จำนวน 127 ยังเกินเป้าหมายประมาณ 30–50 ใน specification ต้องตัดสินใจ subset กับทีม/ผู้สอนก่อนรับมอบ ไม่เปลี่ยนข้อกำหนดให้ตรง implementation โดยอัตโนมัติ
 
-Retriever ใช้ BM25 ในหน่วยความจำ; TextEmbedder.embed() ยังเป็น placeholder คืน [] ไม่มี dense embeddings ส่วน inferencer ใช้ lexical rules ไม่เรียก LLM; evidence เป็น exact substring และ judge คืน review flag ยังไม่ตรวจ semantic grounding หรือความกำกวมครบถ้วน
+Router dispatch ไปยัง specialist แยกตาม Initial Access, Execution และ Credential
+Access แล้วรวม BM25 score เป็น global top-k เมื่อเปิด provider Gemini จะทำ structured
+candidate selection ซึ่ง Pydantic ตรวจและจำกัด ID ให้อยู่ใน retrieved candidates;
+offline eval ใช้ lexical fallback เพื่อให้ทำซ้ำได้ Evidence เป็น exact substring และ
+judge คืน review flag ยังไม่ตรวจ semantic grounding หรือความกำกวมครบถ้วน
 
 ## CI และขอบเขตการตรวจ
 

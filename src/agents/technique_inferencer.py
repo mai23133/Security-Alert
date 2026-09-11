@@ -6,9 +6,27 @@ and an alert that has insufficient lexical support becomes a no-match.
 """
 from __future__ import annotations
 
+import json
 import re
+from collections.abc import Callable
 
+from pydantic import BaseModel, Field
+
+from src.agents.gemini_client import generate_text
 from src.schemas import InferredTechnique, TechniqueCandidate
+
+
+class ProviderTechnique(BaseModel):
+    technique_id: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    evidence_spans: list[str] = Field(min_length=1)
+
+
+class ProviderInference(BaseModel):
+    techniques: list[ProviderTechnique] = Field(max_length=3)
+
+
+TextGenerator = Callable[[str], str]
 
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
@@ -89,3 +107,56 @@ def infer_techniques(
         )
         for score, candidate, spans in ranked[:max_results]
     ]
+
+
+def infer_techniques_with_provider(
+    narrative: str,
+    candidates: list[TechniqueCandidate],
+    *,
+    generate: TextGenerator = generate_text,
+) -> list[InferredTechnique]:
+    """Use an LLM for candidate selection, with a deterministic safe fallback."""
+    if not candidates:
+        return []
+    candidate_payload = [candidate.model_dump() for candidate in candidates]
+    alert_payload = json.dumps({"narrative": narrative}).replace("<", "\\u003c")
+    prompt = (
+        "Select zero to three MITRE ATT&CK techniques supported by the alert. "
+        "Return only JSON as {\"techniques\":[{\"technique_id\":\"T####\","
+        "\"confidence\":0.0,\"evidence_spans\":[\"exact quote from alert\"]}]}. "
+        "IDs must come from candidates and every evidence span must be an exact alert substring.\n"
+        f"<candidates>{json.dumps(candidate_payload)}</candidates>\n"
+        f"<untrusted_alert>{alert_payload}</untrusted_alert>"
+    )
+    try:
+        raw = generate(prompt).strip()
+        if raw.startswith("```") and raw.endswith("```"):
+            raw = raw[3:-3].strip()
+            if raw.startswith("json"):
+                raw = raw[4:].strip()
+        response = ProviderInference.model_validate_json(raw)
+        candidate_by_id = {candidate.technique_id: candidate for candidate in candidates}
+        seen: set[str] = set()
+        inferred: list[InferredTechnique] = []
+        for item in response.techniques:
+            candidate = candidate_by_id.get(item.technique_id)
+            if candidate is None or item.technique_id in seen:
+                continue
+            spans = list(dict.fromkeys(
+                span for span in item.evidence_spans
+                if len(span.strip()) >= 4 and span in narrative
+            ))
+            if not spans:
+                continue
+            seen.add(item.technique_id)
+            inferred.append(InferredTechnique(
+                technique_id=candidate.technique_id,
+                technique_name=candidate.technique_name,
+                tactic=candidate.tactic,
+                confidence=item.confidence,
+                evidence_spans=spans,
+                mitre_url=_mitre_url(candidate.technique_id),
+            ))
+        return inferred
+    except Exception:
+        return infer_techniques(narrative, candidates)

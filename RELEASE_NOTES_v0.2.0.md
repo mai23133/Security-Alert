@@ -1,8 +1,7 @@
 # Security-Alert v0.2.0 — AI core
 
-Release date: 7 September 2026
-Base branch: `mai-work`
-Release commit: `47f9925`
+Release date: 11 September 2026
+Base branch: `main`
 
 ## จุดประสงค์ของ release นี้
 
@@ -21,10 +20,13 @@ MITRE ATT&CK Technique พร้อมหลักฐานและผลปร
   evaluation
 - Pydantic contracts สำหรับ parsed alert, candidate, inferred technique และ
   final response
-- Provider boundary สำหรับ Gemini: parser/router รับ structured JSON ที่ไม่
+- Provider boundary สำหรับ Gemini: parser/router/inferencer รับ structured JSON ที่ไม่
   เชื่อถือ, validate แล้ว fallback อย่างปลอดภัยเมื่อไม่มี key/timeout/JSON ผิด
-- Candidate-bounded lexical inferencer: คืนได้ไม่เกิน 3 IDs และเลือกได้เฉพาะ
-  candidates จาก pinned knowledge base
+- Tactic Router dispatch ไปยัง specialist ของ Initial Access, Execution หรือ
+  Credential Access แล้วรวม BM25 score เป็น global top-k
+- Candidate-bounded LLM inferencer: Pydantic ตรวจ structured output, คืนได้ไม่เกิน
+  3 IDs และเลือกได้เฉพาะ candidates จาก pinned knowledge base; offline mode ใช้
+  lexical fallback ที่ทำซ้ำได้
 - Evidence linker + grounding judge: หลักฐานต้องเป็น exact substring;
   no-match, evidence ไม่ตรง, candidate mismatch, duplicate หรือ low confidence
   จะตั้ง `needs_human_review=true`
@@ -36,7 +38,7 @@ MITRE ATT&CK Technique พร้อมหลักฐานและผลปร
 ```text
 Alert Parser
   → Tactic Router
-  → BM25 Technique Retriever
+  → Tactic Specialist(s) + BM25 Technique Retriever
   → Technique Inferencer
   → Evidence Linker
   → Grounding Judge
@@ -47,8 +49,9 @@ Alert Parser
 | --- | --- |
 | Alert Parser | สกัด assets/actions/IOCs เป็น `ParsedAlert`; Gemini JSON หรือ safe fallback |
 | Tactic Router | จำกัด retrieval เป็น tactics ที่อยู่ใน scope; fallback ค้นทั้งสาม tactic |
+| Tactic Specialists | แยก retrieval ตาม tactic ที่ Router เลือกและรวมคะแนนเป็น global top-k |
 | Technique Retriever | ค้น BM25 candidates จาก generated STIX subset |
-| Technique Inferencer | lexical baseline เลือก 0–3 techniques จาก candidates เท่านั้น |
+| Technique Inferencer | Gemini structured output หรือ lexical offline fallback เลือก 0–3 techniques จาก candidates เท่านั้น |
 | Evidence Linker | เก็บ prediction ที่มี evidence span อยู่ใน narrative จริง |
 | Grounding Judge | ตัดสินว่าต้อง human review หรือไม่จาก structural guardrails |
 
@@ -106,6 +109,12 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m eval.run_eval --mode fixture --sub
 GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m eval.run_eval --mode runtime --subset iteration-2
 ```
 
+คำสั่งตรวจ live provider แยกจาก offline eval และจะ fail หาก Gemini call ใดไม่สำเร็จ:
+
+```bash
+python -m scripts.live_llm_smoke
+```
+
 ผล runtime subset: exact F1 **34.48%**, parent recall **50.00%**,
 hallucinated ID rate **0.00%**, substring grounding **100.00%**. รายละเอียด metric
 ทั้งหมดอยู่ใน `eval_report.md`.
@@ -118,8 +127,12 @@ python -m compileall -q src eval tests
 git diff --check
 ```
 
-ผลตรวจ ณ release: **101 passed**. GitHub Actions CI รัน install → KB ingestion →
+ผลตรวจล่าสุดบน `main`: **104 passed**. GitHub Actions CI รัน install → KB ingestion →
 pytest ด้วย keys ว่าง → fixture evaluation subset → whitespace check บน Python 3.11
+
+Live Gemini smoke ผ่านเมื่อ 11 กันยายน 2026 ด้วย `gemini-3.5-flash` ครบ
+Parser, Router และ Technique Inferencer โดย structured output ผ่าน Pydantic และ
+ผลลัพธ์สุดท้ายผ่าน candidate/evidence guardrails
 
 ## Security และการใช้งานอย่างปลอดภัย
 
@@ -140,7 +153,5 @@ pytest ด้วย keys ว่าง → fixture evaluation subset → whitespa
 4. `TextEmbedder.embed()` ยัง placeholder; retrieval เป็น BM25 ไม่ใช่ dense/vector RAG.
 5. ไม่มี authentication, rate limit, retention/redaction enforcement หรือ full
    production security audit.
-6. ยังไม่มี live Gemini acceptance test; test suite mock/ปิด provider เพื่อให้ทำซ้ำได้.
-
 สิ่งเหล่านี้ไม่ขัดกับ Iteration 2 pass bar ซึ่งต้องการ pipeline offline และ
 metrics report แต่ต้องปิดก่อนอ้างว่า production-ready หรือผ่าน final demo.

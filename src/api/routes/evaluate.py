@@ -17,8 +17,8 @@ class EvaluationRequest(BaseModel):
 
 
 @router.post("/evaluate")
-def evaluate_dataset(request: EvaluationRequest) -> dict:
-    """Use a worker thread; never accept paths, alerts, keys, or provider mode."""
+async def evaluate_dataset(request: EvaluationRequest) -> dict:
+    """Evaluate bundled data; never accept paths, alerts, keys, or provider mode."""
     try:
         return create_report(mode=request.mode, top_k=request.top_k)
     except (OSError, ValueError, TypeError, KeyError):

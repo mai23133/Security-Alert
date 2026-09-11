@@ -13,8 +13,8 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m eval.run_eval --mode runtime --sub
 
 The runner calls the real local pipeline with `use_provider=False`; it makes no
 network/provider call even if keys are present. The report uses BM25 top-k 5,
-the lexical baseline inferencer, parent-match credit 0.5, and exact-substring
-evidence grounding. Dataset labels are `1.0.0-rc1` and
+router-dispatched tactic specialists, the lexical offline inferencer, parent-match
+credit 0.5, and exact-substring evidence grounding. Dataset labels are `1.0.0-rc1` and
 `pending_independent_review`.
 
 ## Result

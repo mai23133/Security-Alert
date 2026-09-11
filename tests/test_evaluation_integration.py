@@ -3,7 +3,7 @@ import json
 import socket
 
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from eval import evaluator
 from eval.run_eval import (
@@ -13,6 +13,19 @@ from eval.run_eval import (
 from src.api.main import app
 from src.api.routes import evaluate as evaluate_route
 from src.schemas import ATTACKInferenceResult, InferredTechnique
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as test_client:
+        yield test_client
 
 
 @pytest.fixture
@@ -117,14 +130,14 @@ def test_runtime_quality_errors_reach_metrics(monkeypatch):
     {"dataset": "/etc/passwd"}, {"output": "/tmp/report"},
     {"mode": "online"}, {"top_k": True}, {"top_k": 0}, {"top_k": 26},
 ])
-def test_api_rejects_paths_and_unbounded_inputs(payload):
-    with TestClient(app) as client:
-        assert client.post("/evaluate", json=payload).status_code == 422
+@pytest.mark.anyio
+async def test_api_rejects_paths_and_unbounded_inputs(payload, client):
+    assert (await client.post("/evaluate", json=payload)).status_code == 422
 
 
-def test_evaluate_api_real_report():
-    with TestClient(app) as client:
-        response = client.post("/evaluate", json={})
+@pytest.mark.anyio
+async def test_evaluate_api_real_report(client):
+    response = await client.post("/evaluate", json={})
     assert response.status_code == 200
     assert response.json()["metadata"]["report_kind"] == "runtime_quality"
     assert response.json()["disclaimer"]
@@ -133,12 +146,12 @@ def test_evaluate_api_real_report():
 
 
 @pytest.mark.parametrize("error, status", [(FileNotFoundError("secret"), 503), (RuntimeError("secret"), 500)])
-def test_evaluate_api_errors_are_safe(monkeypatch, error, status):
+@pytest.mark.anyio
+async def test_evaluate_api_errors_are_safe(monkeypatch, error, status, client):
     def fail(**kwargs):
         raise error
     monkeypatch.setattr(evaluate_route, "create_report", fail)
-    with TestClient(app) as client:
-        response = client.post("/evaluate", json={})
+    response = await client.post("/evaluate", json={})
     assert response.status_code == status
     assert "secret" not in response.text
 

@@ -35,6 +35,12 @@ class BaselineRetriever:
     def search(
         self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5
     ) -> list[TechniqueCandidate]:
+        return [candidate for _, candidate in self.search_scored(narrative, tactic, top_k)]
+
+    def search_scored(
+        self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5
+    ) -> list[tuple[float, TechniqueCandidate]]:
+        """Return ranked candidates with BM25 scores for specialist aggregation."""
         if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
             raise ValueError("top_k must be a positive integer")
         if not self.bm25 or not self.candidates:
@@ -62,4 +68,4 @@ class BaselineRetriever:
 
         scored_candidates.sort(key=lambda x: (-x[0], x[1].technique_id))
 
-        return [item[1] for item in scored_candidates[:top_k]]
+        return scored_candidates[:top_k]
