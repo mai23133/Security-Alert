@@ -1,258 +1,110 @@
 # Security-Alert
 
-Security-Alert เป็นโปรเจกต์ MVP ช่วงต้นสำหรับรับข้อความ Security Alert แล้วช่วยแนะนำ MITRE ATT&CK Technique ที่เกี่ยวข้องในรูปแบบ advisory tagging เพื่อช่วยนักวิเคราะห์ SOC ตรวจสอบและตัดสินใจต่อ ไม่ใช่ระบบตอบสนองเหตุการณ์อัตโนมัติ
+ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-> สถานะปัจจุบัน: early MVP. Endpoint `/alerts/infer` คืน no-match ที่ต้องให้มนุษย์ตรวจแบบ deterministic ระหว่างรอพัฒนา retriever, inferencer, evidence linker, grounding judge และ evaluation pipeline
+สถานะ 7 กันยายน 2026: `mai-work` รวม C แล้ว มี dataset/metrics/runner, release subset 10 รายการ, `eval_report.md` และ `/evaluate` พร้อมผล runtime จริง ยังไม่ผ่าน final-demo quality gates หรือการรับรอง gold labels ดู [สรุปการรวม C](docs/C_IMPLEMENTATION_SUMMARY_TH.md) และ [release notes v0.2.0](RELEASE_NOTES_v0.2.0.md)
 
-## ขอบเขตปัจจุบัน
+## เริ่มอ่าน
 
-โปรเจกต์นี้จำกัดขอบเขต ATT&CK ไว้เพื่อทำ MVP:
+- [ข้อกำหนดหลัก](security-alert-attack-technique-inference.md) — Source of Truth
+- [รายงานตรวจล่าสุด](docs/PROJECT_REVIEW_TH.md) — สิ่งที่ทำได้ ข้อจำกัด และผลทดสอบ
+- [สรุปไฟล์ทั้งโปรเจกต์](docs/PROJECT_FILE_MAP_TH.md) — หน้าที่และความสัมพันธ์รายไฟล์
+- [คู่มือโครงการฉบับเต็ม](docs/COMPLETE_PROJECT_GUIDE_TH.md) — data flow, การเรียกโค้ดต่อกัน, เหตุผลการออกแบบ และไฟล์ทุกกลุ่ม
+- [แผนงาน](docs/WORK_PLAN_TH.md) — งานคงเหลือและลำดับก่อนรวม C
+- [คู่มือเอกสาร](docs/PROJECT_READING_GUIDE_TH.md) — เอกสารใดใช้อ่านเรื่องอะไร
 
-- Dataset: MITRE Enterprise ATT&CK `19.1`
-- Tactics: `initial-access`, `execution`, `credential-access`
-- Platforms: Windows และ Linux
-- วัตถุประสงค์: ให้คำแนะนำสำหรับ analyst review เท่านั้น
+## ติดตั้งและทดสอบจาก clean checkout
 
-## Environment ที่ตรวจแล้ว
+ใช้ Python 3.11 ให้ตรง CI หากใช้ Conda ให้สร้างและ activate environment Python 3.11 แทนสองคำสั่ง venv ด้านล่าง
 
-ตรวจใน conda environment `sec-alert311`:
-
-```bash
-conda run -n sec-alert311 python --version
-```
-
-ผลที่ตรวจได้:
-
-```text
-Python 3.11.15
-```
-
-Library หลักที่โปรเจกต์ใช้:
-
-| Package | Version ที่ตรวจใน `sec-alert311` | ใช้ทำอะไร |
-|---|---:|---|
-| `google-genai` | `2.12.1` | เรียก Google Gemini API |
-| `fastapi` | `0.139.2` | ทำ REST API |
-| `uvicorn` | `0.51.0` | รัน ASGI server |
-| `pydantic` | `2.13.4` | validate schema/request/response |
-| `python-dotenv` | `1.2.2` | โหลดค่า `.env` |
-| `pytest` | `9.1.1` | รัน automated tests |
-| `httpx` | `0.28.1` | client สำหรับ API test และ SDK |
-
-ผลตรวจล่าสุด: `conda run -n sec-alert311 python -m pytest -q` ผ่าน 17 tests
-
-## ติดตั้งจากศูนย์ด้วย Conda
-
-วิธีนี้ตรงกับ environment ปัจจุบันที่ใช้ชื่อ `sec-alert311`
-
-1. Clone repository:
-
-```bash
-git clone https://github.com/mai23133/Security-Alert.git
-cd Security-Alert
-```
-
-2. สร้าง conda environment:
-
-```bash
-conda create -n sec-alert311 python=3.11 -y
-conda activate sec-alert311
-```
-
-3. อัปเดต pip และติดตั้ง dependencies:
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m pytest -q
-```
-
-4. เช็คว่าใช้ environment ถูกตัว:
-
-```bash
-which python
-python --version
-python -m pip show google-genai fastapi uvicorn pydantic python-dotenv pytest httpx
-```
-
-ควรเห็น Python อยู่ใต้ path ประมาณนี้:
-
-```text
-/home/mai/anaconda3/envs/sec-alert311/bin/python
-```
-
-## ติดตั้งจากศูนย์โดยไม่ใช้ Conda
-
-ถ้าไม่ต้องการใช้ Anaconda/Conda สามารถใช้ `venv` ได้:
-
-```bash
-git clone https://github.com/mai23133/Security-Alert.git
+~~~bash
+git clone --branch mai-work https://github.com/mai23133/Security-Alert.git
 cd Security-Alert
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-python -m pytest -q
-```
-
-## ตั้งค่า Gemini API Key
-
-โปรเจกต์อ่าน key ได้จาก `GOOGLE_API_KEY` หรือ `GEMINI_API_KEY` โดยแนะนำให้ใช้ `GOOGLE_API_KEY`
-
-> API และ tests ในสถานะปัจจุบันไม่เรียก Gemini จึงไม่ต้องมี key เพื่อ install, run หรือทดสอบ `/alerts/infer` แบบ no-match. Key จะจำเป็นเมื่อเชื่อม inference pipeline จริงในภายหลัง
-
-สร้าง `.env` จากไฟล์ตัวอย่าง:
-
-```bash
-cp .env.example .env
-```
-
-แก้ไฟล์ `.env`:
-
-```bash
-GOOGLE_API_KEY=your_google_api_key_here
-```
-
-ห้าม commit ไฟล์ `.env` หรือ secret จริงขึ้น repository เพราะ `.env` ถูก ignore ไว้ใน `.gitignore`
-
-ถ้ายังไม่มี key ให้สร้างจาก Google AI Studio:
-
-```text
-https://aistudio.google.com/app/apikey
-```
-
-## โครงสร้างโปรเจกต์
-
-```text
-src/
-  api/                 FastAPI application และ routes
-  agents/              Alert parser และ tactic router สำหรับ pipeline ในอนาคต
-  rag/                 STIX ingestion และส่วน retrieval ที่กำลังพัฒนา
-  schemas.py           Pydantic schemas สำหรับ request/response และ ATT&CK data
-data/
-  raw/                 MITRE ATT&CK STIX bundle ที่ pin version ไว้
-  processed/           ไฟล์ technique candidates ที่ generate แล้ว
-prompts/v1/            Prompt files สำหรับ versioned prompts ในอนาคต
-tests/                 Tests สำหรับ schema, ingestion และ taxonomy API
-eval/                  Evaluation placeholders
-```
-
-## เตรียมข้อมูล ATT&CK
-
-API taxonomy อ่านข้อมูลจากไฟล์ processed เหล่านี้:
-
-- `data/processed/technique_ids.json`
-- `data/processed/technique_candidates.json`
-
-ถ้าต้องการ regenerate จาก raw STIX bundle:
-
-```bash
 python -m src.rag.ingest_stix
-```
+GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
+git diff --check
+~~~
 
-## รัน API
+ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
 
-```bash
-python -m uvicorn src.api.main:app --reload
-```
+ใช้ Python 3.11.15 ใน .venv; ผลตรวจ integration ล่าสุดดู docs/C_IMPLEMENTATION_SUMMARY_TH.md ไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
 
-จากนั้นเปิด:
+requirements.txt ตรึงบาง package เช่น FastAPI, HTTPX และ rank-bm25 แต่หลายรายการใช้ช่วงเวอร์ชัน จึงยังไม่ใช่ dependency lock ที่ทำซ้ำได้ทุกเวอร์ชัน
 
-- API root: `http://127.0.0.1:8000/`
-- OpenAPI docs: `http://127.0.0.1:8000/docs`
+## เปิด local demo แบบไม่เรียก provider
 
-ทุก response จะมี header:
+~~~bash
+GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m uvicorn src.api.main:app --reload
+~~~
 
-```text
-X-MITRE-ATTaCK-Version: enterprise-attack-19.1
-```
+เปิด http://127.0.0.1:8000/ui สำหรับกรอก alert เดี่ยว หรือ http://127.0.0.1:8000/docs สำหรับ API docs
 
-## ตัวอย่างเรียก API
+main.py โหลด .env ด้วย python-dotenv; การกำหนด key ทั้งสองเป็นค่าว่างใน environment ช่วยกันค่าจาก .env เปิด provider โดยไม่ตั้งใจ หากต้องการเปิด Gemini ให้ตั้ง GOOGLE_API_KEY หรือ GEMINI_API_KEY ใน environment/.env ภายใน sandbox ที่อนุญาตก่อนรัน ตรวจ .env.example เป็นตัวอย่างและห้าม commit secret
 
-Health check:
+เมื่อไม่มี key: parser คง narrative แต่คืน assets/actions/IOCs ว่าง, router ค้นทั้งสาม tactics ส่วน BM25 และ inferencer ทำงานต่อได้ เมื่อมี key: parser/router อาจส่ง narrative ไป Google; ยังไม่ได้ตรวจบริการจริงหรือการรองรับ model ที่ตั้งในโค้ดในรอบนี้
 
-```bash
-curl http://127.0.0.1:8000/
-```
+## ระบบทำอะไรได้
 
-ดูรายการ technique ทั้งหมดใน scope:
+| Endpoint | การทำงาน |
+| --- | --- |
+| GET / | health และ STIX version |
+| GET /ui | UI วิเคราะห์ alert เดี่ยว พร้อม prediction/evidence/candidates/review |
+| POST /alerts/infer | pipeline A+B คืน ATTACKInferenceResult |
+| POST /alerts/infer/batch | 1–25 alerts คืน wrapper results ตามลำดับ |
+| POST /rag/search | BM25 candidates ใน wrapper candidates; top_k 1–25 |
+| GET /taxonomy/techniques | list/filter tactic จาก processed candidates |
+| GET /taxonomy/techniques/{id} | รายละเอียด candidate; ไม่พบคืน 404 |
+| POST /evaluate | ประเมิน bundled dataset 35 alerts แบบ fixture/runtime โดยปิด provider เสมอ |
 
-```bash
-curl http://127.0.0.1:8000/taxonomy/techniques
-```
+รายละเอียด request/response และข้อจำกัด errors อยู่ใน [API overview](docs/API_OVERVIEW_TH.md)
 
-Filter ตาม tactic:
-
-```bash
-curl "http://127.0.0.1:8000/taxonomy/techniques?tactic=credential-access"
-```
-
-ดู technique รายตัว:
-
-```bash
-curl http://127.0.0.1:8000/taxonomy/techniques/T1110
-```
-
-Infer ATT&CK tags จาก alert:
-
-```bash
+~~~bash
 curl -X POST http://127.0.0.1:8000/alerts/infer \
-  -H "Content-Type: application/json" \
-  -d '{
-    "alert_id": "demo-001",
-    "narrative": "Host WIN-SRV-04 logged 847 failed RDP authentication attempts from IP 203.0.113.44, followed by a successful login and execution of encoded PowerShell."
-  }'
-```
+  -H 'Content-Type: application/json' \
+  -d '{"alert_id":"demo-001","narrative":"Encoded PowerShell commands were executed."}'
+~~~
 
-หมายเหตุ: endpoint นี้ยังไม่เชื่อม inference pipeline จึงคืน no-match พร้อม human-review flag และไม่เรียก Gemini
+ตัวอย่างนี้ใช้สาธิต contract ไม่ได้รับประกันว่า prediction ใดจะตรง gold label
 
-ผลลัพธ์ปัจจุบันจะมี `inferred_techniques` และ `candidates_considered` เป็นรายการว่าง และ `needs_human_review` เป็น `true` เสมอ จึงเป็นผลสำหรับทดสอบ API contract เท่านั้น ไม่ใช่การวิเคราะห์ ATT&CK
+## Knowledge base และ inference
 
-## Components ที่มีแล้ว
+ใช้ data/raw/enterprise-attack-19.1.json ที่ตรึงใน repository กรอง Windows/Linux และ initial-access, execution, credential-access ตัด deprecated/revoked ออก ได้ 127 candidates (58/48/21 ตามลำดับ credential/execution/initial)
 
-- `GET /` สำหรับ health check และ STIX version
-- `GET /taxonomy/techniques` สำหรับ list technique candidates
-- `GET /taxonomy/techniques/{technique_id}` สำหรับดูรายละเอียด technique จาก pinned subset
-- `POST /alerts/infer` สำหรับรับ alert narrative และคืน no-match ที่ต้องให้มนุษย์ตรวจจนกว่าจะเชื่อม inference pipeline
-- `src/rag/ingest_stix.py` สำหรับ filter MITRE ATT&CK STIX bundle ให้เหลือ scope ของ MVP
-- `src/agents/gemini_client.py` สำหรับ pipeline Gemini ที่ยังไม่เชื่อมกับ endpoint
+จำนวน 127 ยังเกินเป้าหมายประมาณ 30–50 ใน specification ต้องตัดสินใจ subset กับทีม/ผู้สอนก่อนรับมอบ ไม่เปลี่ยนข้อกำหนดให้ตรง implementation โดยอัตโนมัติ
 
-## Development และตรวจสอบ
+Retriever ใช้ BM25 ในหน่วยความจำ; TextEmbedder.embed() ยังเป็น placeholder คืน [] ไม่มี dense embeddings ส่วน inferencer ใช้ lexical rules ไม่เรียก LLM; evidence เป็น exact substring และ judge คืน review flag ยังไม่ตรวจ semantic grounding หรือความกำกวมครบถ้วน
 
-ตรวจ syntax:
+## CI และขอบเขตการตรวจ
 
-```bash
+.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → fixture evaluation subset smoke → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration/feature-c-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
+
+~~~bash
 python -m compileall -q src eval tests
-```
+GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
+git diff --check
+git status --short
+~~~
 
-รัน tests:
+Tests ที่ผ่านไม่ยืนยัน F1, semantic safety, browser workflow หรือ production readiness และยังไม่มี global network-blocking test fixture
 
-```bash
-python -m pytest -q
-```
+## ประเมินผล (offline แม้มี key)
 
-ผลตรวจล่าสุดใน `sec-alert311`:
+~~~bash
+python -m eval.run_eval --mode fixture --subset iteration-2
+python -m eval.run_eval --mode runtime --subset iteration-2
+python -m eval.run_eval --mode runtime --require-quality-gates
+curl -X POST http://127.0.0.1:8000/evaluate -H 'Content-Type: application/json' -d '{"mode":"runtime","top_k":5}'
+~~~
 
-- `python -m compileall -q src eval tests`: ผ่าน
-- `python -m pytest -q`: `17 passed`
+CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
 
-## Roadmap
+## งานต่อไปและ privacy (หลัง integration)
 
-แผนงานรายละเอียดอยู่ใน `WORK_PLAN_TH.md` โดยงานสำคัญถัดไปคือ:
+C integration มี fixture/runtime report แล้ว งานต่อคือปิด semantic grounding, ตรวจ gold labels, subset และ metadata gaps ตาม [handoff](docs/HANDOFF_TH.md)
 
-- เชื่อม `/alerts/infer` กับ retrieval/inference pipeline จริง
-- ทำ retrieval จาก pinned ATT&CK subset
-- ทำ technique inferencer, evidence linker และ grounding judge
-- เพิ่ม tests ที่ mock Gemini เพื่อให้รันซ้ำได้โดยไม่ใช้ API quota
-- สร้าง evaluation dataset และ metrics
-- ปรับ API validation, error handling, config และ CORS สำหรับ production
+CORS default จำกัด localhost แต่ยังไม่มี authentication/rate limiting/retention enforcement การเปิด provider ส่งข้อความออกนอกเครื่อง และ error logging ยังมี traceback จึงต้องกำหนด privacy controls ก่อนใช้ alert จริง
 
-## Security และ Privacy
-
-Security alert อาจมีข้อมูลอ่อนไหว เช่น IP address, hostname, username, domain, file path และ hash จึงควรถือว่า `.env`, raw alerts, logs และ evaluation data เป็นข้อมูล sensitive จนกว่าจะ sanitize แล้ว
-
-ระบบนี้ออกแบบมาเพื่อช่วย analyst เท่านั้น การ map ATT&CK ที่ระบบแนะนำควรถูกตรวจสอบโดยมนุษย์ก่อนนำไปใช้ตัดสินใจเชิงปฏิบัติการ
-
-## Attribution
-
-โปรเจกต์นี้ใช้ข้อมูล MITRE ATT&CK Enterprise. MITRE ATT&CK เป็น trademark ของ The MITRE Corporation ดู framework และเงื่อนไขต้นทางได้ที่ https://attack.mitre.org/
+MITRE ATT&CK เป็นเครื่องหมายการค้าของ The MITRE Corporation โครงการใช้ Enterprise STIX รุ่น 19.1; attribution ใน README ไม่ทดแทนการตรวจ license/terms สำหรับการแจกจ่ายหรือ deploy

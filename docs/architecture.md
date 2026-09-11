@@ -1,85 +1,55 @@
-# System and Agent Architecture
+# สถาปัตยกรรมปัจจุบัน
 
-## Overview
+ตรวจ 7 กันยายน 2026: mai-work รวม A+B+C+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
 
-Security Alert รับข้อความแจ้งเตือนด้านความปลอดภัยผ่าน FastAPI แล้วส่งคืนผลการอนุมาน MITRE ATT&CK Technique ในรูปแบบ JSON ที่ตรวจสอบด้วย Pydantic
+## เส้นทางข้อมูล
 
-ระบบมีสถานะเป็น **Iteration 1 — Walking Skeleton (`v0.1.0`)** จึงคืนผล no-match แบบ deterministic พร้อมส่งต่อให้มนุษย์ตรวจ เพื่อยืนยันว่า API contract และ schema ทำงานร่วมกันได้โดยไม่สร้าง Technique ที่ไม่มีหลักฐาน ส่วน LLM, RAG, multi-agent routing และ grounding judge จริงจะพัฒนาใน iteration ถัดไป
-
-## Iteration 1 Architecture
-
-```mermaid
+~~~mermaid
 flowchart TD
-    A["Client / SOC Analyst"] -->|"POST /alerts/infer"| B["FastAPI Endpoint"]
-    B --> C["Pydantic Request Validation"]
-    C --> D["Deterministic No-Match Service"]
-    D --> E["Pydantic Response Validation"]
-    E -->|"ATTACKInferenceResult JSON"| A
-```
+    S["Pinned raw STIX 19.1"] --> ING["Offline ingestion"]
+    ING --> KB["Generated candidates + allowlist"]
+    KB --> R["BM25 ในหน่วยความจำ"]
+    U["UI หรือ API client"] --> V["FastAPI validation"]
+    V --> P["Parser"]
+    P --> T["Tactic router"]
+    T --> R
+    R --> I["Lexical inferencer สูงสุด 3 predictions"]
+    I --> E["Exact-substring evidence linker"]
+    E --> J["Judge คืน review flag"]
+    J --> O["ATTACKInferenceResult"]
+    P -. "เมื่อเปิด key" .-> G["Gemini provider"]
+    T -. "เมื่อเปิด key" .-> G
+~~~
 
-### Request flow
+ไม่มี dense vector database; TextEmbedder ใช้ tokenize เท่านั้น embed() ยังคืน [] eval มี fixture/runtime runner และ /evaluate แล้ว; prompt files ยังเป็น placeholders
 
-1. Client ส่ง alert ID และข้อความ security alert ไปยัง `POST /alerts/infer`
-2. FastAPI รับ request และใช้ Pydantic ตรวจสอบรูปแบบข้อมูล
-3. Deterministic no-match service คืนรายการ inference/candidate ว่างและตั้ง `needs_human_review=true`
-4. Pydantic ตรวจสอบผลลัพธ์ตาม `ATTACKInferenceResult`
-5. API ส่ง structured JSON กลับไปยัง client
+## Runtime
 
-## Target Agent Architecture
+1. main import alerts route ซึ่งโหลด RETRIEVER จาก processed files ก่อนรับ request จากนั้น main โหลด .env
+2. request ผ่าน Pydantic validation; UI ส่ง narrative ไป single endpoint
+3. parser คง narrative ต้นฉบับเสมอ router เลือก tactics ที่ผ่าน allowlist
+4. ไม่มี key/provider ใช้ไม่ได้ → parser lists ว่างและ router ค้นทุก tactic ใน scope ไม่ได้หยุด inference
+5. BM25 จัดอันดับจากชื่อและ description excerpt, กรอง allowlist/tactic, ตัด score≤0 และใช้ technique_id ตัดสินคะแนนเสมอ
+6. inferencer ใช้คำร่วมอย่างน้อยสองคำและ confidence heuristic ไม่เรียก LLM
+7. linker ตัด evidence ที่ไม่อยู่ใน narrative; judge ตรวจ structural conditions แล้วคืน bool เพื่อใส่ needs_human_review
 
-```mermaid
-flowchart TD
-    A["Alert Parser"] --> B["Tactic Router"]
-    B --> C["Technique Retriever / RAG"]
-    C --> D["Technique Inferencer"]
-    D --> E["Evidence Linker"]
-    E --> F["Grounding Judge"]
-    G["Pinned MITRE ATT&CK STIX 2.1"] --> C
-    F --> H["ATTACKInferenceResult"]
-```
+ผลรวมอาจเปลี่ยนเมื่อเปิด provider เพราะ router เลือก tactic ต่างกันได้ คำว่า deterministic ใช้กับ retrieval/inference baseline เมื่อ input/candidates/mode เหมือนกัน ไม่ใช่รับประกัน live provider ซ้ำทุกครั้ง
 
-| Component | Responsibility | Iteration 1 status |
-| --- | --- | --- |
-| FastAPI endpoint | รับ request และส่ง response no-match ตาม API contract | Stub |
-| Pydantic schemas | ตรวจสอบ request และ structured response | Required |
-| Alert Parser | จัดรูปแบบ narrative และแยก assets, actions และ IOCs | Planned |
-| Tactic Router | เลือก tactic ที่น่าจะเกี่ยวข้องเพื่อจำกัดขอบเขตการค้นหา | Planned |
-| Technique Retriever | ค้นหา candidate techniques จาก pinned STIX subset | Planned |
-| Technique Inferencer | เลือก Technique ID จำนวน 1–3 รายการจาก candidates | Planned |
-| Evidence Linker | เชื่อม Technique กับข้อความหลักฐานจาก input | Planned |
-| Grounding Judge | ปฏิเสธ Technique ที่ไม่มีหลักฐานหรือไม่มีใน taxonomy | Planned |
+## Lifecycle และ trust boundaries
 
-## Main API Contract
+- Raw STIX อยู่ใน Git; processed files ถูก ignore และสร้างด้วย ingestion ก่อนเปิด API/tests
+- API inference/search แชร์ retriever ตอน import; taxonomy อ่านไฟล์ใหม่ทุก request จึงต้อง restart หลัง rebuild
+- Request/LLM output เป็น untrusted; parser/router escape delimiters และ validate JSON แต่ไม่ใช่หลักประกัน semantic correctness
+- Judge คืน review flag ไม่ได้ sanitize prediction ทุกประเภทเอง; pipeline ใช้ candidate-bounded inferencer และ linker ร่วมกัน
+- Provider เป็น external boundary; ข้อมูลอาจออกนอกเครื่องเมื่อมี key ต้องผ่านนโยบาย sandbox ก่อนใช้ข้อมูลจริง
+- Async route เรียก synchronous SDK/pipeline; batch วนทีละ alert ยังไม่มี worker/total deadline
 
-| Method | Endpoint | Input | Output |
-| --- | --- | --- | --- |
-| `POST` | `/alerts/infer` | Alert narrative | `ATTACKInferenceResult` |
+## Evaluation architecture
 
-ผลลัพธ์ประกอบด้วย:
+CLI หรือ /evaluate → eval/evaluator.py → validate dataset/allowlist → fixture หรือ run_inference(use_provider=False) → adapter candidates_considered เป็น candidates → eval/metrics.py → report
 
-- `alert_id`
-- `inferred_techniques`
-- `candidates_considered`
-- `needs_human_review`
-- `disclaimer`
+Runtime output ที่มี quality error ยังถูกส่งเข้า metrics ไม่ผ่าน strict fixture validator จึงวัด hallucinated IDs และ invalid evidence ได้ /evaluate รับเฉพาะ mode/top_k ของ bundled dataset และไม่เขียนไฟล์ Provider ถูกปิดแบบ explicit ใน evaluation โดย single/batch inference เดิมยังทำงานตาม key
 
-## Data and Trust Boundaries
+## งานที่ยังไม่อยู่ใน architecture (คงเหลือ)
 
-```mermaid
-flowchart TD
-    A["Untrusted Alert Text"] --> B["Request Validation"]
-    B --> C["Inference Pipeline"]
-    D["Pinned enterprise-attack-19.1"] --> C
-    C --> E["Response Validation"]
-    E --> F["Advisory Result"]
-```
-
-- Alert text เป็น untrusted input และต้องไม่ถูกใช้เป็นคำสั่งควบคุมระบบ
-- Technique ID ต้องมีอยู่ใน pinned MITRE ATT&CK Enterprise STIX 2.1 subset เท่านั้น
-- ต้องตัด Technique ที่ deprecated หรือ revoked ออกจาก candidates
-- Response ทุกครั้งต้องมีข้อความว่า `Advisory tagging only. Not autonomous SOC action. Verify with senior analyst.`
-- ระบบไม่ดำเนินการตอบสนองเหตุการณ์หรือบล็อกภัยคุกคามโดยอัตโนมัติ
-
-## Planned Evolution
-
-หลัง Iteration 1 จะเปลี่ยน `Deterministic No-Match Service` เป็น agent pipeline จริงตามลำดับ Alert Parser → Tactic Router → Technique Retriever → Technique Inferencer → Evidence Linker → Grounding Judge โดยยังคง API contract และ Pydantic response schema เดิมเพื่อรักษาความเข้ากันได้กับ client
+locked evaluation dataset, semantic judge, calibrated confidence, operational privacy/auth/rate limiting และ dependency lock ดู [แผนงาน](WORK_PLAN_TH.md) ก่อนเปลี่ยน schema หรือ subset

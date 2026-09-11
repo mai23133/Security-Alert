@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "fixture_version": "1.0.0",
+    "model_version": "synthetic-saved-predictions",
+    "prompt_version": "none",
+    "description": "Deterministic offline fixture; no provider or network calls"
+  },
+  "predictions": [
+    {"alert_id":"eval-001","inferred_techniques":[{"technique_id":"T1110","evidence_spans":["900 failed sign-ins"]}],"candidates":["T1110","T1110.001"],"needs_human_review":false},
+    {"alert_id":"eval-002","inferred_techniques":[{"technique_id":"T1110.003","evidence_spans":["one password tried against 70 employee accounts"]}],"candidates":["T1110.003","T1110"],"needs_human_review":false},
+    {"alert_id":"eval-003","inferred_techniques":[{"technique_id":"T1110.001","evidence_spans":["Repeated guesses targeted the single Linux account"]}],"candidates":["T1110.001","T1110"],"needs_human_review":false},
+    {"alert_id":"eval-004","inferred_techniques":[{"technique_id":"T1059.001","evidence_spans":["powershell.exe with an encoded command"]}],"candidates":["T1059.001","T1059.003"],"needs_human_review":false},
+    {"alert_id":"eval-005","inferred_techniques":[{"technique_id":"T1059.004","evidence_spans":["/bin/bash"]}],"candidates":["T1059.004","T1059"],"needs_human_review":false},
+    {"alert_id":"eval-006","inferred_techniques":[{"technique_id":"T1059.003","evidence_spans":["cmd.exe /c whoami"]}],"candidates":["T1059.003","T1059.001"],"needs_human_review":false},
+    {"alert_id":"eval-007","inferred_techniques":[{"technique_id":"T1204.002","evidence_spans":["open invoice-review.xlsm"]}],"candidates":["T1204.002","T1566.001"],"needs_human_review":false},
+    {"alert_id":"eval-008","inferred_techniques":[{"technique_id":"T1566.001","evidence_spans":["targeted attachment"]}],"candidates":["T1566.001","T1204.002"],"needs_human_review":false},
+    {"alert_id":"eval-009","inferred_techniques":[{"technique_id":"T1190","evidence_spans":["exploited an unpatched endpoint"]}],"candidates":["T1190","T1189"],"needs_human_review":false},
+    {"alert_id":"eval-010","inferred_techniques":[{"technique_id":"T1078","evidence_spans":["valid dormant contractor account"]}],"candidates":["T1078","T1133"],"needs_human_review":false},
+    {"alert_id":"eval-011","inferred_techniques":[{"technique_id":"T1189","evidence_spans":["exploit page that executed code"]}],"candidates":["T1189","T1190"],"needs_human_review":false},
+    {"alert_id":"eval-012","inferred_techniques":[{"technique_id":"T1133","evidence_spans":["exposed remote administration service"]}],"candidates":["T1133","T1078"],"needs_human_review":false},
+    {"alert_id":"eval-013","inferred_techniques":[{"technique_id":"T1091","evidence_spans":["newly inserted USB device"]}],"candidates":["T1091","T1200"],"needs_human_review":false},
+    {"alert_id":"eval-014","inferred_techniques":[{"technique_id":"T1003.001","evidence_spans":["opened LSASS and read its memory"]}],"candidates":["T1003.001","T1003"],"needs_human_review":false},
+    {"alert_id":"eval-015","inferred_techniques":[{"technique_id":"T1555.003","evidence_spans":["saved login data from the Chrome user profile database"]}],"candidates":["T1555.003","T1555"],"needs_human_review":false},
+    {"alert_id":"eval-016","inferred_techniques":[{"technique_id":"T1047","evidence_spans":["Windows Management Instrumentation"]}],"candidates":["T1047","T1106"],"needs_human_review":false},
+    {"alert_id":"eval-017","inferred_techniques":[{"technique_id":"T1053.005","evidence_spans":["created a scheduled task"]}],"candidates":["T1053.005","T1053"],"needs_human_review":false},
+    {"alert_id":"eval-018","inferred_techniques":[{"technique_id":"T1106","evidence_spans":["Windows Native API functions"]}],"candidates":["T1106","T1047"],"needs_human_review":false},
+    {"alert_id":"eval-019","inferred_techniques":[{"technique_id":"T1566.002","evidence_spans":["clicked a shortened link in a targeted message"]}],"candidates":["T1566.002","T1189"],"needs_human_review":false},
+    {"alert_id":"eval-020","inferred_techniques":[{"technique_id":"T1204.004","evidence_spans":["copy and run a command"]}],"candidates":["T1204.004","T1204.002"],"needs_human_review":false},
+
+    {"alert_id":"eval-021","inferred_techniques":[{"technique_id":"T1110","evidence_spans":["600 failed logons"]},{"technique_id":"T1059.001","evidence_spans":["launched encoded PowerShell"]}],"candidates":["T1110","T1059.001","T1110.003"],"needs_human_review":false},
+    {"alert_id":"eval-022","inferred_techniques":[{"technique_id":"T1566.001","evidence_spans":["Finance received quote.xlsm"]},{"technique_id":"T1204.002","evidence_spans":["opening the malicious attachment"]},{"technique_id":"T1059.003","evidence_spans":["cmd.exe /c payload.exe"]}],"candidates":["T1566.001","T1204.002","T1059.003"],"needs_human_review":false},
+    {"alert_id":"eval-023","inferred_techniques":[{"technique_id":"T1190","evidence_spans":["Requests exploited the public portal"]},{"technique_id":"T1059.004","evidence_spans":["/bin/bash executed a downloaded script"]}],"candidates":["T1190","T1059.004","T1189"],"needs_human_review":false},
+    {"alert_id":"eval-024","inferred_techniques":[{"technique_id":"T1078","evidence_spans":["stolen VPN account"]},{"technique_id":"T1133","evidence_spans":["entered through the external service"]},{"technique_id":"T1059.001","evidence_spans":["PowerShell discovery command"]}],"candidates":["T1078","T1133","T1059.001"],"needs_human_review":false},
+    {"alert_id":"eval-025","inferred_techniques":[{"technique_id":"T1204.002","evidence_spans":["user opened benefits.docm"]},{"technique_id":"T1003.001","evidence_spans":["read LSASS memory"]}],"candidates":["T1204.002","T1003.001","T1003"],"needs_human_review":false},
+
+    {"alert_id":"eval-026","inferred_techniques":[{"technique_id":"T1110","evidence_spans":["Many authentication failures"]}],"candidates":["T1110","T1110.003","T1110.001"],"needs_human_review":true},
+    {"alert_id":"eval-027","inferred_techniques":[{"technique_id":"T1059","evidence_spans":["script interpreter launched an obfuscated command"]}],"candidates":["T1059","T1059.001","T1059.003"],"needs_human_review":true},
+    {"alert_id":"eval-028","inferred_techniques":[{"technique_id":"T1204.002","evidence_spans":["user interaction preceded execution of an unknown file"]}],"candidates":["T1204.002","T1204.004","T1566.001"],"needs_human_review":true},
+    {"alert_id":"eval-029","inferred_techniques":[{"technique_id":"T1078","evidence_spans":["external login used correct credentials"]}],"candidates":["T1078","T1133"],"needs_human_review":true},
+    {"alert_id":"eval-030","inferred_techniques":[{"technique_id":"T1190","evidence_spans":["crafted request and later spawned a child process"]}],"candidates":["T1190","T1189"],"needs_human_review":true},
+
+    {"alert_id":"eval-031","inferred_techniques":[],"candidates":[],"needs_human_review":true},
+    {"alert_id":"eval-032","inferred_techniques":[],"candidates":[],"needs_human_review":true},
+    {"alert_id":"eval-033","inferred_techniques":[],"candidates":[],"needs_human_review":true},
+    {"alert_id":"eval-034","inferred_techniques":[],"candidates":[],"needs_human_review":true},
+    {"alert_id":"eval-035","inferred_techniques":[],"candidates":[],"needs_human_review":true}
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "iteration_2_v0.2.0",
+  "version": "v0.2.0",
+  "description": "Fixed 10-alert, provider-free release subset drawn from the instructor course pack. It includes positive, multi-technique, ambiguous, and negative-control cases.",
+  "alert_ids": [
+    "eval-001",
+    "eval-004",
+    "eval-008",
+    "eval-014",
+    "eval-021",
+    "eval-022",
+    "eval-026",
+    "eval-027",
+    "eval-031",
+    "eval-035"
+  ]
+}
