@@ -7,6 +7,8 @@
 ## เริ่มอ่าน
 
 - [ข้อกำหนดหลัก](security-alert-attack-technique-inference.md) — Source of Truth
+- [คู่มือโครงการแบบละเอียด](docs/PROJECT_DETAILED_GUIDE_TH.md) — ภาพรวมระบบ วิธีติดตั้ง ใช้งาน ประเมินผล และงานที่เหลือ
+- [แผนปิดโครงการ](docs/PROJECT_COMPLETION_PLAN_TH.md) — ขั้นตอนลงมือทำเพื่อให้ผ่านเกณฑ์รับมอบ
 - [รายงานตรวจล่าสุด](docs/PROJECT_REVIEW_TH.md) — สิ่งที่ทำได้ ข้อจำกัด และผลทดสอบ
 - [สรุปไฟล์ทั้งโปรเจกต์](docs/PROJECT_FILE_MAP_TH.md) — หน้าที่และความสัมพันธ์รายไฟล์
 - [คู่มือโครงการฉบับเต็ม](docs/COMPLETE_PROJECT_GUIDE_TH.md) — data flow, การเรียกโค้ดต่อกัน, เหตุผลการออกแบบ และไฟล์ทุกกลุ่ม
