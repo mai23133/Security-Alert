@@ -147,8 +147,18 @@ async def test_batch_rejects_empty_or_oversized_batches(client):
     assert oversized.status_code == 422
 
 
-async def test_ui_is_served(client):
+async def test_ui_is_served(client, monkeypatch, tmp_path):
+    monkeypatch.setattr("src.api.main.UI_DIST", tmp_path)
     response = await client.get("/ui")
     assert response.status_code == 200
     assert "Security Alert" in response.text
     assert "inferred_techniques" in response.text
+
+
+async def test_ui_serves_built_bundle(client, monkeypatch, tmp_path):
+    monkeypatch.setattr("src.api.main.UI_DIST", tmp_path)
+    built_html = '<html><title>Security Alert</title><script src="/ui/assets/app.js"></script></html>'
+    (tmp_path / "index.html").write_text(built_html, encoding="utf-8")
+    response = await client.get("/ui")
+    assert response.status_code == 200
+    assert response.text == built_html

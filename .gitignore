@@ -24,3 +24,8 @@ htmlcov/
 Thumbs.db
 
 data/processed/
+
+# UI dependencies and generated bundles
+node_modules/
+.pnpm-store/
+ui/dist/

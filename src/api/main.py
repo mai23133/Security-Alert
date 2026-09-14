@@ -12,6 +12,7 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 from src.api.routes.alerts import router as alerts_router
@@ -21,6 +22,7 @@ from src.api.routes.taxonomy import router as taxonomy_router
 
 load_dotenv()
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+UI_DIST = PROJECT_ROOT / "ui" / "dist"
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
 app = FastAPI(
@@ -71,6 +73,7 @@ app.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
 app.include_router(evaluate_router, tags=["evaluation"])
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
 app.include_router(taxonomy_router, prefix="/taxonomy", tags=["taxonomy"])
+app.mount("/ui/assets", StaticFiles(directory=UI_DIST / "assets", check_dir=False), name="ui-assets")
 
 @app.get("/")
 async def health():
@@ -79,4 +82,7 @@ async def health():
 
 @app.get("/ui", response_class=HTMLResponse, include_in_schema=False)
 async def analyst_ui():
-    return HTMLResponse((PROJECT_ROOT / "ui" / "index.html").read_text(encoding="utf-8"))
+    index = UI_DIST / "index.html"
+    if not index.is_file():
+        index = PROJECT_ROOT / "ui" / "fallback.html"
+    return HTMLResponse(index.read_text(encoding="utf-8"))
