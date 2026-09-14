@@ -11,11 +11,10 @@
 - [สรุปฉบับอ่านง่าย: สิ่งที่ทำไปแล้ว](docs/สิ่งที่ทำไปแล้ว_TH.md)
 - [สรุปสิ่งที่ทำและงานคงเหลือ](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 - [คู่มือ deployment/privacy](docs/DEPLOYMENT_PRIVACY_TH.md)
-- [รายงานตรวจล่าสุด](docs/PROJECT_REVIEW_TH.md) — สิ่งที่ทำได้ ข้อจำกัด และผลทดสอบ
-- [สรุปไฟล์ทั้งโปรเจกต์](docs/PROJECT_FILE_MAP_TH.md) — หน้าที่และความสัมพันธ์รายไฟล์
-- [คู่มือโครงการฉบับเต็ม](docs/COMPLETE_PROJECT_GUIDE_TH.md) — data flow, การเรียกโค้ดต่อกัน, เหตุผลการออกแบบ และไฟล์ทุกกลุ่ม
 - [แผนงาน](docs/WORK_PLAN_TH.md) — งานคงเหลือและลำดับก่อนรวม C
-- [คู่มือเอกสาร](docs/PROJECT_READING_GUIDE_TH.md) — เอกสารใดใช้อ่านเรื่องอะไร
+- [สรุปแบบอ่านง่าย](docs/สิ่งที่ทำไปแล้ว_TH.md) — สิ่งที่ทำแล้วและเงื่อนไขที่ยังไม่ผ่าน
+- [สถาปัตยกรรม](docs/architecture.md) — data flow และขอบเขต provider
+- [ภาพรวม API](docs/API_OVERVIEW_TH.md) — endpoint และ contract ปัจจุบัน
 
 ## ติดตั้งและทดสอบจาก clean checkout
 
@@ -34,7 +33,7 @@ git diff --check
 
 ต้องทำ ingestion ก่อน pytest และก่อนใช้งาน inference; API เปิดได้แม้ KB ไม่มี แต่ /ready และ routes ที่ต้องใช้ KB จะตอบ 503 จนสร้าง KB แล้ว restart server ข้อมูลใน data/processed/ เป็น generated files ไม่ต้อง commit
 
-ใช้ Python 3.11.15 ใน .venv; ผลตรวจ integration ล่าสุดดู docs/C_IMPLEMENTATION_SUMMARY_TH.md ไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
+ใช้ Python 3.11.15 ใน .venv; ผลตรวจล่าสุดดู docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md ซึ่งไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
 
 requirements.txt อ้างอิง requirements.lock ซึ่งตรึง direct/transitive dependencies ที่ตรวจบน Python 3.11
 

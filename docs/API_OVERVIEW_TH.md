@@ -109,7 +109,7 @@ CORS default คือ http://127.0.0.1:8000 และ http://localhost:8000 ป
 
 ## ขอบเขตความปลอดภัย
 
-Response inference มี advisory disclaimer แต่ taxonomy/search/health ไม่ได้ใช้ ATTACKInferenceResult จึงไม่มี disclaimer field แบบเดียวกัน logs ของ middleware ไม่เก็บ narrative โดยตรง แต่ exception logging ยังต้องตรวจ privacy เพิ่ม ไม่มี auth/rate limiting และยังไม่ถือว่าพร้อม production ดู [รายงาน](PROJECT_REVIEW_TH.md)
+Response inference มี advisory disclaimer แต่ taxonomy/search/health ไม่ได้ใช้ ATTACKInferenceResult จึงไม่มี disclaimer field แบบเดียวกัน logs ของ middleware ไม่เก็บ narrative โดยตรง แต่ exception logging ยังต้องตรวจ privacy เพิ่ม ไม่มี auth/rate limiting และยังไม่ถือว่าพร้อม production ดู [สรุปสถานะล่าสุด](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 # การเปลี่ยนแปลงจากแผนปิดโครงการ — 14 กันยายน 2026
 
 ส่วนนี้เป็นพฤติกรรมล่าสุดและใช้แทนคำอธิบาย baseline ด้านล่างที่กล่าวถึง module-import KB, structural-only grounding และ error handling เดิม
