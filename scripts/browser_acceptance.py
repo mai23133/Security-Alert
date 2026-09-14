@@ -56,6 +56,7 @@ async def check(url):
         await page.locator("#analyze-button").click()
         await expect(page.locator("#error-message")).to_contain_text("Knowledge base unavailable")
         checks.append("error_state_simulated_503")
+        await page.unroute('**/alerts/infer', unavailable)
         await expect(page.locator("#analyst-view .disclaimer")).to_be_visible()
         await expect(page.locator("body")).to_contain_text("MITRE ATT&CK® Enterprise 19.1")
         checks.append("disclaimer_attribution")
@@ -73,6 +74,23 @@ async def check(url):
         await expect(page.locator("#evaluation-results")).to_contain_text("STATUS NUMERIC GATES PASSED")
         await expect(page.locator("#evaluation-results")).not_to_contain_text("FAIL")
         checks.append("actual_api_evaluation_quality_gates")
+        assert await page.locator('#eval-rows tr').count() == 35
+        await page.locator('#match-filter').select_option('Miss')
+        assert await page.locator('#eval-rows tr').count() == 2
+        await page.locator('#match-filter').select_option('Exact')
+        assert await page.locator('#eval-rows tr').count() == 33
+        checks.append('real_evaluation_rows_and_filters')
+        await page.locator('#probe-button').click()
+        await expect(page.locator('#probe-status')).to_contain_text('PASS', timeout=20000)
+        checks.append('actual_injection_probe')
+        await page.locator('#theme-toggle').click()
+        await expect(page.locator('body')).to_have_class('dark')
+        await page.screenshot(path='/tmp/security-alert-ui-dark.png', full_page=True)
+        await page.locator('#theme-toggle').click()
+        await page.screenshot(path='/tmp/security-alert-ui-light.png', full_page=True)
+        await page.set_viewport_size({'width':390, 'height':844})
+        assert await page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+        checks.append('theme_and_mobile_layout')
         await browser.close()
     return checks
 

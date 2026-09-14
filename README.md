@@ -15,6 +15,7 @@
 - [สรุปแบบอ่านง่าย](docs/สิ่งที่ทำไปแล้ว_TH.md) — สิ่งที่ทำแล้วและเงื่อนไขที่ยังไม่ผ่าน
 - [สถาปัตยกรรม](docs/architecture.md) — data flow และขอบเขต provider
 - [ภาพรวม API](docs/API_OVERVIEW_TH.md) — endpoint และ contract ปัจจุบัน
+- [UI จากกิ่ง ui-test](docs/UI_REFERENCE_TH.md) — ธีมสว่าง/มืด ตาราง evaluation และ injection probe
 
 ## ติดตั้งและทดสอบจาก clean checkout
 

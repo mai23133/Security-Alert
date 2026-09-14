@@ -10,7 +10,10 @@
     "error_state_simulated_503",
     "disclaimer_attribution",
     "clear_no_browser_storage",
-    "actual_api_evaluation_quality_gates"
+    "actual_api_evaluation_quality_gates",
+    "real_evaluation_rows_and_filters",
+    "actual_injection_probe",
+    "theme_and_mobile_layout"
   ],
   "provider_mode": "disabled",
   "synthetic_data_only": true

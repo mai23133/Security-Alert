@@ -1,7 +1,7 @@
 {
-  "base_commit": "720c6baa8d44172be329bea990676329de03e63b",
+  "base_commit": "4cf586a9dccf83cb0fc7b6fddc59c200a26b8c8d",
   "source_kind": "uncommitted_working_tree",
-  "code_sha256": "9a8b4821c2dc762277ee055dc214aa6bf419c0d9093f1da01aafe8e2778a643a",
+  "code_sha256": "2174f19c05a0b72d248b87224f764fc4734bb184e3d53c0aae324cb152b4c83a",
   "files_sha256": {
     "data/dev/README.md": "b8095aabd3053bff496eab76f4a7f252034f22e36e2294756385ada02524e946",
     "data/dev/alerts.json": "41ba23e243a421c52ba120dea1334e83cc761b80f43dafe6bde6a0bdcaa2daed",
@@ -23,7 +23,7 @@
     "prompts/v1/tactic_router.txt": "1da5f32abf5c1c1a0117cf645b62dfafc9ac96c2503569ceeda2cc74c4eff2c1",
     "requirements.lock": "0639138589693c5213064eedf2f55797bdb14975517ff9f71fbcf0958356ece0",
     "scripts/audit_baseline.py": "fc5dbd9eb7bb75642763010a4353d718873f7dbd7877c786e00d0e03ac09389e",
-    "scripts/browser_acceptance.py": "5521c69119a522ab66c73ae226fece0a71e9cf60b89b546818818774075f1152",
+    "scripts/browser_acceptance.py": "76f694483823eb35a25f2640561cbe77a075e17c5b1724fbcfa730d30a879618",
     "scripts/demo_acceptance.py": "8a6fe15aaf207b49eb902d49a0236a1584977b0f3d0070aeb1b2991d91fdb931",
     "scripts/prepare_review.py": "7d2d9ed09d67a5a9006dae16bb0f1a92e45c5d05dbce400e2cf9e07ef11c9f5a",
     "scripts/release_manifest.py": "976d432869ae0b7eeebe72c756748f42ecbc2fb92993eb4bb94b757529e32c94",
@@ -41,7 +41,7 @@
     "src/api/main.py": "9da1adf817e6bcb650e40f524e2f23d608bd5ab57d27486f00789bcab054b8bf",
     "src/api/routes/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "src/api/routes/alerts.py": "d50e1a79423071a544e73e8d9d6902e5f1fce946b0260ce462792da582cee19d",
-    "src/api/routes/evaluate.py": "0a4e45159e53a7dca9055b5137892e805e5478e609a0021ac5747b8dbd26ccd6",
+    "src/api/routes/evaluate.py": "1a2ee7a440d6e84274e56cebff25f2c25b7d7c3111c5c63ce4a696c71d8d0d92",
     "src/api/routes/rag.py": "edfc09daade892a30229ff9510aa1979b8dc85edb120e06bf8f786b9d3d911e0",
     "src/api/routes/taxonomy.py": "90a6644aff3c099caebe2b592e0cfeda338be9b04b9368d1f5f52d44f80378bb",
     "src/api/runtime.py": "5bf73e27b0c9c29c776b4db6820562bd0b7ef0f2008a24f7c9133536e45138e3",
@@ -67,7 +67,7 @@
     "tests/test_retriever.py": "74b669724385719817adc36480b5543e510123ce395ce5a9d83db6f14b4e3fa6",
     "tests/test_schemas.py": "3a7dbd501d299adc179bc436908f1f022b3c46657e6a861a577ba4551d78ab0c",
     "tests/test_taxonomy_api.py": "af809de75b8deb845d70c0c31a7f01112b27c5b9570dd7291fd2d7b6ef686df4",
-    "ui/index.html": "6eef181802cc8254b72520b3f90fb1696160192dc0822e4e168899c7e9b62491"
+    "ui/index.html": "f861bd9393b3675d2d32fa9e5b7c9cfe5dcaf099eb299c725837b89ceab4250e"
   },
   "test_summary": {
     "tests": 134,
@@ -90,14 +90,14 @@
   ],
   "evidence_sha256": {
     "baseline-errors.json": "bdfd619c7aeb574c58170584bbd98073b51e766fb356a5824636d32d92fba643",
-    "browser-acceptance.json": "96d3520dff7de6700a28f0c7ed1ab66191d2eb50e4a3dd2a1cbe9851f3fab5df",
+    "browser-acceptance.json": "9de0e38d5dd9d6f06897cf92fce91e24d3c093097d9e90d0895ea7a0e940794f",
     "clean-verification.json": "1cb3481bb8c386c0380e48f4db82aa766265601fc0a447b14f617077cd3dba25",
-    "demo.json": "dbdd602a20dfdc13bb272569a14b88fb119c979a2e6409880113df68bc272f0a",
+    "demo.json": "a043bfabe19d1768e1691a0ac4d9f9aff81e4e8d8e5c6ab0624b6b41f7b84b0a",
     "development-final.json": "e61f9c1d7020b822c84b50be2764977b64cd4b81146de83c3b6ebe9b1e7ba142",
     "fixture-final.json": "00d7caa84cf7f377648bdcfd6f387e0a26e32e92d6b10f7c659be7c8092026ff",
     "review-checklist.json": "9fe3e02a4f181e621ab383d2f2628f66874b681b26ff627f679ce3e1f5524cb2",
     "runtime-before.json": "1851a4274af34c27682be166df4e9c44be9b4fd1c703c35893978dc3bdaa5e6c",
-    "runtime-final.json": "842a18d491bb11293ecc91ce60e88d640f7013da5eb0a290c75ea763b89876bc",
+    "runtime-final.json": "cfc92ea67316b63118a7d5c2afbd809061ab2591e41d203194c81344f2d4581e",
     "runtime-v1-checkpoint.json": "8273db35ff29f8956089821fc6dab8861b0ed701a07c4eb87da4b3cb24640fab",
     "tests.xml": "1a0d3ec754478bc697862d3088618b67fd07c6a728867656298074909268962a"
   }

@@ -17,7 +17,7 @@
 | POST /rag/search | narrative, tactic list optional, top_k | {"candidates":[TechniqueCandidate,...]} |
 | GET /taxonomy/techniques | tactic query optional | {"count":จำนวน,"techniques":[...]} |
 | GET /taxonomy/techniques/{technique_id} | ID ไม่สนตัวพิมพ์ | TechniqueCandidate หรือ 404 |
-| POST /evaluate | mode=runtime/fixture, top_k=1–25 | report metrics/metadata/quality_gates/disclaimer จาก bundled dataset |
+| POST /evaluate | mode=runtime/fixture, top_k=1–25, diagnostics=false | report metrics/metadata/quality_gates/disclaimer จาก bundled dataset |
 
 FastAPI มี /docs, /redoc และ /openapi.json เพิ่มโดย framework UI /ui ไม่อยู่ใน OpenAPI schema
 
@@ -80,6 +80,10 @@ Taxonomy list กรอง tactic แบบ exact match ไม่มี validati
 ## Evaluation
 
 POST /evaluate รับ {"mode":"runtime","top_k":5} หรือ {} (default runtime/5) mode fixture ใช้ saved predictions ส่วน runtime เรียก pipeline จริงโดย use_provider=False ปิด Gemini แม้มี key ใน .env
+
+เพิ่ม optional `diagnostics: true` สำหรับ runtime เพื่อคืน `diagnostics.records` ให้ตาราง UI
+แสดง gold/predicted IDs, errors และ evidence offsets/hash ของ bundled synthetic dataset
+ไม่มี raw narrative/span เพิ่ม; ค่า default false ทำให้ request เดิมยังทำงานเหมือนเดิม
 
 ใช้เฉพาะ dataset จำลองที่ bundle มา 35 alerts ห้าม field dataset/output/path/provider หรือ input เพิ่มเติม; top_k strict integer 1–25 route sync ทำงานใน worker thread ไม่ block event loop และไม่บันทึก report/alert ลง disk
 

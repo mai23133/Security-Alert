@@ -11,22 +11,22 @@
   "metrics": {
     "alert_count": 35,
     "exact_technique": {
-      "precision": 0.9310344827586207,
-      "recall": 0.7297297297297297,
-      "f1": 0.8181818181818181
+      "precision": 0.972972972972973,
+      "recall": 0.972972972972973,
+      "f1": 0.972972972972973
     },
-    "parent_technique_recall": 0.7297297297297297,
+    "parent_technique_recall": 0.972972972972973,
     "evidence_grounding_rate": 1.0,
     "hallucinated_id_rate": 0.0,
     "false_positive_rate": 0.0,
-    "human_review_rate": 0.34285714285714286,
-    "recall_at_1": 0.7297297297297297,
-    "recall_at_3": 0.8108108108108109,
-    "recall_at_5": 0.8648648648648649,
+    "human_review_rate": 0.3142857142857143,
+    "recall_at_1": 0.8108108108108109,
+    "recall_at_3": 0.972972972972973,
+    "recall_at_5": 1.0,
     "behavior_evidence_rate": 1.0,
-    "tactic_accuracy": 0.8,
+    "tactic_accuracy": 0.9714285714285714,
     "negative_control_count": 5
   },
-  "quality_gates_passed": false,
+  "quality_gates_passed": true,
   "acceptance_ready": false
 }

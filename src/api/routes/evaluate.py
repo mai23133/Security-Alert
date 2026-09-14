@@ -16,6 +16,7 @@ class EvaluationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: Literal["fixture", "runtime"] = "runtime"
     top_k: int = Field(default=5, ge=1, le=25, strict=True)
+    diagnostics: bool = False
 
 
 @router.post("/evaluate")
@@ -24,7 +25,7 @@ async def evaluate_dataset(request: EvaluationRequest, http_request: Request,
     """Use a worker thread; never accept paths, alerts, keys, or provider mode."""
     try:
         return await run_bounded(http_request, partial(create_report, mode=request.mode,
-            top_k=request.top_k, retriever=retriever))
+            top_k=request.top_k, retriever=retriever, diagnostics=request.diagnostics))
     except HTTPException:
         raise
     except (OSError, ValueError, TypeError, KeyError):
