@@ -121,10 +121,15 @@ def infer_techniques_with_provider(
     candidate_payload = [candidate.model_dump() for candidate in candidates]
     alert_payload = json.dumps({"narrative": narrative}).replace("<", "\\u003c")
     prompt = (
-        "Select zero to three MITRE ATT&CK techniques supported by the alert. "
-        "Return only JSON as {\"techniques\":[{\"technique_id\":\"T####\","
-        "\"confidence\":0.0,\"evidence_spans\":[\"exact quote from alert\"]}]}. "
-        "IDs must come from candidates and every evidence span must be an exact alert substring.\n"
+        "You are a cyber security analyst. Select 0 to 3 MITRE ATT&CK techniques strictly supported by the alert narrative.\n"
+        "Return ONLY valid JSON matching this schema:\n"
+        '{"techniques":[{"technique_id":"T####","confidence":0.95,"evidence_spans":["short exact phrase"]}]}\n\n'
+        "STRICT CONSTRAINTS FOR evidence_spans:\n"
+        "1. Each evidence span MUST be a short, minimal exact substring from the narrative (strictly 2 to 6 words).\n"
+        "2. NEVER return the entire sentence or entire narrative.\n"
+        "3. Do not include outer quotes in the span string.\n"
+        "4. Example valid spans: [\"execution of encoded PowerShell\"], [\"847 failed RDP authentication attempts\"].\n"
+        "5. Example INVALID span: [\"Host WIN-SRV-04 logged 847 failed RDP authentication attempts, followed by execution of encoded PowerShell.\"]\n\n"
         f"<candidates>{json.dumps(candidate_payload)}</candidates>\n"
         f"<untrusted_alert>{alert_payload}</untrusted_alert>"
     )

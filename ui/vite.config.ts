@@ -38,13 +38,22 @@ export default defineConfig(({ mode }) => {
           '**/.figma/**',
 ],
       },
+      proxy: {
+        '/alerts': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+      },
     },
+    
+    
     preview: {
       host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',
       port: parseInt(process.env.PORT || '8443'),
     },
   }
 })
+
 
 type FigmaSiteConfiguration = {
   title?: string
@@ -357,4 +366,6 @@ function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin
       })
     },
   }
+
+  
 }

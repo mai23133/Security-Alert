@@ -1,12 +1,15 @@
 """
 Small wrapper around the Google Gen AI SDK.
 """
+from dotenv import load_dotenv
+load_dotenv()  # สั่งให้โหลดค่าจากไฟล์ .env เสมอ
+
 import os
 
 from google import genai
 from google.genai import types
 
-GEMINI_MODEL = "gemini-3.5-flash"
+GEMINI_MODEL = "gemini-3.6-flash"
 GEMINI_TIMEOUT_MS = 10_000
 GEMINI_RETRY_ATTEMPTS = 3
 

@@ -35,114 +35,25 @@ Insufficient telemetry to determine intent. Requires further investigation.`,
   },
 ];
 
-const INFERENCE_RESULTS: Record<number, InferenceResult> = {
-  0: {
-    techniques: [
-      {
-        id: "T1110.001",
-        name: "Brute Force: Password Guessing",
-        tactic: "Credential Access",
-        tacticColor: "#8b5cf6",
-        confidence: 97,
-        evidence: ["847 consecutive authentication failures on SMB over 4 minutes"],
-        mitreUrl: "https://attack.mitre.org/techniques/T1110/001/",
-      },
-      {
-        id: "T1059.001",
-        name: "Command and Scripting Interpreter: PowerShell",
-        tactic: "Execution",
-        tacticColor: "#ef4444",
-        confidence: 92,
-        evidence: ["execution of encoded PowerShell command via cmd.exe", "powershell -enc JABjAGwAaQBlAG4AdAAgAD0A..."],
-        mitreUrl: "https://attack.mitre.org/techniques/T1059/001/",
-      },
-      {
-        id: "T1021.002",
-        name: "Remote Services: SMB/Windows Admin Shares",
-        tactic: "Lateral Movement",
-        tacticColor: "#f97316",
-        confidence: 85,
-        evidence: ["Lateral movement observed to WIN-SRV-07 via PsExec within 90 seconds"],
-        mitreUrl: "https://attack.mitre.org/techniques/T1021/002/",
-      },
-    ],
-    entities: {
-      assets: ["WIN-SRV-04", "WIN-SRV-07", "WIN-WKS-11"],
-      iocs: ["203.0.113.44", "203.0.113.44:4444"],
-      actions: ["847 failed attempts", "encoded PowerShell execution", "PsExec lateral movement", "C2 beaconing every 30s"],
-    },
-    needsReview: true,
-    reviewReason: "High-confidence multi-technique chain. Escalate immediately.",
-    candidates: [
-      { rank: 1, id: "T1110.001", name: "Password Guessing", score: 0.97 },
-      { rank: 2, id: "T1059.001", name: "PowerShell", score: 0.92 },
-      { rank: 3, id: "T1021.002", name: "SMB/Windows Admin Shares", score: 0.85 },
-      { rank: 4, id: "T1055.001", name: "Process Injection: DLL", score: 0.61 },
-      { rank: 5, id: "T1071.001", name: "Application Layer Protocol: Web", score: 0.54 },
-    ],
-  },
-  1: {
-    techniques: [],
-    entities: {
-      assets: ["WIN-WKS-11"],
-      iocs: ["10.0.0.5"],
-      actions: ["Windows Update KB5034441", "WSUS download", "scheduled restart"],
-    },
-    needsReview: false,
-    reviewReason: "No actionable malicious technique detected. Benign patch activity confirmed.",
-    candidates: [
-      { rank: 1, id: "T1072", name: "Software Deployment Tools", score: 0.38 },
-      { rank: 2, id: "T1195", name: "Supply Chain Compromise", score: 0.12 },
-      { rank: 3, id: "T1078", name: "Valid Accounts", score: 0.09 },
-      { rank: 4, id: "T1105", name: "Ingress Tool Transfer", score: 0.07 },
-      { rank: 5, id: "T1059", name: "Command and Scripting", score: 0.04 },
-    ],
-  },
-  2: {
-    techniques: [
-      {
-        id: "T1059",
-        name: "Command and Scripting Interpreter",
-        tactic: "Execution",
-        tacticColor: "#ef4444",
-        confidence: 52,
-        evidence: ["/tmp/.cache/run (executable, no file extension)", "syscall trace: open(), mmap(), socket()"],
-        mitreUrl: "https://attack.mitre.org/techniques/T1059/",
-      },
-    ],
-    entities: {
-      assets: ["LNX-DB-02"],
-      iocs: ["/tmp/.cache/run"],
-      actions: ["anomalous process spawn", "socket() syscall", "agent reporting lag"],
-    },
-    needsReview: true,
-    reviewReason: "Incomplete telemetry. Low-confidence inference. Manual triage required.",
-    candidates: [
-      { rank: 1, id: "T1059", name: "Command and Scripting", score: 0.52 },
-      { rank: 2, id: "T1055", name: "Process Injection", score: 0.44 },
-      { rank: 3, id: "T1036.005", name: "Masquerading: Match Legitimate Name", score: 0.39 },
-      { rank: 4, id: "T1027", name: "Obfuscated Files", score: 0.31 },
-      { rank: 5, id: "T1070.004", name: "File Deletion", score: 0.21 },
-    ],
-  },
-};
-
-interface Technique {
-  id: string;
-  name: string;
-  tactic: string;
-  tacticColor: string;
-  confidence: number;
-  evidence: string[];
-  mitreUrl: string;
-}
-
 interface InferenceResult {
-  techniques: Technique[];
-  entities: { assets: string[]; iocs: string[]; actions: string[] };
-  needsReview: boolean;
-  reviewReason: string;
-  candidates: { rank: number; id: string; name: string; score: number }[];
+  alert_id: string;
+  inferred_techniques: {
+    technique_id: string;
+    technique_name: string;
+    tactic: string;
+    confidence: number;
+    evidence_spans: string[];
+    mitre_url: string;
+  }[];
+  candidates_considered: {
+    technique_id: string;
+    technique_name: string;
+    tactic: string;
+    description_excerpt: string;
+    stix_version: string;
+  }[];
+  needs_human_review: boolean;
+  disclaimer: string;
 }
 
 // ─── Evaluation data ───────────────────────────────────────────────────────
@@ -220,9 +131,6 @@ export default function App() {
       </header>
 
       {/* Tab Content */}
-      <div role="note" style={{ padding: "8px 24px", background: "var(--muted)", color: "var(--primary)", fontSize: 12, flexShrink: 0 }}>
-        UI preview — predictions, evaluation scores, and guardrail statuses are sample data, not API results. Expert review is required.
-      </div>
       <div style={{ flex: 1, overflow: "hidden" }}>
         {activeTab === 0 ? <AnalystWorkspace /> : <EvalDashboard />}
       </div>
@@ -236,27 +144,50 @@ function AnalystWorkspace() {
   const [sampleIdx, setSampleIdx] = useState<number | null>(null);
   const [result, setResult] = useState<InferenceResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [entitiesOpen, setEntitiesOpen] = useState(false);
   const [candidatesOpen, setCandidatesOpen] = useState(false);
+
+  // ฟังก์ชันกลางสำหรับส่งข้อความ alert ไปประมวลผลที่ FastAPI
+  async function submitAlert(alertText: string) {
+    if (!alertText.trim()) return;
+
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const response = await fetch("/alerts/infer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          narrative: alertText.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail?.message || "ไม่สามารถวิเคราะห์ Alert ได้");
+      }
+
+      setResult(data);
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function pickSample(idx: number) {
     setSampleIdx(idx);
-    setText(SAMPLES[idx].text);
-    setResult(null);
-    setEntitiesOpen(false);
+    const sampleText = SAMPLES[idx].text;
+    setText(sampleText);
     setCandidatesOpen(false);
   }
 
   function runInference() {
-    if (!text.trim()) return;
-    setLoading(true);
-    setResult(null);
-    setTimeout(() => {
-      const r = sampleIdx !== null ? INFERENCE_RESULTS[sampleIdx] : INFERENCE_RESULTS[0];
-      setResult(r);
-      setEntitiesOpen(true);
-      setLoading(false);
-    }, 1400);
+    submitAlert(text);
   }
 
   return (
@@ -348,38 +279,6 @@ function AnalystWorkspace() {
             )}
           </button>
         </div>
-
-        {/* Entities Accordion */}
-        {result && (
-          <div style={{ borderTop: "1px solid var(--border)", flexShrink: 0 }}>
-            <button
-              onClick={() => setEntitiesOpen(!entitiesOpen)}
-              style={{
-                width: "100%",
-                background: "var(--muted)",
-                border: "none",
-                borderBottom: entitiesOpen ? "1px solid var(--border)" : "none",
-                color: "var(--foreground)",
-                padding: "12px 20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <span className="mono" style={{ fontSize: 10, letterSpacing: "0.08em", color: "var(--muted-foreground)" }}>EXTRACTED ENTITIES</span>
-              <span style={{ color: "var(--primary)", fontSize: 12 }}>{entitiesOpen ? "▲" : "▼"}</span>
-            </button>
-            {entitiesOpen && (
-              <div style={{ padding: "16px 20px 20px", background: "var(--muted)", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                <EntityGroup label="ASSETS" items={result.entities.assets} color="#3b82f6" />
-                <EntityGroup label="IOCs" items={result.entities.iocs} color="var(--red)" />
-                <EntityGroup label="OBSERVED ACTIONS" items={result.entities.actions} color="var(--orange)" />
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* RIGHT: Results Panel */}
@@ -414,33 +313,37 @@ function AnalystWorkspace() {
           {result && !loading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Review Flag */}
-              <div style={{
-                background: result.needsReview ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
-                border: `1px solid ${result.needsReview ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`,
-                borderRadius: "var(--radius)",
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-              }}>
-                <span style={{ color: result.needsReview ? "var(--red)" : "var(--green)", fontWeight: 700, fontSize: 13 }}>
-                  {result.needsReview ? "⚠" : "✓"}
-                </span>
-                <div>
-                  <span className="mono" style={{ fontSize: 10, letterSpacing: "0.06em", color: result.needsReview ? "var(--red)" : "var(--green)", fontWeight: 700 }}>
-                    {result.needsReview ? "NEEDS HUMAN REVIEW: TRUE" : "GROUNDING STATUS: CLEAR"}
-                  </span>
-                  <p style={{ fontSize: 12, color: "var(--card-foreground)", marginTop: 4 }}>{result.reviewReason}</p>
-                </div>
-              </div>
+<div style={{
+  background: result.needs_human_review ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
+  border: `1px solid ${result.needs_human_review ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`,
+  borderRadius: "var(--radius)",
+  padding: "10px 14px",
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 10,
+}}>
+  <span style={{ color: result.needs_human_review ? "var(--red)" : "var(--green)", fontWeight: 700, fontSize: 13 }}>
+    {result.needs_human_review ? "⚠" : "✓"}
+  </span>
+  <div>
+    <span className="mono" style={{ fontSize: 10, letterSpacing: "0.06em", color: result.needs_human_review ? "var(--red)" : "var(--green)", fontWeight: 700 }}>
+      {result.needs_human_review ? "NEEDS HUMAN REVIEW: TRUE" : "GROUNDING STATUS: VERIFIED"}
+    </span>
+    <p style={{ fontSize: 12, color: "var(--card-foreground)", marginTop: 4 }}>
+      {result.needs_human_review 
+        ? "Ambiguous indicators or insufficient evidence detected. Analyst review required."
+        : "All predicted techniques are strongly grounded in log evidence."}
+    </p>
+  </div>
+</div>
 
               {/* Technique Cards */}
-              {result.techniques.length === 0 ? (
+              {result.inferred_techniques.length === 0 ? (
                 <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "24px 20px", textAlign: "center" }}>
                   <span className="mono" style={{ fontSize: 12, color: "var(--muted-foreground)" }}>No malicious techniques inferred. Benign activity pattern.</span>
                 </div>
               ) : (
-                result.techniques.map((t) => <TechniqueCard key={t.id} technique={t} />)
+                result.inferred_techniques.map((t) => <TechniqueCard key={t.technique_id} technique={t} />)
               )}
 
               {/* Candidate Drawer */}
@@ -468,17 +371,11 @@ function AnalystWorkspace() {
                 </button>
                 {candidatesOpen && (
                   <div style={{ background: "var(--card)", padding: "4px 0" }}>
-                    {result.candidates.map((c) => (
-                      <div key={c.rank} style={{ display: "grid", gridTemplateColumns: "28px 90px 1fr 60px", alignItems: "center", gap: 12, padding: "8px 16px", borderBottom: "1px solid var(--border)" }}>
-                        <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)" }}>#{c.rank}</span>
-                        <span className="mono" style={{ fontSize: 11, color: "var(--primary)", fontWeight: 600 }}>{c.id}</span>
-                        <span style={{ fontSize: 12, color: "var(--card-foreground)" }}>{c.name}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div className="progress-bar" style={{ flex: 1 }}>
-                            <div className="progress-fill" style={{ width: `${c.score * 100}%`, background: scoreColor(c.score) }} />
-                          </div>
-                          <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", minWidth: 32 }}>{(c.score * 100).toFixed(0)}%</span>
-                        </div>
+                    {result.candidates_considered.map((c, index) => (
+                      <div key={c.technique_id || index} style={{ display: "grid", gridTemplateColumns: "28px 90px 1fr", alignItems: "center", gap: 12, padding: "8px 16px", borderBottom: "1px solid var(--border)" }}>
+                        <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)" }}>#{index + 1}</span>
+                        <span className="mono" style={{ fontSize: 11, color: "var(--primary)", fontWeight: 600 }}>{c.technique_id}</span>
+                        <span style={{ fontSize: 12, color: "var(--card-foreground)" }}>{c.technique_name}</span>
                       </div>
                     ))}
                   </div>
@@ -496,63 +393,84 @@ function AnalystWorkspace() {
   );
 }
 
-function EntityGroup({ label, items, color }: { label: string; items: string[]; color: string }) {
-  return (
-    <div>
-      <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", color: "var(--muted-foreground)", marginBottom: 8 }}>{label}</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {items.map((item) => (
-          <span key={item} className="mono" style={{ fontSize: 11, color, background: `color-mix(in srgb, ${color} 10%, transparent)`, padding: "3px 8px", borderRadius: 2, display: "inline-block" }}>
-            {item}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
+const TACTIC_COLORS: Record<string, string> = {
+  "Credential Access": "#8b5cf6",
+  "Execution": "#ef4444",
+  "Lateral Movement": "#f97316",
+  "Persistence": "#3b82f6",
+  "Privilege Escalation": "#ec4899",
+  "Defense Evasion": "#eab308",
+  "Discovery": "#06b6d4",
+  "Collection": "#14b8a6",
+  "Command and Control": "#6366f1",
+  "Exfiltration": "#a855f7",
+  "Impact": "#f43f5e",
+  "Initial Access": "#10b981",
+};
 
-function TechniqueCard({ technique: t }: { technique: Technique }) {
+type InferredTechnique = InferenceResult["inferred_techniques"][number];
+
+function TechniqueCard({ technique: t }: { technique: InferredTechnique }) {
+  const tacticColor = TACTIC_COLORS[t.tactic] || "#94a3b8";
+
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-            <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: "var(--primary)" }}>{t.id}</span>
-            <span style={{ fontSize: 10, background: t.tacticColor + "25", color: t.tacticColor, padding: "2px 8px", borderRadius: 2, fontWeight: 600, letterSpacing: "0.04em" }}>
+            <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: "var(--primary)" }}>{t.technique_id}</span>
+            <span style={{ fontSize: 10, background: tacticColor + "25", color: tacticColor, padding: "2px 8px", borderRadius: 2, fontWeight: 600, letterSpacing: "0.04em" }}>
               {t.tactic}
             </span>
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{t.name}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{t.technique_name}</div>
         </div>
-        <a
-          href={t.mitreUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11, color: "var(--primary)", border: "1px solid rgba(245,158,11,0.3)", padding: "4px 10px", borderRadius: 2, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500 }}
-        >
-          MITRE ↗
-        </a>
+        {t.mitre_url && (
+          <a
+            href={t.mitre_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 11, color: "var(--primary)", border: "1px solid rgba(245,158,11,0.3)", padding: "4px 10px", borderRadius: 2, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 500 }}
+          >
+            MITRE ↗
+          </a>
+        )}
       </div>
 
       {/* Confidence */}
-      <div style={{ padding: "10px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12 }}>
-        <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", minWidth: 120 }}>CONFIDENCE</span>
-        <div className="progress-bar" style={{ flex: 1 }}>
-          <div className="progress-fill" style={{ width: `${t.confidence}%`, background: scoreColor(t.confidence / 100) }} />
-        </div>
-        <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: scoreColor(t.confidence / 100), minWidth: 40, textAlign: "right" }}>{t.confidence}%</span>
-      </div>
+      {(() => {
+        const confidencePercent = t.confidence <= 1 ? Math.round(t.confidence * 100) : Math.round(t.confidence);
+        return (
+          <div style={{ padding: "10px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12 }}>
+            <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", minWidth: 120 }}>CONFIDENCE</span>
+            <div className="progress-bar" style={{ flex: 1 }}>
+              <div className="progress-fill" style={{ width: `${confidencePercent}%`, background: scoreColor(confidencePercent / 100) }} />
+            </div>
+            <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: scoreColor(confidencePercent / 100), minWidth: 40, textAlign: "right" }}>
+              {confidencePercent}%
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Evidence Spans */}
       <div style={{ padding: "12px 16px" }}>
-        <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", color: "var(--muted-foreground)", marginBottom: 8 }}>EVIDENCE SPANS (GROUNDED)</div>
+        <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", color: "var(--muted-foreground)", marginBottom: 8 }}>
+          EVIDENCE SPANS (GROUNDED)
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {t.evidence.map((e, i) => (
-            <div key={i} style={{ background: "rgba(245,158,11,0.07)", borderLeft: "2px solid var(--primary)", padding: "6px 10px", borderRadius: "0 2px 2px 0" }}>
-              <span className="mono" style={{ fontSize: 11, color: "#fde68a", lineHeight: 1.5 }}>"{e}"</span>
-            </div>
-          ))}
+          {t.evidence_spans && t.evidence_spans.length > 0 ? (
+            t.evidence_spans.map((e, i) => (
+              <div key={i} style={{ background: "rgba(245,158,11,0.07)", borderLeft: "2px solid var(--primary)", padding: "6px 10px", borderRadius: "0 2px 2px 0" }}>
+                <span className="mono" style={{ fontSize: 11, color: "#fde68a", lineHeight: 1.5 }}>
+"{e.replace(/^["']+|["']+$/g, '')}"
+</span>
+              </div>
+            ))
+          ) : (
+            <span className="mono" style={{ fontSize: 11, color: "var(--muted-foreground)" }}>No explicit evidence span captured.</span>
+          )}
         </div>
       </div>
     </div>
@@ -623,7 +541,6 @@ function EvalDashboard() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <SectionLabel>TEST RUN BREAKDOWN — {EVAL_ROWS.length} CASES</SectionLabel>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Filter buttons */}
             {(["All", "Exact", "Parent", "Miss"] as const).map((f) => (
               <button
                 key={f}
@@ -774,7 +691,7 @@ function MatchBadge({ match }: { match: string }) {
   const colors: Record<string, string> = { Exact: "var(--green)", Parent: "var(--orange)", Miss: "var(--red)" };
   const color = colors[match] || "var(--muted-foreground)";
   return (
-    <span className="mono" style={{ fontSize: 10, color, background: `color-mix(in srgb, ${color} 10%, transparent)`, padding: "2px 8px", borderRadius: 2, fontWeight: 600, letterSpacing: "0.04em", display: "inline-block" }}>
+    <span className="mono" style={{ fontSize: 10, color, background: `${color}18`, padding: "2px 8px", borderRadius: 2, fontWeight: 600, letterSpacing: "0.04em", display: "inline-block" }}>
       {match.toUpperCase()}
     </span>
   );
