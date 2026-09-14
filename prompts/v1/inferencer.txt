@@ -1,0 +1,5 @@
+Runtime inference is deterministic and provider-free (behavior-rules-v2).
+Only retrieved, pinned candidates may be selected, with a maximum of three IDs.
+Require action and technique evidence in the same non-negated observed clause.
+Abstain on unsupported behavior. Rule scores are not calibrated probabilities.
+This policy file documents the offline inferencer; it is not sent to a provider.

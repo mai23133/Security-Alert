@@ -110,3 +110,23 @@ CORS default คือ http://127.0.0.1:8000 และ http://localhost:8000 ป
 ## ขอบเขตความปลอดภัย
 
 Response inference มี advisory disclaimer แต่ taxonomy/search/health ไม่ได้ใช้ ATTACKInferenceResult จึงไม่มี disclaimer field แบบเดียวกัน logs ของ middleware ไม่เก็บ narrative โดยตรง แต่ exception logging ยังต้องตรวจ privacy เพิ่ม ไม่มี auth/rate limiting และยังไม่ถือว่าพร้อม production ดู [รายงาน](PROJECT_REVIEW_TH.md)
+# การเปลี่ยนแปลงจากแผนปิดโครงการ — 14 กันยายน 2026
+
+ส่วนนี้เป็นพฤติกรรมล่าสุดและใช้แทนคำอธิบาย baseline ด้านล่างที่กล่าวถึง module-import KB, structural-only grounding และ error handling เดิม
+
+- ทุก route ใช้ KB snapshot เดียวที่ตรวจตอน lifespan startup; KB หาย/เสียตอบ 503 ไม่ทำให้ import ล้ม
+- `/` คง response เดิม; เพิ่ม `/ready` สำหรับตรวจว่า KB พร้อมและแสดง subset status
+- Schema ของ inference, candidates, batch และ endpoints ตามข้อกำหนดยังคงเดิม
+- `/alerts/infer` และ batch ใช้ offline pipeline โดยไม่ส่ง alert ไป Gemini แม้มี key ใน environment
+- Inference ตรวจพฤติกรรมระดับ clause; evidence ต้องเป็น substring และมีบริบทที่รองรับ confidence เป็น rule score ไม่ใช่ probability
+- `/rag/search` ใช้ BM25 จาก description เต็มร่วมกับ behavior reranking; ค่า top-k เริ่มต้นยังเป็น 5
+- `/taxonomy` อ่าน generation เดียวกับ inference; missing KB เปลี่ยนจากรายการว่างเป็น 503 และ unknown ID ตอบข้อความคงที่โดยไม่สะท้อนค่าที่ส่งมา
+- Request body ไม่ตรง schema/มี extra field ตอบ 422 `INVALID_REQUEST` โดยไม่แนบ input; body เกิน 600,000 bytes ตอบ 413
+- Single และ batch ทำงานผ่าน worker ที่จำกัดจำนวน; deadline รวมเริ่มต้น 15 วินาที ตอบ 504 เมื่อหมดเวลา
+- Item error ใน batch ยังเป็น no-match/review ตาม contract เดิม; deadline รวมหมดจะตอบ 504 ทั้ง request
+- เมื่อตั้ง `SECURITY_ALERT_API_KEY` ต้องส่ง `X-API-Key`; unauthorized ตอบ 401 และเกิน rate limit ตอบ 429 พร้อม Retry-After
+- Logs ไม่บันทึก narrative, alert ID, raw path/query หรือ traceback; response มี no-store และ X-Server-Trace-ID สำหรับเทียบ structured log
+- `/evaluate` เพิ่ม dependency/Python/prompt/snapshot hashes, behavior-evidence metric และ tactic accuracy โดยยังไม่ประกาศ acceptance_ready
+- Dataset ยังเป็น 35 alerts, 1.0.0-rc1 และ pending review; parent credit 0.5 และ subset 127 IDs ยังใช้ชั่วคราวระหว่างรอผู้สอน
+
+ดูการตั้งค่าและข้อจำกัดที่ [deployment/privacy](DEPLOYMENT_PRIVACY_TH.md)

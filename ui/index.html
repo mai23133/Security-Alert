@@ -28,7 +28,11 @@
     <section>
       <label for="narrative-input"><strong>Narrative (ข้อความแจ้งเตือน)</strong></label>
       <textarea id="narrative-input" maxlength="20000" placeholder="ใส่ข้อความแจ้งเตือนที่นี่..."></textarea>
+      <p>ประมวลผลภายใน course sandbox โดยไม่ส่งข้อความไปยังผู้ให้บริการ AI และไม่บันทึกข้อความลงไฟล์</p>
+      <label for="api-key">API key (กรอกเฉพาะเมื่อระบบกำหนด)</label>
+      <input id="api-key" type="password" autocomplete="off">
       <button id="analyze-button" type="button">วิเคราะห์ข้อมูล</button>
+      <button id="clear-button" type="button">ล้างข้อความและผลลัพธ์</button>
       <p id="error-message" class="error" role="alert" hidden></p>
     </section>
     <!-- 2. โซนแสดงผลลัพธ์ (Prediction & Evidence) -->
@@ -46,6 +50,7 @@
       <strong>Disclaimer:</strong>
       <span id="ui-disclaimer">ผลลัพธ์นี้เป็นเพียงคำแนะนำ ต้องมีการตรวจสอบโดยมนุษย์ก่อนดำเนินการใด ๆ</span>
     </aside>
+    <p>อ้างอิง MITRE ATT&amp;CK® Enterprise 19.1 — <a href="https://attack.mitre.org/" rel="noopener noreferrer">MITRE ATT&amp;CK</a></p>
   </main>
   <script>
     const input = document.getElementById("narrative-input");
@@ -65,10 +70,11 @@
       card.className = "card";
       appendText(card, "h3", `${technique.technique_id} — ${technique.technique_name}`);
       appendText(card, "p", `Tactic: ${technique.tactic}`);
-      appendText(card, "p", `Confidence: ${(technique.confidence * 100).toFixed(0)}%`);
+      appendText(card, "p", `Confidence score: ${technique.confidence.toFixed(2)} (คะแนนตามกฎ ไม่ใช่ความน่าจะเป็น)`);
       appendText(card, "p", `Evidence: ${technique.evidence_spans.join(" | ") || "ไม่มีหลักฐานที่ผ่านการตรวจ"}`);
       const link = appendText(card, "a", "เปิดหน้า MITRE ATT&CK");
-      link.href = technique.mitre_url;
+      const safeId = /^T\d{4}(?:\.\d{3})?$/.test(technique.technique_id);
+      link.href = safeId ? `https://attack.mitre.org/techniques/${technique.technique_id.replace(".", "/")}/` : "https://attack.mitre.org/";
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       parent.appendChild(card);
@@ -88,7 +94,8 @@
       try {
         const response = await fetch("/alerts/infer", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: {"Content-Type": "application/json", "X-API-Key": document.getElementById("api-key").value},
+          signal: AbortSignal.timeout(20000),
           body: JSON.stringify({narrative})
         });
         const data = await response.json();
@@ -106,7 +113,7 @@
           data.inferred_techniques.forEach(item => renderPrediction(predictions, item));
         }
         const review = document.getElementById("ui-review");
-        review.textContent = data.needs_human_review ? "Needs Human Review" : "ผ่าน structural grounding";
+        review.textContent = data.needs_human_review ? "Needs Human Review" : "หลักฐานผ่านกฎตรวจสอบ — นักวิเคราะห์ยังต้องตรวจยืนยัน";
         review.className = data.needs_human_review ? "review" : "ok";
         const candidates = document.getElementById("ui-candidates");
         candidates.replaceChildren();
@@ -126,6 +133,16 @@
         button.disabled = false;
         button.textContent = "วิเคราะห์ข้อมูล";
       }
+    });
+    document.getElementById("clear-button").addEventListener("click", () => {
+      if (button.disabled) return;
+      input.value = "";
+      document.getElementById("api-key").value = "";
+      document.getElementById("ui-predictions").replaceChildren();
+      document.getElementById("ui-candidates").replaceChildren();
+      document.getElementById("ui-alert-id").textContent = "";
+      resultsSection.hidden = true;
+      errorMessage.hidden = true;
     });
   </script>
 </body>

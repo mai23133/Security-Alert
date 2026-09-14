@@ -1,0 +1,56 @@
+{
+  "metadata": {
+    "report_kind": "runtime_quality",
+    "not_a_runtime_quality_gate": false,
+    "generated_at": "2026-09-14T13:02:21.556289+00:00",
+    "commit": "0be7a1092ed46d0d34d4b5df1de28ea33d39370f",
+    "code_sha256": "9335345e2e5d13c325c903d08acc1b747c8b0a435cb23927b8861be05b6a0e94",
+    "dataset_version": "1.0.0-rc1",
+    "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
+    "evaluation_scope": "full_course_pack",
+    "evaluated_alert_count": 35,
+    "evaluation_subset_version": null,
+    "evaluation_subset_sha256": null,
+    "label_review_status": "pending_independent_review",
+    "stix_version": "enterprise-attack-19.1",
+    "stix_sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
+    "allowlist_sha256": "1a9c280e292ddc917af3a46f88de54e70625244389808fbd3a34e3e33c7508be",
+    "candidates_sha256": "9727adef35b98862647f72bda323c7aa5e8d23bb0b0dc7cd6db5f5149c34c2e1",
+    "prediction_sha256": "9afa0609f1b89d4e7cf996fac98f136ed5248ec104c6ebf146b2c6dcd944a2a1",
+    "model_version": "lexical-baseline-offline",
+    "prompt_version": "provider-disabled",
+    "provider_mode": "disabled",
+    "top_k": 5,
+    "parent_match_credit": 0.5,
+    "grounding_kind": "exact_substring_only"
+  },
+  "metrics": {
+    "alert_count": 35,
+    "exact_technique": {
+      "precision": 0.2602739726027397,
+      "recall": 0.5135135135135135,
+      "f1": 0.3454545454545454
+    },
+    "parent_technique_recall": 0.527027027027027,
+    "evidence_grounding_rate": 1.0,
+    "hallucinated_id_rate": 0.0,
+    "false_positive_rate": 0.4,
+    "human_review_rate": 0.22857142857142856,
+    "recall_at_1": 0.3783783783783784,
+    "recall_at_3": 0.6486486486486487,
+    "recall_at_5": 0.7297297297297297
+  },
+  "quality_gates": {
+    "exact_f1_at_least_0_70": false,
+    "parent_recall_at_least_0_90": false,
+    "grounding_at_least_0_85": true,
+    "hallucinated_id_rate_is_zero": true
+  },
+  "numeric_gates_passed": false,
+  "acceptance_ready": false,
+  "acceptance_blockers": [
+    "Gold-label approval and dataset composition require course confirmation.",
+    "Semantic grounding and final subset approval remain outstanding."
+  ],
+  "disclaimer": "Advisory evaluation only. Dataset labels require review; substring grounding is not semantic validation."
+}

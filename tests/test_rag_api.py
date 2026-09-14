@@ -3,6 +3,7 @@ from httpx import ASGITransport, AsyncClient
 
 from src.api.main import app
 from src.api.routes import rag
+from src.api.runtime import get_retriever
 from src.schemas import TechniqueCandidate
 
 pytestmark = pytest.mark.anyio
@@ -15,10 +16,11 @@ def anyio_backend():
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver"
-    ) as test_client:
-        yield test_client
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as test_client:
+            yield test_client
 
 
 class FakeRetriever:
@@ -41,7 +43,7 @@ class FakeRetriever:
 
 async def test_rag_search_uses_validated_parameters(client, monkeypatch):
     retriever = FakeRetriever()
-    monkeypatch.setattr(rag, "RETRIEVER", retriever)
+    monkeypatch.setitem(app.dependency_overrides, get_retriever, lambda: retriever)
 
     response = await client.post(
         "/rag/search",
@@ -77,7 +79,7 @@ async def test_rag_search_rejects_invalid_input(client, payload):
 
 async def test_rag_search_treats_empty_tactic_as_all_scope(client, monkeypatch):
     retriever = FakeRetriever()
-    monkeypatch.setattr(rag, "RETRIEVER", retriever)
+    monkeypatch.setitem(app.dependency_overrides, get_retriever, lambda: retriever)
 
     response = await client.post(
         "/rag/search",

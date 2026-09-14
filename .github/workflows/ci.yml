@@ -10,6 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      GOOGLE_API_KEY: ""
+      GEMINI_API_KEY: ""
+      PROVIDER_CONSENT: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,5 +31,33 @@ jobs:
         run: python -m pytest -q
       - name: Validate bundled evaluation fixture
         run: python -m eval.run_eval --mode fixture --subset iteration-2
+      - name: Runtime development regression gates
+        run: python -m eval.run_eval --mode runtime --development --require-quality-gates --output /tmp/development.json
+      - name: Install browser
+        run: python -m playwright install --with-deps chromium
+      - name: Browser acceptance
+        run: python scripts/browser_acceptance.py
       - name: Check whitespace errors
         run: git diff --check
+  runtime-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GOOGLE_API_KEY: ""
+      GEMINI_API_KEY: ""
+      PROVIDER_CONSENT: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.lock
+      - run: python -m src.rag.ingest_stix
+      - name: Full runtime quality gate (must pass before acceptance)
+        run: python -m eval.run_eval --mode runtime --subset full --require-quality-gates --diagnostics --output /tmp/runtime-quality.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-quality
+          path: /tmp/runtime-quality.json

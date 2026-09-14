@@ -2,7 +2,9 @@
 import logging
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from functools import partial
+from src.api.runtime import get_retriever, run_bounded
 from pydantic import BaseModel, ConfigDict, Field
 
 from eval.evaluator import create_report
@@ -17,10 +19,14 @@ class EvaluationRequest(BaseModel):
 
 
 @router.post("/evaluate")
-def evaluate_dataset(request: EvaluationRequest) -> dict:
+async def evaluate_dataset(request: EvaluationRequest, http_request: Request,
+                           retriever=Depends(get_retriever)) -> dict:
     """Use a worker thread; never accept paths, alerts, keys, or provider mode."""
     try:
-        return create_report(mode=request.mode, top_k=request.top_k)
+        return await run_bounded(http_request, partial(create_report, mode=request.mode,
+            top_k=request.top_k, retriever=retriever))
+    except HTTPException:
+        raise
     except (OSError, ValueError, TypeError, KeyError):
         raise HTTPException(
             status_code=503,

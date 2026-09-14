@@ -1,4 +1,7 @@
 import json
+from types import SimpleNamespace
+from src.api.runtime import get_retriever
+from src.schemas import TechniqueCandidate
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -16,11 +19,12 @@ def anyio_backend():
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://testserver",
-    ) as test_client:
-        yield test_client
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as test_client:
+            yield test_client
 
 
 @pytest.fixture
@@ -50,14 +54,9 @@ def candidates_file(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    # เปลี่ยน path ของ taxonomy เฉพาะระหว่างทดสอบ
-    monkeypatch.setattr(
-        taxonomy,
-        "CANDIDATES_PATH",
-        test_file,
-    )
-
-    return test_file
+    app.dependency_overrides[get_retriever] = lambda: SimpleNamespace(candidates=[TechniqueCandidate(**c) for c in candidates])
+    yield test_file
+    app.dependency_overrides.pop(get_retriever, None)
 
 
 async def test_health_endpoint(client):
@@ -138,11 +137,11 @@ async def test_get_unknown_technique_returns_404(client, candidates_file):
 
     assert response.status_code == 404
     assert response.json() == {
-        "detail": "T9999 not found in pinned subset"
+        "detail": "Technique not found in pinned subset"
     }
 
 
-async def test_list_techniques_returns_empty_when_file_missing(
+async def test_list_techniques_returns_503_when_snapshot_missing(
     client,
     tmp_path,
     monkeypatch,
@@ -150,16 +149,9 @@ async def test_list_techniques_returns_empty_when_file_missing(
     # หากยังไม่มีไฟล์ processed API ต้องคืนรายการว่างและไม่พัง
     missing_file = tmp_path / "missing.json"
 
-    monkeypatch.setattr(
-        taxonomy,
-        "CANDIDATES_PATH",
-        missing_file,
-    )
+    monkeypatch.setattr(app.state, "retriever", None)
 
     response = await client.get("/taxonomy/techniques")
 
-    assert response.status_code == 200
-    assert response.json() == {
-        "count": 0,
-        "techniques": [],
-    }
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "KNOWLEDGE_BASE_UNAVAILABLE"

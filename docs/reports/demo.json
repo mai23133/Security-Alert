@@ -1,0 +1,32 @@
+{
+  "functional_demo_passed": true,
+  "provider_mode": "disabled",
+  "steps": [
+    "brute_force_and_powershell",
+    "top_five_candidates",
+    "benign_no_match_review",
+    "judge_rejects_removed_evidence",
+    "display_full_runtime_metrics"
+  ],
+  "metrics": {
+    "alert_count": 35,
+    "exact_technique": {
+      "precision": 0.9310344827586207,
+      "recall": 0.7297297297297297,
+      "f1": 0.8181818181818181
+    },
+    "parent_technique_recall": 0.7297297297297297,
+    "evidence_grounding_rate": 1.0,
+    "hallucinated_id_rate": 0.0,
+    "false_positive_rate": 0.0,
+    "human_review_rate": 0.34285714285714286,
+    "recall_at_1": 0.7297297297297297,
+    "recall_at_3": 0.8108108108108109,
+    "recall_at_5": 0.8648648648648649,
+    "behavior_evidence_rate": 1.0,
+    "tactic_accuracy": 0.8,
+    "negative_control_count": 5
+  },
+  "quality_gates_passed": false,
+  "acceptance_ready": false
+}

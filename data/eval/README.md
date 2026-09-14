@@ -1,5 +1,23 @@
 # Offline evaluation dataset
 
+## Completion work (14 September 2026)
+
+The 35 course records, gold IDs, `1.0.0-rc1` version and pending independent
+review remain unchanged. The provisional 127-ID allowlist remains in use for
+before/after comparisons. See `docs/PROJECT_COMPLETION_DECISIONS_TH.md` for the
+unresolved instructor decisions; engineering changes do not constitute approval.
+
+Development fixtures live separately in `data/dev/`. Runtime now uses a verified
+atomic KB snapshot and clause-level behavior checks in addition to verbatim
+grounding. `evidence_grounding_rate` retains its original substring definition;
+`behavior_evidence_rate` is additional rule agreement, not an independent
+semantic score. Use `--diagnostics` for error categories and evidence offsets
+without duplicating narratives. Full runtime quality gates remain mandatory.
+
+The operational default is an offline local course sandbox, with parent credit
+unchanged at 0.5 pending instructor confirmation. Approval and label locking
+must still be performed by the responsible people using real evidence.
+
 This directory belongs to stream C (dataset and evaluation) and contains no real
 alert data. All narratives are synthetic and sanitized.
 

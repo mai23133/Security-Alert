@@ -1,0 +1,29 @@
+{
+  "source_kind": "working_tree_copy_without_generated_data",
+  "python": "3.11.15",
+  "provider_mode": "disabled",
+  "results": {
+    "install": {
+      "exit_code": 0
+    },
+    "dependency_check": {
+      "exit_code": 0
+    },
+    "ingestion": {
+      "exit_code": 0
+    },
+    "tests": {
+      "exit_code": 0
+    },
+    "fixture": {
+      "exit_code": 0
+    },
+    "development": {
+      "exit_code": 0
+    },
+    "runtime_quality": {
+      "exit_code": 1
+    }
+  },
+  "directory": "/tmp/security-alert-clean-gw80omvn"
+}

@@ -1,0 +1,361 @@
+{
+  "status": "pending_instructor_and_independent_review",
+  "reviewer": null,
+  "reviewed_at": null,
+  "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
+  "composition": {
+    "positive": 20,
+    "multi_technique": 5,
+    "ambiguous": 5,
+    "negative": 5
+  },
+  "records": [
+    {
+      "alert_id": "eval-001",
+      "narrative_sha256": "f1f0fb37c96d3284fa83ba56da4f99b8e0352e26bdf5b6c81bc27b8683de50fc",
+      "gold_ids": [
+        "T1110"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-002",
+      "narrative_sha256": "31be8511ac9930a71ccbee4e662e740493b32da23a81d8e94dae886c1450c818",
+      "gold_ids": [
+        "T1110.003"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-003",
+      "narrative_sha256": "1658c73ca12d4649022922d64e7009d815cdda145c87c9baf296c81451347ce3",
+      "gold_ids": [
+        "T1110.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-004",
+      "narrative_sha256": "f91b28f2613d7f8a16d05db175a7b9d18386ede80ac570a032ef97e6bb454ec3",
+      "gold_ids": [
+        "T1059.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-005",
+      "narrative_sha256": "72ee3e7490b8f729e709a334ba2a1f6f4468c63a1b5c73b6bd0c96d9d965b8ed",
+      "gold_ids": [
+        "T1059.004"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-006",
+      "narrative_sha256": "dc8ae16cf6f9f429928e4400036d213b1e13a101597a4f969b055613e56cb9af",
+      "gold_ids": [
+        "T1059.003"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-007",
+      "narrative_sha256": "c0f115cdeec347570a8253a40baac0b6429edf1110541534f7530bf92e21c755",
+      "gold_ids": [
+        "T1204.002"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-008",
+      "narrative_sha256": "5da3492ecb11364a633cfb2c08e6ffcdf2097adcde811b1edc868730652467e7",
+      "gold_ids": [
+        "T1566.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-009",
+      "narrative_sha256": "c77fce2cbe4c11cd6f2385483a91d1345b84404df92d24853138ad5747ffc882",
+      "gold_ids": [
+        "T1190"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-010",
+      "narrative_sha256": "1cebeb3a11f7b7a0e85e715b3917f21abdf2eb8b31b29de4d39d087f4f10a007",
+      "gold_ids": [
+        "T1078"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-011",
+      "narrative_sha256": "ac6299f7bacddc158c2958c7aa32ef7b26d895d52287b8181b643d3b6b5d6805",
+      "gold_ids": [
+        "T1189"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-012",
+      "narrative_sha256": "505d1a42810f44138ecd810fe7465d4643205dc23259c92c91b6d44e9a930050",
+      "gold_ids": [
+        "T1133"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-013",
+      "narrative_sha256": "add5a0b42dc96dba340306314e98bc53b94226bb70d2214bd402650e6b58abaf",
+      "gold_ids": [
+        "T1091"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-014",
+      "narrative_sha256": "a081b1bba9b5c79c9874d07eba25b331eae88a7a679f61a2d92957ac93028ef1",
+      "gold_ids": [
+        "T1003.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-015",
+      "narrative_sha256": "66cd361bd9ddf49c1564bc3413b8071d4625fb9062d0a521fcbdc510fd763a6b",
+      "gold_ids": [
+        "T1555.003"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-016",
+      "narrative_sha256": "e316a95f7c4edabcf098faac3d5ca0ff790ec6d7125f51c09ef62797453e49ff",
+      "gold_ids": [
+        "T1047"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-017",
+      "narrative_sha256": "e1ffadccefacd14f45f59d63e7132fd177dacc3010cae752ee08694f5c30eb03",
+      "gold_ids": [
+        "T1053.005"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-018",
+      "narrative_sha256": "34cd9881a247ba636f25cbbe27c3b5e42f86c25ba6d3208c029a63393da10376",
+      "gold_ids": [
+        "T1106"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-019",
+      "narrative_sha256": "3094f6dd040fbe626fca07577252cc8494feaaa7b1966e866984e278cb3fa11a",
+      "gold_ids": [
+        "T1566.002"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-020",
+      "narrative_sha256": "c2b3f16e6f63ab7f3220c916f442b3c483b06d97d109a976bbd4e8dee5aa1fe8",
+      "gold_ids": [
+        "T1204.004"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-021",
+      "narrative_sha256": "d0ed65ec15a39cdab6e0c2d96ab9ef31b88691a855c22edabf0f78a58ca0b6b2",
+      "gold_ids": [
+        "T1110",
+        "T1059.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-022",
+      "narrative_sha256": "1153e6b78fb13b8d102d0ed9ba00918b02822842f3a8b7176f69c1b71a8d31f2",
+      "gold_ids": [
+        "T1566.001",
+        "T1204.002",
+        "T1059.003"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-023",
+      "narrative_sha256": "40cfb89c24bb4a4a42eb457e9a79f32da9dbde7cf3ea0e4fd412f32b94e04f08",
+      "gold_ids": [
+        "T1190",
+        "T1059.004"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-024",
+      "narrative_sha256": "f92061e831bd0dcb631762b3519979167ab8acfba07b52806ed3e854273cbdd4",
+      "gold_ids": [
+        "T1078",
+        "T1133",
+        "T1059.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-025",
+      "narrative_sha256": "2948b70597c070012a41efb7e33e82ea83a9efa0848e4c1d304a9918729b3cdc",
+      "gold_ids": [
+        "T1204.002",
+        "T1003.001"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-026",
+      "narrative_sha256": "bb7665126839e0ef53b06e734138bcf99fcf0c07bc568def85b062bdebe46e5a",
+      "gold_ids": [
+        "T1110"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-027",
+      "narrative_sha256": "6f8247ed511b98f56563adee0d866b3670f0d4043d33eae0cb2a80d86ecb4e5f",
+      "gold_ids": [
+        "T1059"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-028",
+      "narrative_sha256": "321080f27a32aa765213024a49719f4961444b79049d4d71e53f6cde72b3814d",
+      "gold_ids": [
+        "T1204.002"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-029",
+      "narrative_sha256": "52bbaa2d0a5362d2f5b622d36d68440792d674120234688f02374f5f00e23f6e",
+      "gold_ids": [
+        "T1078"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-030",
+      "narrative_sha256": "ed29e021a0bffbbc6e088850dc6168fce1771959d7a211f8566c68d9c2c68fe5",
+      "gold_ids": [
+        "T1190"
+      ],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-031",
+      "narrative_sha256": "76a2db59d067f0dfd8efea587a2fe634190671aab14301a22e01155abd9ee45e",
+      "gold_ids": [],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-032",
+      "narrative_sha256": "6c35b55edfaee94d3f39631e53d2fd29218558efb4a9743755624150f643551a",
+      "gold_ids": [],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-033",
+      "narrative_sha256": "c147f37d8b51c8bc7257af0945ab4936fdb8685edd777e505a600b023dd9a848",
+      "gold_ids": [],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-034",
+      "narrative_sha256": "b4dddac5aff0fde72e5f09e4f127fb75b3a0bea222e22b1319207cc53982019d",
+      "gold_ids": [],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    },
+    {
+      "alert_id": "eval-035",
+      "narrative_sha256": "272b9c3ac703952e23aeffd72742ec861cbb95c48e9c80d90138c7c424034974",
+      "gold_ids": [],
+      "ids_in_provisional_subset": true,
+      "label_mapping_approved": null,
+      "review_notes": null
+    }
+  ]
+}

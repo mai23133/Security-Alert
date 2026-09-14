@@ -7,6 +7,10 @@ to the in-scope subset defined in spec section 3 and 7:
 Week 2 deliverable.
 """
 import json
+import argparse
+import hashlib
+import os
+import tempfile
 
 from pathlib import Path
 from src.schemas import TechniqueCandidate
@@ -19,6 +23,7 @@ TECHNIQUE_IDS_PATH = OUTPUT_DIR / "technique_ids.json"
 TECHNIQUE_CANDIDATES_PATH = OUTPUT_DIR / "technique_candidates.json"
 
 STIX_VERSION = "19.1"
+PINNED_STIX_SHA256 = "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3"
 
 
 IN_SCOPE_TACTICS = {"initial-access", "execution", "credential-access"}
@@ -66,9 +71,52 @@ def to_candidate(obj: dict) -> TechniqueCandidate:
     )
 
 
-def main():
+def atomic_json(path: Path, value: object) -> None:
+    """Publish a complete JSON file with one atomic replace on the same volume."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=".kb-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(value, file, ensure_ascii=False, indent=2)
+            file.write("\n")
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def metadata_for(obj: dict) -> dict:
+    return {
+        "tactics": sorted({p["phase_name"] for p in obj.get("kill_chain_phases", [])}),
+        "platforms": sorted(obj.get("x_mitre_platforms", [])),
+        "stix_object_id": obj.get("id"),
+        "external_references": obj.get("external_references", []),
+        "description": obj.get("description", ""),
+        "source": "MITRE ATT&CK Enterprise STIX 2.1",
+    }
+
+
+def main(manifest_path: Path | None = None):
+    if Path(STIX_PATH) == PROJECT_ROOT / "data/raw/enterprise-attack-19.1.json":
+        if hashlib.sha256(Path(STIX_PATH).read_bytes()).hexdigest() != PINNED_STIX_SHA256:
+            raise ValueError("Pinned STIX source checksum mismatch")
     objects = load_stix_objects(STIX_PATH)
     in_scope_objs = [o for o in objects if in_scope(o)]
+    manifest = None
+    if manifest_path is not None:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        ids = manifest.get("technique_ids")
+        if (manifest.get("status") != "approved" or not manifest.get("approved_by")
+            or not manifest.get("approved_at") or not manifest.get("approval_reference")
+            or manifest.get("stix_version") != "enterprise-attack-19.1"
+            or not isinstance(ids, list) or any(not isinstance(i, str) for i in ids)
+            or len(ids) != len(set(ids)) or not 30 <= len(ids) <= 50):
+            raise ValueError("Manifest requires documented approval and 30-50 unique pinned IDs")
+        if not set(ids) <= {external_id(o) for o in in_scope_objs}:
+            raise ValueError("Manifest contains IDs outside the pinned in-scope taxonomy")
+        in_scope_objs = [o for o in in_scope_objs if external_id(o) in set(ids)]
     candidates = [to_candidate(o) for o in in_scope_objs]
 
     print(f"Total STIX objects: {len(objects)}")
@@ -94,29 +142,27 @@ def main():
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    with TECHNIQUE_IDS_PATH.open("w", encoding="utf-8") as file:
-        json.dump(
-            sorted(ids),
-            file,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-    with TECHNIQUE_CANDIDATES_PATH.open(
-        "w",
-        encoding="utf-8",
-    ) as file:
-        json.dump(
-            [candidate.model_dump() for candidate in candidates],
-            file,
-            ensure_ascii=False,
-            indent=2,
-        )
+    rows = [candidate.model_dump() for candidate in candidates]
+    metadata = {external_id(o): metadata_for(o) for o in in_scope_objs}
+    atomic_json(TECHNIQUE_IDS_PATH, sorted(ids))
+    atomic_json(TECHNIQUE_CANDIDATES_PATH, rows)
+    atomic_json(OUTPUT_DIR / "technique_metadata.json", metadata)
+    # Runtime reads this single file, never a mix of compatibility exports.
+    # Publishing it last commits the new generation. Running servers keep
+    # their startup snapshot until restart.
+    atomic_json(OUTPUT_DIR / "kb_snapshot.json", {
+        "stix_version": "enterprise-attack-19.1",
+        "stix_sha256": hashlib.sha256(Path(STIX_PATH).read_bytes()).hexdigest(),
+        "subset_status": "approved" if manifest else "provisional_full_in_scope",
+        "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest() if manifest else None,
+        "technique_ids": sorted(ids), "candidates": rows, "metadata": metadata,
+    })
 
     print(f"\nWrote {TECHNIQUE_IDS_PATH}")
     print(f"Wrote {TECHNIQUE_CANDIDATES_PATH}")
 
 
 if __name__ == "__main__":
-    main()
-
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", type=Path)
+    main(parser.parse_args().manifest)

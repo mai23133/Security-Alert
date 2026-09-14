@@ -5,25 +5,22 @@ import logging
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.inference_pipeline import run_inference
 from src.rag.retriever import BaselineRetriever
 from src.schemas import ATTACKInferenceResult
+from src.api.runtime import get_retriever, run_bounded
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MAX_NARRATIVE_LENGTH = 20_000
 MAX_BATCH_SIZE = 25
-RETRIEVER = BaselineRetriever(
-    PROJECT_ROOT / "data" / "processed" / "technique_candidates.json",
-    PROJECT_ROOT / "data" / "processed" / "technique_ids.json",
-)
 
 class AlertRequest(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
     alert_id: str | None = Field(default=None, max_length=128)
     narrative: str = Field(min_length=1, max_length=MAX_NARRATIVE_LENGTH)
@@ -37,6 +34,7 @@ class AlertRequest(BaseModel):
 
 
 class BatchAlertRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     alerts: list[AlertRequest] = Field(min_length=1, max_length=MAX_BATCH_SIZE)
 
 
@@ -44,16 +42,16 @@ class BatchInferenceResult(BaseModel):
     results: list[ATTACKInferenceResult]
 
 
-def _run_alert(request: AlertRequest) -> ATTACKInferenceResult:
+def _run_alert(request: AlertRequest, retriever: BaselineRetriever) -> ATTACKInferenceResult:
     alert_id = request.alert_id or str(uuid.uuid4())
     try:
         return run_inference(
             alert_id=alert_id,
             narrative=request.narrative,
-            retriever=RETRIEVER,
+            retriever=retriever,
         )
     except TimeoutError as exc:
-        logger.warning("inference timeout alert_id=%s", alert_id)
+        logger.warning("inference_timeout")
         raise HTTPException(
             status_code=504,
             detail={
@@ -62,7 +60,7 @@ def _run_alert(request: AlertRequest) -> ATTACKInferenceResult:
             },
         ) from exc
     except (FileNotFoundError, OSError) as exc:
-        logger.warning("knowledge base unavailable alert_id=%s", alert_id)
+        logger.warning("knowledge_base_unavailable")
         raise HTTPException(
             status_code=503,
             detail={
@@ -71,7 +69,7 @@ def _run_alert(request: AlertRequest) -> ATTACKInferenceResult:
             },
         ) from exc
     except Exception as exc:
-        logger.exception("inference failed alert_id=%s", alert_id)
+        logger.error("inference_failed")
         raise HTTPException(
             status_code=500,
             detail={
@@ -81,12 +79,14 @@ def _run_alert(request: AlertRequest) -> ATTACKInferenceResult:
         ) from exc
 
 @router.post("/infer", response_model=ATTACKInferenceResult)
-async def infer_techniques(request: AlertRequest) -> ATTACKInferenceResult:
-    return _run_alert(request)
+async def infer_techniques(request: AlertRequest, http_request: Request,
+                           retriever=Depends(get_retriever)) -> ATTACKInferenceResult:
+    return await run_bounded(http_request, _run_alert, request, retriever)
 
 
 @router.post("/infer/batch", response_model=BatchInferenceResult)
-async def infer_alert_batch(request: BatchAlertRequest) -> BatchInferenceResult:
+async def infer_alert_batch(request: BatchAlertRequest, http_request: Request,
+                            retriever=Depends(get_retriever)) -> BatchInferenceResult:
     """Infer a bounded batch while preserving input order.
 
     A failed item becomes a safe no-match so one failure does not discard the
@@ -96,11 +96,11 @@ async def infer_alert_batch(request: BatchAlertRequest) -> BatchInferenceResult:
     for alert in request.alerts:
         alert_id = alert.alert_id or str(uuid.uuid4())
         try:
-            results.append(_run_alert(alert.model_copy(update={"alert_id": alert_id})))
+            results.append(await run_bounded(http_request, _run_alert,
+                alert.model_copy(update={"alert_id": alert_id}), retriever))
         except HTTPException as exc:
             logger.warning(
-                "batch item failed alert_id=%s error_code=%s",
-                alert_id,
+                "batch_item_failed error_code=%s",
                 exc.detail.get("code", "UNKNOWN")
                 if isinstance(exc.detail, dict)
                 else "UNKNOWN",

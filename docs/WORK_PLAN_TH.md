@@ -1,21 +1,26 @@
-# แผนงานหลังรวม C
+# สถานะงานตามแผนปิดโครงการ
 
-อัปเดต 7 กันยายน 2026 บน mai-work: ฐาน e2ee2da รวม yean-work 5d56d31 ที่ commit 6b3a38c แล้ว [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) ยังคงเดิม
+อัปเดต 14 กันยายน 2026 บน mai-work โดยยึด [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) และ [PROJECT_COMPLETION_PLAN_TH](PROJECT_COMPLETION_PLAN_TH.md)
 
-| สาย | ส่งมอบ | งานคงเหลือ |
+| งาน | ผลล่าสุด | งานคงเหลือ |
 | --- | --- | --- |
-| A | pinned ingestion, BM25, allowlist/top-k/tactic filters | subset/metadata และ retrieval quality |
-| B | parser/router fallback, lexical inference, structural guards | semantic grounding/ambiguity/negation และ confidence |
-| C | RC dataset, metrics, fixture/runtime runner, bounded /evaluate | ผู้สอนตรวจ labels/จำนวน/parent credit และ runtime gates |
-| D | API/UI/CI ingestion/tracing | KB startup lifecycle, concurrency/deadline, auth/rate-limit/privacy |
+| KB/retrieval | ตรวจ pinned hash, atomic snapshot, metadata ครบ, full-description BM25 และ behavior reranking | approved subset 30–50 IDs และ retrieval misses ที่ยังเหลือ |
+| Inference/guardrails | behavior-rules-v2, contextual evidence, negation/ambiguity, candidate/ID/URL guard | parent recall, กรณีกำกวม, independent semantic review/calibration |
+| API/security | lifespan, typed 503, bounded workers/deadline, auth/rate limit/CORS, safe logs, offline API | target deployment approval และ controls ระดับ gateway หาก deploy จริง |
+| Evaluation | 47 development cases, error taxonomy, confidence audit, fixture/full runtime gates | locked course dataset/gold review และ full parent-recall gate |
+| Acceptance | tests 125 ผ่าน, browser E2E, demo 5 ขั้น, clean-copy verification scripts | final acceptance เมื่อ quality และ approval ครบ |
 
-## ลำดับถัดไป
+Full course pack: F1 81.82%, parent recall 72.97%, FPR 0%, hallucinated ID 0%, verbatim grounding 100%.
+Parent recall ยังต่ำกว่า 90%; ห้ามสรุปว่า quality gates หรือโครงการเสร็จ 100%.
 
-1. Review ผล integration และนำ branch นี้เข้า mai-work เมื่อผู้ใช้พร้อม
-2. ยืนยัน dataset composition, labels, partial-credit formula และ subset กับผู้สอน
-3. ใช้ runtime report ที่มีแล้ววิเคราะห์ false-positive/false-negative โดยไม่ปรับ gold ให้เข้ากับ output
-4. พัฒนา semantic grounding/negation/ambiguity และ retrieval บน development data พร้อมแยก evaluation set
-5. รัน --mode runtime --require-quality-gates ตรวจ F1/parent/grounding/hallucination และ review semantic evidence เพิ่ม
-6. ปิด operational controls และ acceptance tests ก่อนรับ alert จริงหรือ deploy
+ดู [ไฟล์อธิบายสิ่งที่ทำทั้งหมด](PROJECT_COMPLETION_IMPLEMENTATION_TH.md), [decision record](PROJECT_COMPLETION_DECISIONS_TH.md) และ [หลักฐาน](reports/runtime-final.json)
 
-ผลปัจจุบัน F1 34.55%, parent recall 52.70%, FPR 40%; ยังไม่ผ่านรับมอบแม้ integration tests ผ่าน ดู [สรุป C](C_IMPLEMENTATION_SUMMARY_TH.md) สำหรับคำสั่งและขอบเขตหลักฐาน
+## ลำดับที่ยังต้องปิด
+
+1. ผู้สอนยืนยัน subset, composition, gold labels, parent credit, FPR threshold และ environment โดยบันทึกหลักฐานจริง
+2. ใช้ approved manifest ทำ ingestion และตรวจ snapshot/allowlist ให้ตรงกับ evaluation ก่อนล็อกข้อมูล
+3. แก้ retrieval/inference misses บน development fixtures และตรวจ ambiguity โดยใช้ diagnostics; ไม่เปลี่ยน gold/threshold ให้เข้ากับ output
+4. ตรวจ semantic grounding และ confidence บนชุดข้อมูลที่ผู้ตรวจอิสระรับรอง
+5. รัน full runtime quality gates จนผ่าน แล้วทำ acceptance/release ใน environment ที่อนุมัติ
+
+ผลใน docs/reports เป็นผล local ไม่ใช่การรับรอง GitHub Actions หรือ deployment ภายนอก

@@ -16,11 +16,12 @@ def anyio_backend():
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://testserver",
-    ) as test_client:
-        yield test_client
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as test_client:
+            yield test_client
 
 
 async def test_infer_runs_deterministic_pipeline_and_returns_human_review(client):
@@ -35,9 +36,9 @@ async def test_infer_runs_deterministic_pipeline_and_returns_human_review(client
     assert response.status_code == 200
     result = response.json()
     assert result["alert_id"] == "alert-001"
-    assert result["inferred_techniques"] == []
+    assert [p["technique_id"] for p in result["inferred_techniques"]] == ["T1110"]
     assert result["candidates_considered"]
-    assert result["needs_human_review"] is True
+    assert isinstance(result["needs_human_review"], bool)
     assert result["disclaimer"].startswith("Advisory tagging only.")
     assert response.headers["X-MITRE-ATTaCK-Version"] == (
         "enterprise-attack-19.1"

@@ -2,6 +2,7 @@
 Small wrapper around the Google Gen AI SDK.
 """
 import os
+import re
 
 from google import genai
 from google.genai import types
@@ -37,9 +38,16 @@ def _client() -> genai.Client:
 
 def generate_text(prompt: str) -> str:
     """Generate text with bounded SDK timeouts and transient-error retries."""
+    if os.getenv("PROVIDER_CONSENT") != "reviewed-synthetic-only":
+        raise RuntimeError("External provider disabled: explicit consent for reviewed synthetic data required")
+    # Defense in depth for explicitly enabled, reviewed synthetic prompts.
+    # Arbitrary secrets cannot be detected reliably; API remains offline.
+    prompt = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[IP]", prompt)
+    prompt = re.sub(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", "[EMAIL]", prompt)
+    prompt = re.sub(r"(?i)(password|api[_-]?key|token|secret)\s*[=:]\s*[^\s,;]+", r"\1=[REDACTED]", prompt)
     client = _client()
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-    )
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+        return response.text.strip()
+    finally:
+        client.close()

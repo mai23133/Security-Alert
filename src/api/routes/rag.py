@@ -1,10 +1,12 @@
 """Inspectable deterministic retrieval endpoint."""
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Depends
+from functools import partial
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from src.api.routes.alerts import MAX_NARRATIVE_LENGTH, RETRIEVER
+from src.api.routes.alerts import MAX_NARRATIVE_LENGTH
+from src.api.runtime import get_retriever, run_bounded
 from src.agents.tactic_router import IN_SCOPE_TACTICS
 from src.schemas import TechniqueCandidate
 
@@ -13,7 +15,7 @@ MAX_TOP_K = 25
 
 
 class RAGSearchRequest(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
     narrative: str = Field(min_length=1, max_length=MAX_NARRATIVE_LENGTH)
     tactic: list[str] | None = None
@@ -35,13 +37,14 @@ class RAGSearchResult(BaseModel):
 
 
 @router.post("/search", response_model=RAGSearchResult)
-async def search_candidates(request: RAGSearchRequest) -> RAGSearchResult:
+async def search_candidates(request: RAGSearchRequest, http_request: Request,
+                            retriever=Depends(get_retriever)) -> RAGSearchResult:
     try:
-        candidates = RETRIEVER.search(
+        candidates = await run_bounded(http_request, partial(retriever.search,
             request.narrative,
             tactic=request.tactic,
             top_k=request.top_k,
-        )
+        ))
     except (FileNotFoundError, OSError) as exc:
         raise HTTPException(
             status_code=503,

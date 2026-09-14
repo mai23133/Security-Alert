@@ -84,7 +84,7 @@ def _validate_technique_ids(ids: object, allowlist: set[str], context: str) -> l
     return ids
 
 
-def validate_dataset(dataset: dict[str, Any], allowlist: set[str]) -> None:
+def validate_dataset(dataset: dict[str, Any], allowlist: set[str], *, course_pack: bool = True) -> None:
     alerts = dataset.get("alerts")
     if not isinstance(alerts, list):
         raise ValueError("dataset alerts must be a list")
@@ -99,7 +99,7 @@ def validate_dataset(dataset: dict[str, Any], allowlist: set[str]) -> None:
     if invalid_categories:
         raise ValueError(f"invalid dataset categories: {invalid_categories}")
     counts = Counter(categories)
-    if len(alerts) != 35 or any(counts[name] != count for name, count in CATEGORY_COUNTS.items()):
+    if course_pack and (len(alerts) != 35 or any(counts[name] != count for name, count in CATEGORY_COUNTS.items())):
         raise ValueError(
             "dataset must contain 20 positive, 5 multi_technique, "
             "5 ambiguous, and 5 negative alerts"
@@ -188,16 +188,20 @@ def main() -> int:
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--require-quality-gates", action="store_true")
+    parser.add_argument("--development", action="store_true", help="Evaluate data/dev/alerts.json, never the course gold pack.")
+    parser.add_argument("--diagnostics", action="store_true", help="Include per-alert error classes and evidence offsets, without raw narratives.")
     args = parser.parse_args()
     if args.require_quality_gates and args.mode != "runtime":
         parser.error("--require-quality-gates requires --mode runtime")
     try:
         report = create_report(
-            mode=args.mode, top_k=args.top_k, dataset_path=args.dataset,
+            mode=args.mode, top_k=args.top_k,
+            dataset_path=PROJECT_ROOT / "data/dev/alerts.json" if args.development else args.dataset,
             predictions_path=args.predictions, allowlist_path=args.allowlist,
+            development=args.development, diagnostics=args.diagnostics,
             subset_path=(
                 PROJECT_ROOT / "data/eval/iteration-2-v0.2.0-subset.json"
-                if args.subset == "iteration-2" else None
+                if args.subset == "iteration-2" and not args.development else None
             ),
         )
     except (OSError, ValueError, TypeError, KeyError) as exc:

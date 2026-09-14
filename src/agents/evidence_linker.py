@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from src.agents.behavior import contextual_span_valid
 
 from src.schemas import InferredTechnique
 
@@ -9,10 +10,9 @@ from src.schemas import InferredTechnique
 def link_evidence(
     narrative: str, inferred: list[InferredTechnique]
 ) -> list[InferredTechnique]:
-    """Keep predictions whose non-empty evidence spans occur verbatim in alert.
+    """Require verbatim spans, behavior support and safe enclosing context.
 
-    Exact substring matching makes evidence independently auditable and avoids
-    treating a model-generated explanation as supporting evidence.
+    Rule validation is auditable, but not independent expert semantic review.
     """
     if not narrative:
         return []
@@ -23,7 +23,8 @@ def link_evidence(
             dict.fromkeys(
                 span
                 for span in technique.evidence_spans
-                if span and span in narrative and re.search(r"[A-Za-z0-9]{4,}", span)
+                if span and re.search(r"[A-Za-z0-9]{4,}", span)
+                and contextual_span_valid(narrative, span, technique.technique_id, technique.technique_name)
             )
         )
         if spans:
