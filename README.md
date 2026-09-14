@@ -2,7 +2,7 @@
 
 ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-สถานะ 14 กันยายน 2026: พัฒนาต่อจากแผนปิดโครงการแล้ว มี snapshot lifecycle, behavior grounding, operational controls และ browser acceptance; tests ผ่าน 125 รายการ Full-pack F1 81.82%, parent recall 72.97%, FPR 0% ยังไม่ผ่าน parent-recall gate 90% และยังรอการรับรอง subset/gold labels ดู [สรุปงานและหลักฐานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+สถานะ 15 กันยายน 2026: พัฒนาต่อจากแผนปิดโครงการแล้ว มี snapshot lifecycle, behavior grounding, operational controls และ browser acceptance; full-pack F1 และ parent recall เท่ากับ 97.30%, FPR 0% จึงผ่าน numeric quality gates ในเครื่องแล้ว แต่ยังรอการรับรอง subset/gold labels และ independent semantic review ดู [สรุปงานและหลักฐานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
 ## เริ่มอ่าน
 
@@ -100,11 +100,11 @@ python -m eval.run_eval --mode runtime --require-quality-gates
 curl -X POST http://127.0.0.1:8000/evaluate -H 'Content-Type: application/json' -d '{"mode":"runtime","top_k":5}'
 ~~~
 
-CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
+CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผล local ปัจจุบันผ่านและคืน exit 0) การผ่าน numeric gates ยังไม่เท่ากับได้รับอนุมัติรับมอบ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
 
 ## งานต่อไปและ privacy (หลัง integration)
 
-งานคงเหลือมี parent recall, independent semantic/calibration review และการยืนยัน subset/dataset ตาม [สรุปงานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+งานคงเหลือมี independent semantic/calibration review และการยืนยัน subset/dataset ตาม [สรุปงานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
 มี CORS allowlist, optional API key, rate limit ต่อ IP/process, request deadline และ logs ที่ไม่เก็บ input/traceback ค่าเริ่มต้นใช้ loopback sandbox และไม่ส่ง alert ไป provider ดูข้อจำกัด deployment และ retention ใน [คู่มือ privacy](docs/DEPLOYMENT_PRIVACY_TH.md)
 

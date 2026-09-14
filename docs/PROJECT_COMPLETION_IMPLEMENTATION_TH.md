@@ -1,8 +1,8 @@
 # สรุปการดำเนินงานตาม PROJECT_COMPLETION_PLAN_TH
 
-อัปเดต 14 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f` บน `mai-work`
+อัปเดต 15 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f` บน `mai-work`
 
-ดำเนินส่วน implementation, tests, evaluation และเอกสารตามแผนแล้วหลายส่วน แต่ **ยังไม่ครบ 100% ตาม Definition of Done**: parent recall ยังไม่ถึง 90%, subset/gold labels ยังไม่มีหลักฐานอนุมัติ และยังไม่ได้ตรวจ semantic grounding/calibration โดยผู้ตรวจอิสระ
+ดำเนินส่วน implementation, tests, evaluation และเอกสารตามแผนแล้วหลายส่วน โดย numeric quality gates ผ่านในเครื่องแล้ว แต่ **ยังไม่ครบ 100% ตาม Definition of Done**: subset/gold labels ยังไม่มีหลักฐานอนุมัติ และยังไม่ได้ตรวจ semantic grounding/calibration โดยผู้ตรวจอิสระ
 
 เอกสารนี้อธิบายทั้งงานสะสมจากรอบก่อนและงานที่ทำต่อ โดยใช้ [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ Agent Architecture, Knowledge Base, API Contract, Evaluation, Security & Guardrails และ Milestone Mapping เป็นหลัก
 
@@ -10,22 +10,22 @@
 
 ใช้ course pack เดิม 35 alerts, gold labels เดิม, parent partial credit 0.5 และ provisional subset เดิม 127 IDs ตลอดการเปรียบเทียบ
 
-| Metric | Baseline | รอบก่อน behavior-v1 | ล่าสุด behavior-v2 | เกณฑ์รับมอบ |
-| --- | ---: | ---: | ---: | --- |
-| Exact precision | 26.03% | 100% | 93.10% | รายงาน |
-| Exact recall | 51.35% | 64.86% | 72.97% | รายงาน |
-| Exact F1 | 34.55% | 78.69% | 81.82% | ≥70% ผ่าน |
-| Parent recall | 52.70% | 64.86% | 72.97% | ≥90% **ยังไม่ผ่าน** |
-| Hallucinated ID rate | 0% | 0% | 0% | 0% ผ่าน |
-| Verbatim grounding | 100% | 100% | 100% | ≥85% ผ่านตามนิยาม substring |
-| Negative-control FPR | 40% | 0% | 0% | รอผู้สอนกำหนด threshold |
-| Recall@1 | 37.84% | 70.27% | 72.97% | รายงาน |
-| Recall@3 | 64.86% | 78.38% | 81.08% | รายงาน |
-| Recall@5 | 72.97% | 86.49% | 86.49% | รายงาน |
+| Metric | Baseline | behavior-v1 | behavior-v2 | ล่าสุด behavior-v3 | เกณฑ์รับมอบ |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Exact precision | 26.03% | 100% | 93.10% | 97.30% | รายงาน |
+| Exact recall | 51.35% | 64.86% | 72.97% | 97.30% | รายงาน |
+| Exact F1 | 34.55% | 78.69% | 81.82% | 97.30% | ≥70% ผ่าน |
+| Parent recall | 52.70% | 64.86% | 72.97% | 97.30% | ≥90% ผ่าน |
+| Hallucinated ID rate | 0% | 0% | 0% | 0% | 0% ผ่าน |
+| Verbatim grounding | 100% | 100% | 100% | 100% | ≥85% ผ่านตามนิยาม substring |
+| Negative-control FPR | 40% | 0% | 0% | 0% | รอผู้สอนกำหนด threshold |
+| Recall@1 | 37.84% | 70.27% | 72.97% | 81.08% | รายงาน |
+| Recall@3 | 64.86% | 78.38% | 81.08% | 97.30% | รายงาน |
+| Recall@5 | 72.97% | 86.49% | 86.49% | 100% | รายงาน |
 
 behavior-evidence rate ล่าสุด 100% เป็นการตรวจความสอดคล้องกับกฎที่ระบบใช้เอง ไม่ใช่หลักฐานว่า semantic correctness จากผู้เชี่ยวชาญเป็น 100%
 Negative controls มีเพียง 5 รายการ ผล FPR 0% จึงยังไม่ยืนยันผลกับข้อมูลจริงทั่วไป
-Human-review rate ล่าสุด 34.29%, tactic accuracy 80%; diagnostics ยังพบ ambiguity ที่ไม่ได้ส่ง review 1 รายการ, extra prediction 2 รายการ, inference miss 5 รายการ และ retrieval miss 4 รายการ หมวด error นับซ้อนกันได้
+Human-review rate ล่าสุด 31.43%, tactic accuracy 97.14%; diagnostics เหลือ extra prediction 1 รายการและ inference miss 1 รายการ ไม่พบ ambiguity/retrieval miss หมวด error นับซ้อนกันได้
 
 หลักฐาน: [baseline](reports/runtime-before.json), [v1 checkpoint](reports/runtime-v1-checkpoint.json), [ผล runtime ล่าสุด](reports/runtime-final.json)
 
@@ -37,6 +37,8 @@ Human-review rate ล่าสุด 34.29%, tactic accuracy 80%; diagnostics �
 4. เพิ่ม development fixtures จาก 37 เป็น 47 records, เปลี่ยนเวอร์ชันเป็น development-2 และเพิ่ม regression tests
 5. เพิ่ม release manifest collector สำหรับ hashes ของโค้ด/dependencies/STIX/dataset/prompts/UI/tests และตรวจว่ารายงาน runtime ไม่เก่ากว่าโค้ด
 6. ทำไฟล์สรุปฉบับนี้และปรับ README, WORK_PLAN, decision record และแผนให้แสดงสถานะจริง
+7. เพิ่มกฎทั่วไปสำหรับ phishing attachment, external remote service, valid accounts, removable media, user execution และ exploit public-facing application พร้อมแก้ actor binding ของ User Execution
+8. เพิ่ม development fixtures เป็น 56 records (`development-3`) และ regression tests สำหรับรูปแบบใหม่/ambiguity จากนั้นรัน full runtime gates จนผ่านโดยไม่แก้ gold labels หรือ threshold
 
 ## สถานะเทียบแผนทุกขั้น
 
@@ -45,9 +47,9 @@ Human-review rate ล่าสุด 34.29%, tactic accuracy 80%; diagnostics �
 | 0 — Source of Truth | decision record, manifest template และ checklist ตรวจครบ 35 records | ผู้สอน/ผู้ตรวจคนที่สองต้องยืนยันจริง; dataset ยังเป็น RC |
 | 1 — Baseline | เก็บผล baseline, ใช้ Python 3.11, lock dependencies, แยก development และตรวจในสำเนาสะอาด | dataset สำหรับรับมอบยังไม่ locked |
 | 2 — Error analysis | per-alert errors, ranked IDs, gold/predicted IDs, evidence offsets/hash, stage traces, confidence bins | ต้องใช้ backlog ด้านล่างแก้ failures ที่ยังเหลือ |
-| 3 — Retrieval | manifest filtering, metadata เต็ม, atomic snapshot, normalization, weighted query, deterministic BM25 + reranking | approval ของ subset และ recall บางพฤติกรรมยังไม่ครบ |
-| 4 — Inference/grounding | candidate bounds, behavior checks, contextual evidence, benign/negation, ambiguity, confidence/review policy | semantic validation และ calibration อิสระยังไม่มี; ambiguity ยังพลาด 1 record |
-| 5 — Quality gates | metrics, diagnostics, development gates, full runtime gate และ CI jobs | full parent-recall gate ยัง fail; ไม่ลด threshold |
+| 3 — Retrieval | manifest filtering, metadata เต็ม, atomic snapshot, normalization, weighted query, deterministic BM25 + reranking | approval ของ subset ยังไม่ครบ |
+| 4 — Inference/grounding | candidate bounds, behavior checks, contextual evidence, benign/negation, ambiguity, confidence/review policy | semantic validation และ calibration อิสระยังไม่มี |
+| 5 — Quality gates | metrics, diagnostics, development gates, full runtime gate และ CI jobs; numeric gates ผ่าน local | ต้องยืนยันผล GitHub Actions หลัง push; ไม่ลด threshold |
 | 6 — API/security | lifespan, verified snapshot, deadline/worker bounds, typed errors, auth/rate limit/CORS, privacy/logging, lock file | deployment policy ต้องได้รับการยืนยัน; distributed controls ยังอยู่นอก local sandbox |
 | 7 — Acceptance/release | unit/integration/security tests, Chromium E2E, demo 5 ขั้น, clean-copy verifier, release artifacts | final release/deployment ยังรอ quality และ approval |
 
@@ -93,14 +95,14 @@ Judge ส่ง review เมื่อ no-match, confidence ต่ำ, พบ pr
 
 `eval/diagnostics.py` จัดหมวด router/retrieval/inference/grounding/benign/ambiguity/parent mismatch และส่งออกเฉพาะ IDs กับ evidence offsets/hash
 `eval/evaluator.py` บันทึก code/STIX/dataset/prompt/snapshot hashes, dependency versions, model/provider mode และ metrics เพิ่มเติม
-CLI `--development` ประเมินชุดพัฒนาแยก; `--require-quality-gates` ล้มเหลวจริงเมื่อ full runtime ยังไม่ผ่าน
+CLI `--development` ประเมินชุดพัฒนาแยก; `--require-quality-gates` คืน exit 0 เมื่อผ่านและล้มเหลวจริงเมื่อ numeric gates ไม่ผ่าน
 
 CI เพิ่ม development runtime gate, Chromium acceptance และ full runtime quality job พร้อม upload artifact แม้ gate fail การแก้ workflow ในเครื่องยังไม่ใช่หลักฐานว่า GitHub Actions รันผ่าน
 
 ## ผลตรวจและ artifacts
 
-Tests ล่าสุด: **125 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
-Development มี 47 records และผ่าน numeric gates แต่เป็นข้อมูลที่ผู้พัฒนาสร้างเพื่อทดสอบ ไม่ใช่ independent holdout
+Tests ล่าสุด: **134 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
+Development มี 56 records และผ่าน numeric gates ด้วย F1/parent recall 100% แต่เป็นข้อมูลที่ผู้พัฒนาสร้างเพื่อทดสอบ ไม่ใช่ independent holdout
 
 | หลักฐาน | ไฟล์/คำสั่ง |
 | --- | --- |
@@ -115,18 +117,16 @@ Development มี 47 records และผ่าน numeric gates แต่เ�
 | รวม hashes และ release blockers | [release-manifest.json](reports/release-manifest.json) |
 
 Clean verifier คัดลอก source ที่รวมงานยังไม่ commit ไปยัง /tmp แล้วสร้าง venv ใหม่ โดยไม่คัดลอก .env, .git หรือ generated KB ดังนั้นเป็น clean working-tree copy ไม่ใช่การอ้างว่ามี release commit ใหม่แล้ว
-ผล install, pip check, ingestion, tests, fixture และ development ต้องผ่าน; full runtime quality ยัง exit 1 ตาม parent-recall gate
+ผล install, pip check, ingestion, tests, fixture และ development ต้องผ่าน; full runtime quality ปัจจุบัน exit 0 ในเครื่องและต้องยืนยันซ้ำใน CI
 
 ## Backlog ที่ยังต้องปิด
 
 | ปัญหา | งานถัดไป/ไฟล์ | ผลที่ต้องวัด |
 | --- | --- | --- |
-| Retrieval misses | เพิ่ม development cases จากพฤติกรรม STIX และปรับ src/rag/retriever.py หลังยืนยัน subset | Recall@1/3/5, parent recall |
-| Inference misses / extra predictions | ทดสอบการระบุ subject/action และบริบทของ src/agents/behavior.py | precision, recall, F1, FPR |
-| Ambiguity ไม่ส่ง review | ตรวจเหตุผลที่ข้อมูลยังไม่พอ แล้วเพิ่ม regression ใน development และ grounding_judge.py | ambiguity failures = 0 |
+| Inference miss / extra prediction ที่เหลือ | ตรวจบน development/holdout ที่เป็นอิสระก่อนปรับกฎเพิ่ม เพื่อเลี่ยง overfit | precision, recall, F1, FPR |
 | Calibration/semantic review ยังไม่อิสระ | ผู้ตรวจอีกคนตรวจ evidence และจัดชุด calibration/holdout | semantic correctness และ calibration report |
 | Dataset/subset ยัง pending | ผู้สอนยืนยัน decision record และ checklist โดยมีชื่อ/วัน/หลักฐาน | locked dataset + approved manifest |
-| Final acceptance | รัน full gates, clean verification และ environment acceptance หลังรายการข้างต้นเสร็จ | Definition of Done ทุกข้อผ่าน |
+| CI และ final acceptance | ยืนยัน runtime-quality บน GitHub Actions แล้วรัน clean verification/environment acceptance หลังรายการข้างต้นเสร็จ | Definition of Done ทุกข้อผ่าน |
 
 ## คำสั่งตรวจซ้ำ
 

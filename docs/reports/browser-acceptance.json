@@ -9,7 +9,8 @@
     "benign_no_match_review",
     "error_state_simulated_503",
     "disclaimer_attribution",
-    "clear_no_browser_storage"
+    "clear_no_browser_storage",
+    "actual_api_evaluation_quality_gates"
   ],
   "provider_mode": "disabled",
   "synthetic_data_only": true

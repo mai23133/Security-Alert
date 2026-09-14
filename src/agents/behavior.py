@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import re
 
-VERSION = "behavior-rules-v2"
-AMBIGUOUS = re.compile(r"\b(may|might|could|possible|possibly|unclear|uncertain|suspected|potential|unconfirmed|unidentified|unspecified|insufficient|unknown|inconclusive|cannot determine|not recorded|not captured|missing details)\b", re.I)
+VERSION = "behavior-rules-v3"
+AMBIGUOUS = re.compile(r"\b(may|might|could|possible|possibly|unclear|uncertain|suspected|potential|unconfirmed|unidentified|unspecified|insufficient|unknown|inconclusive|cannot determine|cannot be confirmed|could not be confirmed|not confirmed|not recorded|not captured|missing details|incomplete (?:evidence|telemetry|source|pattern)|(?:evidence|telemetry|source|pattern)(?: data)? (?:was )?incomplete)\b", re.I)
 INJECTION = re.compile(r"\b(ignore\b.{0,60}\b(instructions?|rules?|previous)|return\s+T\d{4}|system\s*prompt|assistant\s*:|output\s+(?:only\s+)?T\d{4})", re.I)
 BENIGN = re.compile(r"\b(authorized|approved|routine maintenance|patch[ -]management|training|simulation|benign|health[ -]check|no malicious activity|legitimate maintenance)\b", re.I)
 NEGATED = re.compile(r"\b(no evidence of|did not|does not|was not (?:execut\w*|observed|detected|launched)|were not (?:execut\w*|observed|detected|launched)|never|without (?:execut\w*|running|launch\w*|dump\w*|steal\w*|access\w*)|not observed|not executed|no (?:powershell|credential|brute|script|command))\b", re.I)
@@ -85,10 +85,19 @@ ALTERNATIVES = {
 ALTERNATIVES["T1110.001"].append((r"\b(guess\w*|dictionary)\b", r"\b(ssh|rdp|login|authentication|account)\b", r"\b(attempt\w*|try\w*|tried|repeat\w*|test\w*)\b"))
 ALTERNATIVES["T1059"].append((r"\b(interpreter|shell)\b", r"\b(command\w*|script\w*)\b", r"\b(execut\w*|ran|launch\w*|invok\w*|spawn\w*)\b"))
 ALTERNATIVES["T1566.001"].append((r"\b(email|mail|message)\b", r"\b(attach\w*|document|spreadsheet)\b", r"\b(spearphish\w*|quarantin\w*|trojan\w*|deceptive|social engineering)\b"))
+ALTERNATIVES["T1566.001"].append((r"\b(mail|email) gateway\b", r"\b(deliver\w*|receiv\w*)\b", r"\b(targeted|malicious|suspicious|weaponized)\b", r"\b(attach\w*|archive|\.zip\b|\.docm\b|\.xlsm\b)"))
+ALTERNATIVES["T1566.001"].append((r"\b(receiv\w*|deliver\w*)\b", r"\.(?:docm|xlsm|pptm|zip)\b", r"\b(attach\w*|targeted|malicious|payload|macro\w*)\b"))
 ALTERNATIVES["T1133"].append((r"\b(remote services?|remote access|remote desktop|vpn|citrix|vnc|winrm)\b", r"\b(external|internet|exposed|gateway)\b", r"\b(sign.in|log.in|authenticat\w*|session|connect\w*|access\w*)\b"))
+ALTERNATIVES["T1133"].append((r"\b(remote administration service|remote management service|vpn|remote access)\b", r"\b(external|exposed|internet)\b", r"\b(accept\w*|enter\w*|establish\w*|session|connect\w*|access\w*)\b"))
 ALTERNATIVES["T1078"].append((r"\b(stolen|compromised|valid)\b", r"\b(account\w*|credentials)\b", r"\b(sign.in|log.in|authenticat\w*|session|connect\w*)\b"))
+ALTERNATIVES["T1078"].append((r"\b(stolen|compromised|valid|correct)\b", r"\b(account\w*|credentials)\b", r"\b(enter\w*|accept\w*|login|logon|session|connect\w*|access\w*|used?)\b"))
 ALTERNATIVES["T1091"].append((r"\b(usb|removable|thumb drive|flash drive)\b", r"\b(autorun|auto.run|automatically|auto.launch\w*)\b", r"\b(execut\w*|launch\w*|start\w*)\b"))
-ALTERNATIVES["T1204.002"].append((r"\b(user|employee|victim|staff|recipient)\b", r"\b(open\w*|click\w*|launch\w*|execut\w*)\b", r"\.(?:exe|scr|docm|xlsm|lnk)\b", r"\b(malicious|untrusted|download\w*|payload|dump\w*|spawn\w*)\b"))
+ALTERNATIVES["T1091"].append((r"\b(usb|removable|thumb drive|flash drive)\b", r"\b(worm\w*|malware|payload|infect\w*)\b", r"\b(cop\w*|execut\w*|launch\w*|spread\w*|start\w*)\b"))
+# Bind the actor to the interaction. A trailing phrase such as "downloaded by
+# the user" must not turn a process launch into User Execution.
+ALTERNATIVES["T1204.002"].append((r"\b(user|employee|victim|staff|recipient)\b.{0,45}\b(open\w*|click\w*|launch\w*|execut\w*)\b", r"\.(?:exe|scr|docm|xlsm|lnk)\b", r"\b(malicious|untrusted|download\w*|payload|dump\w*|spawn\w*|after which)\b"))
+ALTERNATIVES["T1204.002"].append((r"\b(opened|opening|double.clicked|executed)\b", r"\b(malicious|untrusted|weaponized)\b", r"\b(attach\w*|document|file|\.docm\b|\.xlsm\b)"))
+ALTERNATIVES["T1190"].append((r"\b(web|http) (?:process|service|worker)\b", r"\b(crafted|malformed|exploit\w*)\b.{0,25}\b(request|payload)\b", r"\b(crash\w*|spawn\w*|execut\w*|child process)\b"))
 # Service execution needs a service-control operation; mere references to a
 # process or 'service' alongside WMI do not establish this separate behavior.
 RULES["T1569.002"] = (r"\b(psexec|service control manager|sc\.exe|startservice\w*|service (?:was )?(?:created|started))\b", r"\b(execut\w*|start\w*|launch\w*|creat\w*)\b")

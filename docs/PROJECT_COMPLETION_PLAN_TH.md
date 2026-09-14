@@ -1,7 +1,7 @@
 # แผนปิดโครงการให้ครบตามข้อกำหนด
 
-สถานะดำเนินการล่าสุด 14 กันยายน 2026: ดู [สรุป implementation และสถานะแต่ละขั้น](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
-ผลล่าสุด tests 125 ผ่าน, full-pack F1 81.82%, parent recall 72.97%, FPR 0% จึงยังไม่ครบ Definition of Done และยังรอ subset/gold-label approval
+สถานะดำเนินการล่าสุด 15 กันยายน 2026: ดู [สรุป implementation และสถานะแต่ละขั้น](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+ผล local ล่าสุด full-pack F1 97.30%, parent recall 97.30%, FPR 0% จึงผ่าน numeric quality gates แล้ว แต่ยังไม่ครบ Definition of Done เพราะยังรอ subset/gold-label approval และ independent semantic review
 
 เอกสารนี้เป็นรายการทำงานตามลำดับเพื่อพาโครงการจาก baseline v0.2.0 ไปสู่สถานะที่ผ่านเกณฑ์สาธิตและพร้อมรับมอบตาม `security-alert-attack-technique-inference.md` ไม่ใช่คู่มือใช้งานระบบ
 

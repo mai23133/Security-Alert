@@ -56,7 +56,7 @@ async def check(url):
         await page.locator("#analyze-button").click()
         await expect(page.locator("#error-message")).to_contain_text("Knowledge base unavailable")
         checks.append("error_state_simulated_503")
-        await expect(page.locator(".disclaimer")).to_be_visible()
+        await expect(page.locator("#analyst-view .disclaimer")).to_be_visible()
         await expect(page.locator("body")).to_contain_text("MITRE ATT&CK® Enterprise 19.1")
         checks.append("disclaimer_attribution")
         await page.locator("#clear-button").click()
@@ -64,6 +64,15 @@ async def check(url):
         await expect(page.locator("#results-section")).to_be_hidden()
         assert await page.evaluate("localStorage.length + sessionStorage.length") == 0
         checks.append("clear_no_browser_storage")
+        await page.locator('[data-view="evaluation"]').click()
+        await expect(page.locator("#evaluation-view")).to_be_visible()
+        await page.locator("#run-evaluation").click()
+        await expect(page.locator("#evaluation-results")).to_be_visible(timeout=20_000)
+        assert await page.locator("#metric-grid .metric-card").count() == 4
+        await expect(page.locator("#evaluation-results")).to_contain_text("Parent recall")
+        await expect(page.locator("#evaluation-results")).to_contain_text("STATUS NUMERIC GATES PASSED")
+        await expect(page.locator("#evaluation-results")).not_to_contain_text("FAIL")
+        checks.append("actual_api_evaluation_quality_gates")
         await browser.close()
     return checks
 

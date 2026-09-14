@@ -2,9 +2,9 @@
   "metadata": {
     "report_kind": "runtime_quality",
     "not_a_runtime_quality_gate": false,
-    "generated_at": "2026-09-14T16:27:32.020690+00:00",
-    "commit": "0be7a1092ed46d0d34d4b5df1de28ea33d39370f",
-    "code_sha256": "f93e95f8e83a1a5f61b2f77c7d1663735eab099b2b682348510578403b936f48",
+    "generated_at": "2026-09-14T19:15:07.845068+00:00",
+    "commit": "720c6baa8d44172be329bea990676329de03e63b",
+    "code_sha256": "9a8b4821c2dc762277ee055dc214aa6bf419c0d9093f1da01aafe8e2778a643a",
     "dataset_version": "1.0.0-rc1",
     "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
     "evaluation_scope": "full_course_pack",
@@ -16,8 +16,8 @@
     "stix_sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
     "allowlist_sha256": "1eabe813c368beba685c649064e85a1ec4e902c75daafccab4d9403b5c2f91aa",
     "candidates_sha256": "c5a512f8396d11b53b0d7bda18a3ef58609819e98fa597afc382206964573bc4",
-    "prediction_sha256": "38736bd34e4ff4905a5040603dff279978429d8053815bcf62f345c01226b9cc",
-    "model_version": "behavior-rules-v2",
+    "prediction_sha256": "09dfe3bff9a43535050028585cddda785c4304c5ccc9fb4689b4a6fa1a30cf77",
+    "model_version": "behavior-rules-v3",
     "prompt_version": "provider-disabled",
     "provider_mode": "disabled",
     "python_version": "3.11.15",
@@ -81,30 +81,30 @@
   "metrics": {
     "alert_count": 35,
     "exact_technique": {
-      "precision": 0.9310344827586207,
-      "recall": 0.7297297297297297,
-      "f1": 0.8181818181818181
+      "precision": 0.972972972972973,
+      "recall": 0.972972972972973,
+      "f1": 0.972972972972973
     },
-    "parent_technique_recall": 0.7297297297297297,
+    "parent_technique_recall": 0.972972972972973,
     "evidence_grounding_rate": 1.0,
     "hallucinated_id_rate": 0.0,
     "false_positive_rate": 0.0,
-    "human_review_rate": 0.34285714285714286,
-    "recall_at_1": 0.7297297297297297,
-    "recall_at_3": 0.8108108108108109,
-    "recall_at_5": 0.8648648648648649,
+    "human_review_rate": 0.3142857142857143,
+    "recall_at_1": 0.8108108108108109,
+    "recall_at_3": 0.972972972972973,
+    "recall_at_5": 1.0,
     "behavior_evidence_rate": 1.0,
-    "tactic_accuracy": 0.8,
+    "tactic_accuracy": 0.9714285714285714,
     "negative_control_count": 5
   },
   "quality_gates": {
     "exact_f1_at_least_0_70": true,
-    "parent_recall_at_least_0_90": false,
+    "parent_recall_at_least_0_90": true,
     "grounding_at_least_0_85": true,
     "hallucinated_id_rate_is_zero": true,
     "behavior_evidence_at_least_0_85": true
   },
-  "numeric_gates_passed": false,
+  "numeric_gates_passed": true,
   "acceptance_ready": false,
   "acceptance_blockers": [
     "Gold-label approval and dataset composition require course confirmation.",
@@ -113,22 +113,18 @@
   "disclaimer": "Advisory evaluation only. Dataset labels require review. Verbatim and behavior-rule checks are not independent expert semantic validation.",
   "diagnostics": {
     "error_counts": {
-      "ambiguity_without_review": 1,
-      "extra_prediction": 2,
-      "inference_miss": 5,
-      "retrieval_miss": 4
+      "extra_prediction": 1,
+      "inference_miss": 1
     },
     "error_rates": {
-      "ambiguity_without_review": 0.02857142857142857,
-      "extra_prediction": 0.05714285714285714,
-      "inference_miss": 0.14285714285714285,
-      "retrieval_miss": 0.11428571428571428
+      "extra_prediction": 0.02857142857142857,
+      "inference_miss": 0.02857142857142857
     },
     "confidence_bins": {
       "0.82": {
-        "count": 27,
-        "correct": 25,
-        "empirical_precision": 0.9259259259259259
+        "count": 35,
+        "correct": 34,
+        "empirical_precision": 0.9714285714285714
       },
       "0.6": {
         "count": 2,
@@ -277,32 +273,19 @@
         ],
         "retrieved_ids": [
           "T1059.001",
-          "T1204.002",
           "T1047",
           "T1059",
-          "T1204.004"
+          "T1204.004",
+          "T1574.008"
         ],
         "predicted_ids": [
-          "T1059.001",
-          "T1204.002"
+          "T1059.001"
         ],
         "needs_human_review": false,
-        "errors": [
-          "extra_prediction"
-        ],
+        "errors": [],
         "evidence": [
           {
             "technique_id": "T1059.001",
-            "spans": [
-              {
-                "start": 0,
-                "length": 78,
-                "sha256": "f91b28f2613d7f8a16d05db175a7b9d18386ede80ac570a032ef97e6bb454ec3"
-              }
-            ]
-          },
-          {
-            "technique_id": "T1204.002",
             "spans": [
               {
                 "start": 0,
@@ -319,12 +302,10 @@
             "credential-access"
           ],
           "before_grounding": [
-            "T1059.001",
-            "T1204.002"
+            "T1059.001"
           ],
           "after_grounding": [
-            "T1059.001",
-            "T1204.002"
+            "T1059.001"
           ]
         }
       },
@@ -473,20 +454,35 @@
           "T1566",
           "T1203"
         ],
-        "predicted_ids": [],
-        "needs_human_review": true,
-        "errors": [
-          "inference_miss"
+        "predicted_ids": [
+          "T1566.001"
         ],
-        "evidence": [],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1566.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 82,
+                "sha256": "5da3492ecb11364a633cfb2c08e6ffcdf2097adcde811b1edc868730652467e7"
+              }
+            ]
+          }
+        ],
         "stages": {
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
-          "before_grounding": [],
-          "after_grounding": []
+          "before_grounding": [
+            "T1566.001"
+          ],
+          "after_grounding": [
+            "T1566.001"
+          ]
         }
       },
       {
@@ -628,23 +624,33 @@
           "T1133"
         ],
         "retrieved_ids": [
-          "T1078",
           "T1133",
+          "T1078",
           "T1199",
           "T1110",
           "T1539"
         ],
         "predicted_ids": [
-          "T1078"
+          "T1078",
+          "T1133"
         ],
         "needs_human_review": false,
         "errors": [
-          "extra_prediction",
-          "inference_miss"
+          "extra_prediction"
         ],
         "evidence": [
           {
             "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 98,
+                "sha256": "505d1a42810f44138ecd810fe7465d4643205dc23259c92c91b6d44e9a930050"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1133",
             "spans": [
               {
                 "start": 0,
@@ -661,10 +667,12 @@
             "credential-access"
           ],
           "before_grounding": [
-            "T1078"
+            "T1078",
+            "T1133"
           ],
           "after_grounding": [
-            "T1078"
+            "T1078",
+            "T1133"
           ]
         }
       },
@@ -681,20 +689,35 @@
           "T1674",
           "T1111"
         ],
-        "predicted_ids": [],
-        "needs_human_review": true,
-        "errors": [
-          "inference_miss"
+        "predicted_ids": [
+          "T1091"
         ],
-        "evidence": [],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1091",
+            "spans": [
+              {
+                "start": 0,
+                "length": 84,
+                "sha256": "add5a0b42dc96dba340306314e98bc53b94226bb70d2214bd402650e6b58abaf"
+              }
+            ]
+          }
+        ],
         "stages": {
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
-          "before_grounding": [],
-          "after_grounding": []
+          "before_grounding": [
+            "T1091"
+          ],
+          "after_grounding": [
+            "T1091"
+          ]
         }
       },
       {
@@ -1072,23 +1095,33 @@
           "T1566.001"
         ],
         "retrieved_ids": [
+          "T1204.002",
           "T1059.003",
           "T1574.009",
           "T1574.008",
-          "T1566.001",
-          "T1574.007"
+          "T1566.001"
         ],
         "predicted_ids": [
-          "T1059.003"
+          "T1059.003",
+          "T1204.002"
         ],
         "needs_human_review": false,
         "errors": [
-          "inference_miss",
-          "retrieval_miss"
+          "inference_miss"
         ],
         "evidence": [
           {
             "technique_id": "T1059.003",
+            "spans": [
+              {
+                "start": 29,
+                "length": 64,
+                "sha256": "a07cbfbf1f33aaa19f76fafbd568ff2fdc202d9ddab9a5355cefd99daf41ab70"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1204.002",
             "spans": [
               {
                 "start": 29,
@@ -1105,10 +1138,12 @@
             "credential-access"
           ],
           "before_grounding": [
-            "T1059.003"
+            "T1059.003",
+            "T1204.002"
           ],
           "after_grounding": [
-            "T1059.003"
+            "T1059.003",
+            "T1204.002"
           ]
         }
       },
@@ -1180,21 +1215,41 @@
         ],
         "retrieved_ids": [
           "T1059.001",
+          "T1133",
+          "T1078",
           "T1056.003",
-          "T1552.003",
-          "T1110",
-          "T1056.002"
+          "T1552.003"
         ],
         "predicted_ids": [
-          "T1059.001"
+          "T1059.001",
+          "T1078",
+          "T1133"
         ],
         "needs_human_review": false,
-        "errors": [
-          "retrieval_miss"
-        ],
+        "errors": [],
         "evidence": [
           {
             "technique_id": "T1059.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 97,
+                "sha256": "f92061e831bd0dcb631762b3519979167ab8acfba07b52806ed3e854273cbdd4"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 97,
+                "sha256": "f92061e831bd0dcb631762b3519979167ab8acfba07b52806ed3e854273cbdd4"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1133",
             "spans": [
               {
                 "start": 0,
@@ -1211,10 +1266,14 @@
             "credential-access"
           ],
           "before_grounding": [
-            "T1059.001"
+            "T1059.001",
+            "T1078",
+            "T1133"
           ],
           "after_grounding": [
-            "T1059.001"
+            "T1059.001",
+            "T1078",
+            "T1133"
           ]
         }
       },
@@ -1227,21 +1286,30 @@
         ],
         "retrieved_ids": [
           "T1003.001",
+          "T1204.002",
           "T1556.001",
           "T1555.002",
-          "T1539",
-          "T1555.005"
+          "T1539"
         ],
         "predicted_ids": [
-          "T1003.001"
+          "T1003.001",
+          "T1204.002"
         ],
         "needs_human_review": false,
-        "errors": [
-          "retrieval_miss"
-        ],
+        "errors": [],
         "evidence": [
           {
             "technique_id": "T1003.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 71,
+                "sha256": "2948b70597c070012a41efb7e33e82ea83a9efa0848e4c1d304a9918729b3cdc"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1204.002",
             "spans": [
               {
                 "start": 0,
@@ -1258,10 +1326,12 @@
             "credential-access"
           ],
           "before_grounding": [
-            "T1003.001"
+            "T1003.001",
+            "T1204.002"
           ],
           "after_grounding": [
-            "T1003.001"
+            "T1003.001",
+            "T1204.002"
           ]
         }
       },
@@ -1281,10 +1351,8 @@
         "predicted_ids": [
           "T1110"
         ],
-        "needs_human_review": false,
-        "errors": [
-          "ambiguity_without_review"
-        ],
+        "needs_human_review": true,
+        "errors": [],
         "evidence": [
           {
             "technique_id": "T1110",
@@ -1406,26 +1474,41 @@
           "T1078"
         ],
         "retrieved_ids": [
+          "T1078",
           "T1555.002",
           "T1110",
           "T1111",
-          "T1199",
-          "T1133"
+          "T1199"
         ],
-        "predicted_ids": [],
+        "predicted_ids": [
+          "T1078"
+        ],
         "needs_human_review": true,
-        "errors": [
-          "retrieval_miss"
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 43,
+                "sha256": "e8450addbb26f21f9a7fd0e27a7c2276498a846a3179d89dc4b11eef41701d4a"
+              }
+            ]
+          }
         ],
-        "evidence": [],
         "stages": {
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
-          "before_grounding": [],
-          "after_grounding": []
+          "before_grounding": [
+            "T1078"
+          ],
+          "after_grounding": [
+            "T1078"
+          ]
         }
       },
       {
@@ -1435,26 +1518,41 @@
           "T1190"
         ],
         "retrieved_ids": [
+          "T1190",
           "T1189",
           "T1212",
           "T1127.002",
-          "T1190",
           "T1003.001"
         ],
-        "predicted_ids": [],
-        "needs_human_review": true,
-        "errors": [
-          "inference_miss"
+        "predicted_ids": [
+          "T1190"
         ],
-        "evidence": [],
+        "needs_human_review": true,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1190",
+            "spans": [
+              {
+                "start": 0,
+                "length": 82,
+                "sha256": "7a176e5c1506569da51bee956ae2f7369ede65a2e31b09dc8c8b8bbc25847941"
+              }
+            ]
+          }
+        ],
         "stages": {
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
-          "before_grounding": [],
-          "after_grounding": []
+          "before_grounding": [
+            "T1190"
+          ],
+          "after_grounding": [
+            "T1190"
+          ]
         }
       },
       {

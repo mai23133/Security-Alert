@@ -1,5 +1,5 @@
 {
-  "metadata": {"dataset_version":"development-2","stix_version":"enterprise-attack-19.1","purpose":"Synthetic development cases from ATT&CK concepts; not course gold or independent validation."},
+  "metadata": {"dataset_version":"development-3","stix_version":"enterprise-attack-19.1","purpose":"Synthetic development cases from ATT&CK concepts; not course gold or independent validation."},
   "alerts": [
     {"alert_id":"dev-01","narrative":"A suspicious process launched pwsh to execute a downloaded payload.","category":"positive","gold_technique_ids":["T1059.001"]},
     {"alert_id":"dev-02","narrative":"The intruder ran cmd.exe /c to launch a payload.","category":"positive","gold_technique_ids":["T1059.003"]},
@@ -47,6 +47,15 @@
     {"alert_id":"dev-44","narrative":"A shell executed a script; the interpreter type was not recorded.","category":"ambiguous","gold_technique_ids":["T1059"]},
     {"alert_id":"dev-45","narrative":"A staff member opened untrusted launcher.exe which dumped LSASS memory.","category":"multi_technique","gold_technique_ids":["T1003.001","T1204.002"]},
     {"alert_id":"dev-46","narrative":"The host did not execute PowerShell without authorization.","category":"negative","gold_technique_ids":[]},
-    {"alert_id":"dev-47","narrative":"A benign USB drive was inserted for approved file backup.","category":"negative","gold_technique_ids":[]}
+    {"alert_id":"dev-47","narrative":"A benign USB drive was inserted for approved file backup.","category":"negative","gold_technique_ids":[]},
+    {"alert_id":"dev-48","narrative":"The email gateway delivered a targeted archive attachment to the payroll team.","category":"positive","gold_technique_ids":["T1566.001"]},
+    {"alert_id":"dev-49","narrative":"An exposed remote administration service accepted a session from a compromised account.","category":"multi_technique","gold_technique_ids":["T1078","T1133"]},
+    {"alert_id":"dev-50","narrative":"A removable USB device copied and launched a worm executable.","category":"positive","gold_technique_ids":["T1091"]},
+    {"alert_id":"dev-51","narrative":"The employee opened an untrusted report.docm, after which a process accessed LSASS memory.","category":"multi_technique","gold_technique_ids":["T1003.001","T1204.002"]},
+    {"alert_id":"dev-52","narrative":"A stolen VPN account entered through an external remote service and executed PowerShell.","category":"multi_technique","gold_technique_ids":["T1059.001","T1078","T1133"]},
+    {"alert_id":"dev-53","narrative":"An external login used correct credentials, but the account owner could not be confirmed.","category":"ambiguous","gold_technique_ids":["T1078"]},
+    {"alert_id":"dev-54","narrative":"A web service crashed after a malformed request spawned a child process; exploit success is uncertain.","category":"ambiguous","gold_technique_ids":["T1190"]},
+    {"alert_id":"dev-55","narrative":"The service launched a downloaded PowerShell command supplied by the user.","category":"positive","gold_technique_ids":["T1059.001"]},
+    {"alert_id":"dev-56","narrative":"Numerous authentication failures affected several accounts, but the telemetry pattern was incomplete.","category":"ambiguous","gold_technique_ids":["T1110"]}
   ]
 }

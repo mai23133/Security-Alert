@@ -41,7 +41,7 @@
 ### 4. เพิ่มการประเมินและการทดสอบ
 
 - แยก development fixtures ออกจากชุดประเมิน 35 alerts ของรายวิชา
-- เพิ่ม development cases 47 กรณี ครอบคลุม positive, multi-technique, ambiguity, benign, negation และ prompt injection
+- เพิ่ม development cases 56 กรณี ครอบคลุม positive, multi-technique, ambiguity, benign, negation และ prompt injection
 - เพิ่มรายงาน error ว่าพลาดเพราะ retrieval, inference, evidence หรือ ambiguity
 - บันทึก version/hash ของ STIX, dataset, code, prompt และ dependencies ใน evaluation report
 - เพิ่ม CI สำหรับ test, runtime development gates, browser acceptance และ full runtime quality gate
@@ -51,9 +51,9 @@
 
 | รายการ | ผล |
 | --- | ---: |
-| Tests | 125 ผ่าน |
-| Exact F1 | 81.82% — ผ่านเกณฑ์ 70% |
-| Parent recall | 72.97% — ยังไม่ถึงเกณฑ์ 90% |
+| Tests | 134 ผ่าน |
+| Exact F1 | 97.30% — ผ่านเกณฑ์ 70% |
+| Parent recall | 97.30% — ผ่านเกณฑ์ 90% |
 | Hallucinated ID rate | 0% — ผ่าน |
 | Evidence grounding ตามการตรวจข้อความ/กฎ | 100% — ผ่านเกณฑ์ 85% |
 | False-positive rate ใน negative controls 5 รายการ | 0% |
@@ -64,10 +64,10 @@
 
 โครงการยังไม่ควรประกาศว่าเสร็จ 100% เพราะยังมีเรื่องต่อไปนี้:
 
-1. Parent recall ยังเป็น 72.97% แต่เกณฑ์ต้องอย่างน้อย 90%
-2. ผู้สอนยังต้องยืนยันรายชื่อ Technique subset ที่อนุญาต 30–50 IDs หรืออนุมัติเป็นกรณีพิเศษให้ใช้ 127 IDs
-3. Gold labels ของ alert 35 รายการยังต้องมีผู้ตรวจคนที่สองและผู้สอนยืนยัน
-4. ต้องมีการตรวจ semantic grounding และ calibration โดยผู้ตรวจอิสระ ไม่ใช่อาศัยกฎที่ระบบเขียนเอง
+1. ผู้สอนยังต้องยืนยันรายชื่อ Technique subset ที่อนุญาต 30–50 IDs หรืออนุมัติเป็นกรณีพิเศษให้ใช้ 127 IDs
+2. Gold labels ของ alert 35 รายการยังต้องมีผู้ตรวจคนที่สองและผู้สอนยืนยัน
+3. ต้องมีการตรวจ semantic grounding และ calibration โดยผู้ตรวจอิสระ ไม่ใช่อาศัยกฎที่ระบบเขียนเอง
+4. ต้องยืนยันผล `runtime-quality` บน GitHub Actions หลัง commit/push
 5. หากจะ deploy จริง ต้องยืนยัน target environment, privacy, retention และการควบคุมระดับ gateway
 
 ## ไฟล์ที่ควรเปิดอ่านต่อ
@@ -88,4 +88,4 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' .venv/bin/python -m pytest -q
 git diff --check
 ```
 
-คำสั่ง evaluation ตัวสุดท้ายจะ exit 1 ในสถานะปัจจุบัน เพราะ parent recall ยังไม่ผ่านเกณฑ์ ซึ่งเป็นพฤติกรรมที่ตั้งใจไว้เพื่อไม่ให้ปล่อยงานโดยข้าม quality gate
+คำสั่ง evaluation ตัวสุดท้ายคืน exit 0 ในผล local ปัจจุบัน เพราะ numeric quality gates ผ่านแล้ว; ยังต้องยืนยันผลเดียวกันใน GitHub Actions และทำ approval/review ที่เหลือ

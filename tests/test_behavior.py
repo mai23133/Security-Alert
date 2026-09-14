@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import pytest
-from src.agents.behavior import contextual_span_valid, evidence
+from src.agents.behavior import AMBIGUOUS, contextual_span_valid, evidence
 from src.agents.evidence_linker import link_evidence
 from src.agents.technique_inferencer import infer_techniques
 from src.schemas import InferredTechnique, TechniqueCandidate
@@ -25,6 +25,32 @@ def test_without_interaction_does_not_negate_an_observed_exploit():
     text = "The browser executed an exploit without user interaction."
     assert evidence(text, "T1189") == [text]
     assert not evidence("The browser never executed an exploit.", "T1189")
+
+
+@pytest.mark.parametrize("technique_id,text", [
+    ("T1566.001", "The email gateway delivered a targeted archive attachment to the payroll team."),
+    ("T1133", "An exposed remote administration service accepted an external session."),
+    ("T1091", "A removable USB device copied and launched a worm executable."),
+    ("T1204.002", "The employee opened an untrusted report.docm."),
+    ("T1078", "An external login used correct credentials."),
+    ("T1190", "A web service crashed after a malformed request spawned a child process."),
+])
+def test_behavior_v3_supports_generalized_attack_forms(technique_id, text):
+    assert evidence(text, technique_id) == [text]
+
+
+def test_user_execution_binds_the_user_to_the_interaction():
+    text = "The service launched a downloaded PowerShell command supplied by the user."
+    assert not evidence(text, "T1204.002")
+    assert evidence(text, "T1059.001") == [text]
+
+
+@pytest.mark.parametrize("text", [
+    "The account owner could not be confirmed.",
+    "The source pattern was incomplete.",
+])
+def test_behavior_v3_marks_confirmation_and_incomplete_patterns_ambiguous(text):
+    assert AMBIGUOUS.search(text)
 
 
 def test_missing_metadata_requires_review_instead_of_negating_execution():

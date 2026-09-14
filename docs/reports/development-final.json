@@ -2,13 +2,13 @@
   "metadata": {
     "report_kind": "runtime_quality",
     "not_a_runtime_quality_gate": false,
-    "generated_at": "2026-09-14T16:27:05.550743+00:00",
-    "commit": "0be7a1092ed46d0d34d4b5df1de28ea33d39370f",
-    "code_sha256": "f93e95f8e83a1a5f61b2f77c7d1663735eab099b2b682348510578403b936f48",
-    "dataset_version": "development-2",
-    "dataset_sha256": "b8d2c779aa51e5c370be446278a0ff24762abf2fea5d983f245fce07c0890e42",
+    "generated_at": "2026-09-14T19:15:04.174401+00:00",
+    "commit": "720c6baa8d44172be329bea990676329de03e63b",
+    "code_sha256": "9a8b4821c2dc762277ee055dc214aa6bf419c0d9093f1da01aafe8e2778a643a",
+    "dataset_version": "development-3",
+    "dataset_sha256": "41ba23e243a421c52ba120dea1334e83cc761b80f43dafe6bde6a0bdcaa2daed",
     "evaluation_scope": "development",
-    "evaluated_alert_count": 47,
+    "evaluated_alert_count": 56,
     "evaluation_subset_version": null,
     "evaluation_subset_sha256": null,
     "label_review_status": "unspecified",
@@ -16,8 +16,8 @@
     "stix_sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
     "allowlist_sha256": "1eabe813c368beba685c649064e85a1ec4e902c75daafccab4d9403b5c2f91aa",
     "candidates_sha256": "c5a512f8396d11b53b0d7bda18a3ef58609819e98fa597afc382206964573bc4",
-    "prediction_sha256": "03cf6c18a3c00017b6e7a7e53b99a74e372a6f4ae4c45ad7deb30ba5adc81224",
-    "model_version": "behavior-rules-v2",
+    "prediction_sha256": "a097697daba8b9470966d447405a46989537007786391a49ec5a46b73619919f",
+    "model_version": "behavior-rules-v3",
     "prompt_version": "provider-disabled",
     "provider_mode": "disabled",
     "python_version": "3.11.15",
@@ -79,7 +79,7 @@
     "additional_grounding_kind": "clause_behavior_rules"
   },
   "metrics": {
-    "alert_count": 47,
+    "alert_count": 56,
     "exact_technique": {
       "precision": 1.0,
       "recall": 1.0,
@@ -89,8 +89,8 @@
     "evidence_grounding_rate": 1.0,
     "hallucinated_id_rate": 0.0,
     "false_positive_rate": 0.0,
-    "human_review_rate": 0.2553191489361702,
-    "recall_at_1": 0.9302325581395349,
+    "human_review_rate": 0.26785714285714285,
+    "recall_at_1": 0.875,
     "recall_at_3": 1.0,
     "recall_at_5": 1.0,
     "behavior_evidence_rate": 1.0,
@@ -116,8 +116,8 @@
     "error_rates": {},
     "confidence_bins": {
       "0.82": {
-        "count": 39,
-        "correct": 39,
+        "count": 52,
+        "correct": 52,
         "empirical_precision": 1.0
       },
       "0.6": {
@@ -2102,6 +2102,458 @@
           ],
           "before_grounding": [],
           "after_grounding": []
+        }
+      },
+      {
+        "alert_id": "dev-48",
+        "category": "positive",
+        "gold_ids": [
+          "T1566.001"
+        ],
+        "retrieved_ids": [
+          "T1566.001",
+          "T1566",
+          "T1566.003",
+          "T1566.002",
+          "T1203"
+        ],
+        "predicted_ids": [
+          "T1566.001"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1566.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 78,
+                "sha256": "c6a2db1c88e6ae87682b9ec9308ce3f9d28de9b57218c989f7092a5369ef7d75"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1566.001"
+          ],
+          "after_grounding": [
+            "T1566.001"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-49",
+        "category": "multi_technique",
+        "gold_ids": [
+          "T1078",
+          "T1133"
+        ],
+        "retrieved_ids": [
+          "T1133",
+          "T1078",
+          "T1539",
+          "T1078.003",
+          "T1190"
+        ],
+        "predicted_ids": [
+          "T1078",
+          "T1133"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 87,
+                "sha256": "b9d07056c509b86427876a11d87406f47c0d489b41bf7f817ce90a098e66aacf"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1133",
+            "spans": [
+              {
+                "start": 0,
+                "length": 87,
+                "sha256": "b9d07056c509b86427876a11d87406f47c0d489b41bf7f817ce90a098e66aacf"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1078",
+            "T1133"
+          ],
+          "after_grounding": [
+            "T1078",
+            "T1133"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-50",
+        "category": "positive",
+        "gold_ids": [
+          "T1091"
+        ],
+        "retrieved_ids": [
+          "T1091",
+          "T1200",
+          "T1674",
+          "T1195",
+          "T1195.001"
+        ],
+        "predicted_ids": [
+          "T1091"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1091",
+            "spans": [
+              {
+                "start": 0,
+                "length": 61,
+                "sha256": "17f67678c9f3346ae27fa672296aba429ebaf3569b2e7b0786b001dc6ba46ebb"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1091"
+          ],
+          "after_grounding": [
+            "T1091"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-51",
+        "category": "multi_technique",
+        "gold_ids": [
+          "T1003.001",
+          "T1204.002"
+        ],
+        "retrieved_ids": [
+          "T1003.001",
+          "T1204.002",
+          "T1187",
+          "T1556.001",
+          "T1539"
+        ],
+        "predicted_ids": [
+          "T1003.001",
+          "T1204.002"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1003.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 90,
+                "sha256": "e3a413cf50bb4125b8e64f8ac36194f61370919a5a3654315036bb3286c8dc14"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1204.002",
+            "spans": [
+              {
+                "start": 0,
+                "length": 90,
+                "sha256": "e3a413cf50bb4125b8e64f8ac36194f61370919a5a3654315036bb3286c8dc14"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1003.001",
+            "T1204.002"
+          ],
+          "after_grounding": [
+            "T1003.001",
+            "T1204.002"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-52",
+        "category": "multi_technique",
+        "gold_ids": [
+          "T1059.001",
+          "T1078",
+          "T1133"
+        ],
+        "retrieved_ids": [
+          "T1059.001",
+          "T1133",
+          "T1078",
+          "T1056.003",
+          "T1078.001"
+        ],
+        "predicted_ids": [
+          "T1059.001",
+          "T1078",
+          "T1133"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1059.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 88,
+                "sha256": "acfb76d276d0b226d74e0076828ac62508743d2401a7ddee28e76927f519fd80"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 88,
+                "sha256": "acfb76d276d0b226d74e0076828ac62508743d2401a7ddee28e76927f519fd80"
+              }
+            ]
+          },
+          {
+            "technique_id": "T1133",
+            "spans": [
+              {
+                "start": 0,
+                "length": 88,
+                "sha256": "acfb76d276d0b226d74e0076828ac62508743d2401a7ddee28e76927f519fd80"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1059.001",
+            "T1078",
+            "T1133"
+          ],
+          "after_grounding": [
+            "T1059.001",
+            "T1078",
+            "T1133"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-53",
+        "category": "ambiguous",
+        "gold_ids": [
+          "T1078"
+        ],
+        "retrieved_ids": [
+          "T1078",
+          "T1555.002",
+          "T1133",
+          "T1110",
+          "T1111"
+        ],
+        "predicted_ids": [
+          "T1078"
+        ],
+        "needs_human_review": true,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1078",
+            "spans": [
+              {
+                "start": 0,
+                "length": 43,
+                "sha256": "e8450addbb26f21f9a7fd0e27a7c2276498a846a3179d89dc4b11eef41701d4a"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1078"
+          ],
+          "after_grounding": [
+            "T1078"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-54",
+        "category": "ambiguous",
+        "gold_ids": [
+          "T1190"
+        ],
+        "retrieved_ids": [
+          "T1190",
+          "T1189",
+          "T1127.002",
+          "T1556.006",
+          "T1539"
+        ],
+        "predicted_ids": [
+          "T1190"
+        ],
+        "needs_human_review": true,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1190",
+            "spans": [
+              {
+                "start": 0,
+                "length": 72,
+                "sha256": "75712b0d3655398e2662e367cf0df3df677a8248036a909187a3fd899b24b19c"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1190"
+          ],
+          "after_grounding": [
+            "T1190"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-55",
+        "category": "positive",
+        "gold_ids": [
+          "T1059.001"
+        ],
+        "retrieved_ids": [
+          "T1059.001",
+          "T1059",
+          "T1552.003",
+          "T1204.004",
+          "T1047"
+        ],
+        "predicted_ids": [
+          "T1059.001"
+        ],
+        "needs_human_review": false,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1059.001",
+            "spans": [
+              {
+                "start": 0,
+                "length": 74,
+                "sha256": "b8784f09855a0811f2f3d568fe04d375d4756066d621a64b9fd75d35fbb12c6f"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1059.001"
+          ],
+          "after_grounding": [
+            "T1059.001"
+          ]
+        }
+      },
+      {
+        "alert_id": "dev-56",
+        "category": "ambiguous",
+        "gold_ids": [
+          "T1110"
+        ],
+        "retrieved_ids": [
+          "T1110",
+          "T1110.004",
+          "T1110.001",
+          "T1559",
+          "T1556"
+        ],
+        "predicted_ids": [
+          "T1110"
+        ],
+        "needs_human_review": true,
+        "errors": [],
+        "evidence": [
+          {
+            "technique_id": "T1110",
+            "spans": [
+              {
+                "start": 0,
+                "length": 59,
+                "sha256": "0b7191bf63a638722aba00ce3c17277f2a4a0cb76926525f27977e32b9847e9b"
+              }
+            ]
+          }
+        ],
+        "stages": {
+          "tactics": [
+            "initial-access",
+            "execution",
+            "credential-access"
+          ],
+          "before_grounding": [
+            "T1110"
+          ],
+          "after_grounding": [
+            "T1110"
+          ]
         }
       }
     ],
