@@ -163,5 +163,6 @@ def infer_techniques_with_provider(
                 mitre_url=_mitre_url(candidate.technique_id),
             ))
         return inferred
-    except Exception:
+    except Exception as exc:
+        print(f"\n[DEBUG ERROR] Provider failed: {exc}\n")
         return infer_techniques(narrative, candidates)
