@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.api import runtime
 from src.api.routes.alerts import router as alerts_router
@@ -155,7 +156,13 @@ def create_app(*, snapshot_path=None, api_key=None, rate_limit=None, request_tim
 
     @application.get("/ui", response_class=HTMLResponse, include_in_schema=False)
     async def analyst_ui():
-        return HTMLResponse((PROJECT_ROOT / "ui/index.html").read_text(encoding="utf-8"))
+        index_file = PROJECT_ROOT / "ui" / "dist" / "index.html"
+        return HTMLResponse(index_file.read_text(encoding="utf-8"))
+
+    ui_dist = PROJECT_ROOT / "ui" / "dist"
+    assets_dir = ui_dist / "assets"
+    if assets_dir.is_dir():
+        application.mount("/ui/assets", StaticFiles(directory=assets_dir), name="ui-assets")
 
     return application
 

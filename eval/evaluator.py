@@ -178,6 +178,35 @@ def create_report(
             {p["tactic"] for p in r["inferred_techniques"]} == {by_id[t].tactic for t in r["gold_technique_ids"]}
             for r in records) / max(1, len(records))
         metrics["negative_control_count"] = sum(r["category"] == "negative" for r in records)
+    case_results = []
+    for record in records:
+        gold = set(record["gold_technique_ids"])
+        predicted = {item["technique_id"] for item in record["inferred_techniques"]}
+        if predicted == gold:
+            match = "Exact"
+        elif any("." in technique_id and technique_id.split(".", 1)[0] in predicted
+                 for technique_id in gold):
+            match = "Parent"
+        else:
+            match = "Miss"
+        predictions_for_case = record["inferred_techniques"]
+        grounded = None if not predictions_for_case else all(
+            isinstance(item.get("evidence_spans"), list)
+            and bool(item["evidence_spans"])
+            and all(isinstance(span, str) and span and span in record["narrative"]
+                    for span in item["evidence_spans"])
+            for item in predictions_for_case
+        )
+        case_results.append({
+            "alert_id": record["alert_id"],
+            "category": record["category"],
+            "gold_technique_ids": sorted(gold),
+            "predicted_technique_ids": sorted(predicted),
+            "match": match,
+            "grounded": grounded,
+            "needs_human_review": record["needs_human_review"],
+            "out_of_subset_ids": sorted(predicted - allowlist),
+        })
     gates = {
         "exact_f1_at_least_0_70": metrics["exact_technique"]["f1"] >= 0.70,
         "parent_recall_at_least_0_90": metrics["parent_technique_recall"] >= 0.90,
@@ -208,6 +237,10 @@ def create_report(
             "model_version": model_version,
             "prompt_version": prompt_version,
             "provider_mode": "disabled",
+            "category_counts": {
+                category: sum(record["category"] == category for record in records)
+                for category in ("positive", "multi_technique", "ambiguous", "negative")
+            },
             "python_version": platform.python_version(),
             "dependency_versions": dict(sorted((d.metadata["Name"], d.version) for d in distributions())),
             "prompt_sha256": {str(p.relative_to(PROJECT_ROOT)): _hash(p) for p in sorted((PROJECT_ROOT / "prompts").rglob("*.txt"))},
@@ -227,6 +260,8 @@ def create_report(
             "Independent semantic validation and final subset approval remain outstanding.",
         ],
         "disclaimer": DISCLAIMER,
+        # Safe UI summary: no narratives or evidence text leave the evaluator.
+        "case_results": case_results,
     }
     if diagnostics and mode == "runtime":
         from eval.diagnostics import analyze

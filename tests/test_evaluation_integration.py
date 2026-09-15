@@ -127,6 +127,12 @@ def test_evaluate_api_real_report():
         response = client.post("/evaluate", json={})
     assert response.status_code == 200
     assert response.json()["metadata"]["report_kind"] == "runtime_quality"
+    assert sum(response.json()["metadata"]["category_counts"].values()) == 35
+    assert len(response.json()["case_results"]) == response.json()["metrics"]["alert_count"]
+    assert set(response.json()["case_results"][0]) == {
+        "alert_id", "category", "gold_technique_ids", "predicted_technique_ids",
+        "match", "grounded", "needs_human_review", "out_of_subset_ids",
+    }
     assert response.json()["disclaimer"]
     assert response.headers["x-request-id"]
     assert response.headers["x-mitre-attack-version"] == "enterprise-attack-19.1"

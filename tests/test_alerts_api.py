@@ -152,4 +152,4 @@ async def test_ui_is_served(client):
     response = await client.get("/ui")
     assert response.status_code == 200
     assert "Security Alert" in response.text
-    assert "inferred_techniques" in response.text
+    assert '/ui/assets/' in response.text
