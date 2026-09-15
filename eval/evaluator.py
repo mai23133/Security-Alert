@@ -4,11 +4,12 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-from eval.metrics import PARENT_MATCH_CREDIT, evaluate
+from eval.metrics import PARENT_MATCH_CREDIT, evaluate, evidence_grounding_rate
 from eval.run_eval import (
     DEFAULT_ALLOWLIST, DEFAULT_DATASET, DEFAULT_PREDICTIONS, PROJECT_ROOT,
     build_records, validate_dataset, validate_predictions,
@@ -102,6 +103,46 @@ def _select_iteration_subset(
     )
 
 
+def build_case_results(records: list[dict], allowlist: set[str]) -> list[dict]:
+    """Expose label comparisons without returning alert text or evidence.
+
+    Exact compares complete label sets. Parent requires coverage of every gold
+    label by itself or its parent, without unrelated extra predictions. Mixed
+    partial/extra matches are Miss; aggregate metrics retain their own scoring.
+    No predictions means grounding is not applicable, not a successful check.
+    """
+    rows = []
+    for record in records:
+        gold = set(record["gold_technique_ids"])
+        predicted = {item["technique_id"] for item in record["inferred_techniques"]}
+        if gold == predicted:
+            match = "Exact"
+        elif gold and predicted and all(
+            technique_id in predicted or (
+                "." in technique_id and technique_id.split(".", 1)[0] in predicted
+            ) for technique_id in gold
+        ) and all(
+            technique_id in gold or any(
+                "." in gold_id and technique_id == gold_id.split(".", 1)[0]
+                for gold_id in gold
+            ) for technique_id in predicted
+        ):
+            match = "Parent"
+        else:
+            match = "Miss"
+        rows.append({
+            "alert_id": record["alert_id"],
+            "category": record["category"],
+            "gold_technique_ids": sorted(gold),
+            "predicted_technique_ids": sorted(predicted),
+            "match": match,
+            "grounded": evidence_grounding_rate([record]) == 1.0 if predicted else None,
+            "needs_human_review": record["needs_human_review"],
+            "out_of_subset_ids": sorted(predicted - allowlist),
+        })
+    return rows
+
+
 def create_report(
     *, mode: Literal["fixture", "runtime"] = "runtime", top_k: int = 5,
     dataset_path: Path = DEFAULT_DATASET,
@@ -156,6 +197,7 @@ def create_report(
     )
     records = build_records(selected_dataset, selected_predictions)
     metrics = evaluate(records, allowlist)
+    case_results = build_case_results(records, allowlist)
     gates = {
         "exact_f1_at_least_0_70": metrics["exact_technique"]["f1"] >= 0.70,
         "parent_recall_at_least_0_90": metrics["parent_technique_recall"] >= 0.90,
@@ -187,8 +229,10 @@ def create_report(
             "top_k": top_k if mode == "runtime" else None,
             "parent_match_credit": PARENT_MATCH_CREDIT,
             "grounding_kind": "exact_substring_only",
+            "category_counts": dict(Counter(record["category"] for record in records)),
         },
         "metrics": metrics,
+        "case_results": case_results,
         "quality_gates": gates,
         "numeric_gates_passed": all(gates.values()),
         # Neither fixture nor substring-only evaluation constitutes course acceptance.

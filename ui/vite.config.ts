@@ -39,6 +39,10 @@ export default defineConfig(({ mode }) => {
 ],
       },
       proxy: {
+        '/evaluate': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
         '/alerts': {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,

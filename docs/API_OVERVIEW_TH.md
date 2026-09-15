@@ -81,9 +81,28 @@ Taxonomy list กรอง tactic แบบ exact match ไม่มี validati
 
 POST /evaluate รับ {"mode":"runtime","top_k":5} หรือ {} (default runtime/5) mode fixture ใช้ saved predictions ส่วน runtime เรียก pipeline จริงโดย use_provider=False ปิด Gemini แม้มี key ใน .env
 
-ใช้เฉพาะ dataset จำลองที่ bundle มา 35 alerts ห้าม field dataset/output/path/provider หรือ input เพิ่มเติม; top_k strict integer 1–25 route sync ทำงานใน worker thread ไม่ block event loop และไม่บันทึก report/alert ลง disk
+ใช้เฉพาะ dataset จำลองที่ bundle มา 35 alerts ห้าม field dataset/output/path/provider หรือ input เพิ่มเติม; top_k strict integer 1–25 ไม่บันทึก report/alert ลง disk ตัว route ปัจจุบันเป็น async แต่เรียก evaluator แบบ synchronous จึงยังอาจ block event loop ระหว่างประเมิน
 
 Response มี metadata (versions/hashes/provider mode), metrics, quality_gates, numeric_gates_passed, acceptance_ready=false และ disclaimer HTTP 200 หมายถึงประเมินเสร็จ ไม่ใช่ผ่าน F1 gates; 422 สำหรับ request ผิด, 503 EVALUATION_UNAVAILABLE สำหรับข้อมูล/KB ผิดหรือหาย, 500 EVALUATION_FAILED สำหรับ unexpected failure ไม่มี exception ดิบ
+
+เพิ่มเติมสำหรับ UI วันที่ 15 กันยายน 2026: `metadata.category_counts` เป็นจำนวนแต่ละ category ที่ประเมินจริง และ `case_results` เป็นผลราย Alert จาก predictions ชุดเดียวกับ metrics โดยไม่ส่ง narrative หรือ evidence ออกมาในรายงาน:
+
+```json
+{
+  "alert_id": "example-case",
+  "category": "positive",
+  "gold_technique_ids": ["T1059.001"],
+  "predicted_technique_ids": ["T1059"],
+  "match": "Parent",
+  "grounded": true,
+  "needs_human_review": true,
+  "out_of_subset_ids": []
+}
+```
+
+`Exact` คือ label sets ตรงกันทั้งหมด; `Parent` คือทุก gold label ถูกครอบคลุมด้วย ID เดิมหรือ parent และไม่มี prediction ที่ไม่เกี่ยวข้อง; กรณีอื่นเป็น `Miss` การจัดประเภทนี้ใช้แสดงตาราง ไม่เปลี่ยนสูตร micro F1 หรือ partial-credit parent recall เดิม `grounded` เป็นผล exact-substring ทุก evidence ในแถวนั้น และเป็น `null` เมื่อไม่มี prediction (UI แสดง N/A) ไม่ใช่ผล semantic grounding
+
+UI เรียก runtime mode เท่านั้น แสดงค่าจาก report และ quality_gates โดยตรง ส่วนการวัด prompt injection, data leakage, action containment และ confidence calibration ยังไม่มีใน report จึงแสดง NOT MEASURED
 
 ## Headers และ errors (ทุก API)
 

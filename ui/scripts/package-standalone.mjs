@@ -4,7 +4,8 @@ import path from 'node:path';
 
 const uiRoot = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(uiRoot, 'dist');
-let html = await readFile(path.join(dist, 'index.html'), 'utf8');
+let html = (await readFile(path.join(dist, 'index.html'), 'utf8'))
+  .replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '');
 const scripts = [...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*><\/script>/g)];
 const styles = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g)];
 if (scripts.length !== 1 || styles.length !== 1) {

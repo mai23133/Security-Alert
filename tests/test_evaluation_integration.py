@@ -93,6 +93,10 @@ def test_fixture_and_runtime_are_distinct_and_offline(monkeypatch):
     assert runtime["metadata"]["grounding_kind"] == "exact_substring_only"
     assert runtime["metrics"]["alert_count"] == 35
     assert runtime["metrics"] == repeated["metrics"]
+    assert runtime["case_results"] == repeated["case_results"]
+    assert len(runtime["case_results"]) == runtime["metrics"]["alert_count"]
+    assert sum(runtime["metadata"]["category_counts"].values()) == 35
+    assert all("narrative" not in row and "evidence_spans" not in row for row in runtime["case_results"])
     assert runtime["metadata"]["prediction_sha256"] == repeated["metadata"]["prediction_sha256"]
     assert fixture["acceptance_ready"] is runtime["acceptance_ready"] is False
     assert calls == []
@@ -105,6 +109,8 @@ def test_iteration_2_release_subset_is_bounded_and_reported():
     assert report["metadata"]["evaluation_scope"] == "iteration_2_v0.2.0"
     assert report["metadata"]["evaluated_alert_count"] == 10
     assert report["metrics"]["alert_count"] == 10
+    assert len(report["case_results"]) == 10
+    assert sum(report["metadata"]["category_counts"].values()) == 10
 
 
 def test_runtime_quality_errors_reach_metrics(monkeypatch):
@@ -124,6 +130,8 @@ def test_runtime_quality_errors_reach_metrics(monkeypatch):
     assert report["metrics"]["hallucinated_id_rate"] == 1
     assert report["metrics"]["evidence_grounding_rate"] == 0
     assert report["numeric_gates_passed"] is False
+    assert all(row["out_of_subset_ids"] == ["T9999"] for row in report["case_results"])
+    assert all(row["grounded"] is False for row in report["case_results"])
 
 
 @pytest.mark.parametrize("payload", [
@@ -141,6 +149,7 @@ async def test_evaluate_api_real_report(client):
     assert response.status_code == 200
     assert response.json()["metadata"]["report_kind"] == "runtime_quality"
     assert response.json()["disclaimer"]
+    assert len(response.json()["case_results"]) == 35
     assert response.headers["x-request-id"]
     assert response.headers["x-mitre-attack-version"] == "enterprise-attack-19.1"
 
@@ -168,3 +177,38 @@ def test_cli_cannot_use_fixture_as_runtime_gate(monkeypatch):
     with pytest.raises(SystemExit) as error:
         main()
     assert error.value.code == 2
+
+
+@pytest.mark.parametrize("gold,predicted,match", [
+    ([], [], "Exact"),
+    (["T1059.001", "T1110"], ["T1110", "T1059.001"], "Exact"),
+    (["T1059.001"], ["T1059"], "Parent"),
+    (["T1059.001", "T1110"], ["T1059", "T1110"], "Parent"),
+    (["T1059.001", "T1110"], ["T1059.001"], "Miss"),
+    (["T1059.001"], ["T1059", "T1110"], "Miss"),
+    (["T1059"], ["T1059.001"], "Miss"),
+    (["T1059.001"], [], "Miss"),
+    ([], ["T1110"], "Miss"),
+])
+def test_case_results_compare_complete_multilabel_sets(gold, predicted, match):
+    record = {
+        "alert_id": "case-1", "category": "positive", "narrative": "private evidence",
+        "gold_technique_ids": gold, "needs_human_review": True,
+        "inferred_techniques": [{"technique_id": item, "evidence_spans": ["private evidence"]} for item in predicted],
+    }
+    row = evaluator.build_case_results([record], set(gold + predicted))[0]
+    assert row["match"] == match
+    assert row["grounded"] is (True if predicted else None)
+    assert row["gold_technique_ids"] == sorted(gold)
+    assert row["predicted_technique_ids"] == sorted(predicted)
+    assert "private evidence" not in json.dumps(row)
+
+
+@pytest.mark.parametrize("spans", [[], ["invented"], ["private evidence", "invented"]])
+def test_case_grounding_does_not_claim_pass_for_missing_or_partial_evidence(spans):
+    record = {
+        "alert_id": "case-1", "category": "positive", "narrative": "private evidence",
+        "gold_technique_ids": ["T1059"], "needs_human_review": True,
+        "inferred_techniques": [{"technique_id": "T1059", "evidence_spans": spans}],
+    }
+    assert evaluator.build_case_results([record], {"T1059"})[0]["grounded"] is False
