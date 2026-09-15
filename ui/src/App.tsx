@@ -659,56 +659,8 @@ function EvalDashboard() {
         </div>
       </div>
 
-      {/* Guardrails */}
-      <div>
-        <SectionLabel>SECURITY GUARDRAILS STATUS</SectionLabel>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 12 }}>
-          <GuardrailCard
-            title="Prompt Injection Testing"
-            status="NOT MEASURED"
-            detail="This evaluation does not measure prompt-injection resistance."
-            metrics={[
-              { label: "Prompt Leakage", value: null, target: 0 },
-              { label: "Taxonomical Escape", value: null, target: 0 },
-              { label: "Role Confusion Attempts Blocked", value: null, target: 10 },
-            ]}
-          />
-          <GuardrailCard
-            title="Hallucination Containment"
-            status={!report || predictionCount === 0 ? "NOT MEASURED" : report.metrics.hallucinated_id_rate === 0 ? "PASS" : "FAIL"}
-            detail="ID membership in the pinned subset only; not semantic correctness."
-            metrics={[
-              { label: "Out-of-subset Technique IDs", value: invalidCount, target: 0 },
-              { label: "Predicted IDs evaluated", value: report ? predictionCount : null, target: null },
-              { label: "Confidence Calibration Drift", value: null, target: 0.05, decimals: 2, label2: "MAE" },
-            ]}
-          />
-          <GuardrailCard
-            title="Scope Containment"
-            status="NOT MEASURED"
-            detail="Advisory-only system; runtime action-containment tests are not included in this report."
-            metrics={[
-              { label: "Autonomous Action Attempts", value: null, target: 0 },
-              { label: "SOC Workflow Bypasses", value: null, target: 0 },
-              { label: "Privilege Escalation Attempts", value: null, target: 0 },
-            ]}
-          />
-          <GuardrailCard
-            title="Data Leakage Prevention"
-            status="NOT MEASURED"
-            detail="This evaluation does not measure data leakage or PII exposure."
-            metrics={[
-              { label: "System Prompt Leaks", value: null, target: 0 },
-              { label: "Index Content Leaks", value: null, target: 0 },
-              { label: "PII Exposure Events", value: null, target: 0 },
-            ]}
-          />
-        </div>
-      </div>
+      
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
@@ -727,37 +679,8 @@ function MatchBadge({ match }: { match: string }) {
   );
 }
 
-function GuardrailCard({ title, status, detail, metrics }: {
-  title: string;
-  status: string;
-  detail: string;
-  metrics: { label: string; value: number | null; target: number | null; decimals?: number; label2?: string }[];
-}) {
-  const pass = status === "PASS";
-  const unknown = status === "NOT MEASURED";
-  const color = unknown ? "var(--muted-foreground)" : pass ? "var(--green)" : "var(--red)";
-  return (
-    <div style={{ background: "var(--card)", border: `1px solid ${unknown ? "var(--border)" : pass ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, borderRadius: "var(--radius)", padding: "18px 20px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{title}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color, background: unknown ? "var(--muted)" : pass ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", padding: "2px 10px", borderRadius: 2 }}>
-          {unknown ? "" : pass ? "✓ " : "✗ "}{status}
-        </span>
-      </div>
-      <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 14 }}>{detail}</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {metrics.map((m) => {
-          const ok = m.value !== null && m.target !== null ? m.value <= m.target : null;
-          return (
-            <div key={m.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, color: "var(--card-foreground)" }}>{m.label}</span>
-              <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: ok === null ? "var(--muted-foreground)" : ok ? "var(--green)" : "var(--red)" }}>
-                {m.value === null ? "—" : m.decimals ? m.value.toFixed(m.decimals) : m.value} {m.value === null ? "" : m.label2 || ""}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+
+   
+    
+  
+
