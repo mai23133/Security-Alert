@@ -2,7 +2,7 @@
 
 ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-สถานะ 15 กันยายน 2026: พัฒนาต่อจากแผนปิดโครงการแล้ว มี snapshot lifecycle, behavior grounding, operational controls และ browser acceptance; full-pack F1 และ parent recall เท่ากับ 97.30%, FPR 0% จึงผ่าน numeric quality gates ในเครื่องแล้ว แต่ยังรอการรับรอง subset/gold labels และ independent semantic review ดู [สรุปงานและหลักฐานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+สถานะ 18 กันยายน 2026 หลัง merge PR #6 และแก้ merge regression: ระบบมี snapshot lifecycle, behavior grounding, guarded Gemini/OpenRouter modes, operational controls และ browser acceptance; full-pack Offline F1 และ parent recall เท่ากับ 97.30%, FPR 0% จึงผ่าน numeric quality gates ในเครื่องแล้ว แต่ยังรอการรับรอง subset/gold labels และ independent semantic review ดู [สรุปงานและหลักฐานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
 ## เริ่มอ่าน
 

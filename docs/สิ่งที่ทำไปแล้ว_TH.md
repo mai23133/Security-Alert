@@ -1,6 +1,6 @@
 # สิ่งที่ทำไปแล้ว
 
-อัปเดต 17 กันยายน 2026
+อัปเดต 18 กันยายน 2026 หลัง merge PR #6 และแก้ merge regression
 
 เอกสารนี้สรุปงานที่ทำในโปรเจกต์ด้วยภาษาง่าย สำหรับอ่านก่อนดูรายงานเชิงเทคนิคฉบับเต็มใน [PROJECT_COMPLETION_IMPLEMENTATION_TH.md](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 

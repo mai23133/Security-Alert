@@ -1,6 +1,6 @@
 # คู่มือการทำงานของระบบตามลำดับไฟล์และโค้ด
 
-อัปเดต 17 กันยายน 2026 เอกสารนี้อธิบายว่าแต่ละขั้นรับข้อมูลจากไฟล์ใด ทำอะไร และส่งต่อไปยังโค้ดใดจนจบทั้งระบบ โดยยึด schema/API/guardrails จากข้อกำหนดหลัก
+อัปเดต 18 กันยายน 2026 หลัง merge PR #6 และแก้ merge regression เอกสารนี้อธิบายว่าแต่ละขั้นรับข้อมูลจากไฟล์ใด ทำอะไร และส่งต่อไปยังโค้ดใดจนจบทั้งระบบ โดยยึด schema/API/guardrails จากข้อกำหนดหลัก
 
 ## แผนที่รวม
 
@@ -293,7 +293,7 @@ UI เรียก `src/api/routes/evaluate.py:evaluate_dataset()` ซึ่ง�
 - `scripts/release_manifest.py` รวม hashes, test summary, numeric gates และ blockers
 - `.github/workflows/ci.yml` รัน ingestion/tests/evaluation/browser jobs ใน CI
 
-ผลตรวจ working tree ปัจจุบันและ release evidence: 207 tests ผ่าน; Offline full-set gates, browser/demo ผ่าน และ browser acceptance ครอบคลุม prompt-injection fail-closed แล้ว ส่วน final acceptance ยังรอ gold/subset และ independent review
+ผลตรวจหลัง merge-fix: 207 tests ผ่าน; Offline full-set gates, browser/demo ผ่าน และ browser acceptance ครอบคลุม prompt-injection fail-closed แล้ว Release evidence ต้องสร้างใหม่เมื่อ source hash เปลี่ยน ส่วน final acceptance ยังรอ gold/subset และ independent review
 
 ## ไฟล์ที่ควรเปิดตามลำดับเมื่อตรวจโค้ด
 

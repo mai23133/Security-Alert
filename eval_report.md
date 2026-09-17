@@ -1,9 +1,9 @@
 # Demo Day — Full runtime evaluation report
 
-ผลล่าสุดสำหรับ Iteration 3: full pack 35 alerts ได้ Exact F1 และ parent recall
-**97.30%** ผ่าน numeric demo thresholds ทุกข้อ ผลจาก local run บน commit
-`0a9071e5132b5e01c96a01daa3eabbe1d848b6b8` ด้วย `behavior-rules-v3`
-ดู metadata, dependency versions และ hashes ใน [runtime-final.json](docs/reports/runtime-final.json)
+ผลล่าสุด ณ วันที่ 18 กันยายน 2026 สำหรับ Iteration 3: full pack 35 alerts ได้ Exact F1
+และ parent recall **97.30%** ผ่าน numeric demo thresholds ทุกข้อ ผลจาก local run
+ของ working tree หลัง merge PR #6 ด้วย `behavior-rules-v3` โดยผูกความถูกต้องของโค้ดกับ
+`code_sha256` ใน [runtime-final.json](docs/reports/runtime-final.json) แทนการอ้าง commit เก่า
 
 ## เปรียบเทียบก่อน–หลังบน full pack เดียวกัน
 

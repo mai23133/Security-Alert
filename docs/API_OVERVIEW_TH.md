@@ -1,6 +1,6 @@
 # API contract ปัจจุบัน
 
-อัปเดต 17 กันยายน 2026 อ้างอิงข้อกำหนดหลักหัวข้อ Data Schemas, API Contract และ Security & Guardrails
+อัปเดต 18 กันยายน 2026 หลัง merge-fix อ้างอิงข้อกำหนดหลักหัวข้อ Data Schemas, API Contract และ Security & Guardrails
 
 ## เตรียมระบบ
 

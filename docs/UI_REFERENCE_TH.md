@@ -1,6 +1,6 @@
 # UI ปัจจุบัน
 
-อัปเดต 17 กันยายน 2026 UI หลักอยู่ที่ `ui/src/App.tsx`, build เป็น `ui/dist/` และ FastAPI ให้บริการที่ `/ui`
+อัปเดต 18 กันยายน 2026 หลัง merge-fix UI หลักอยู่ที่ `ui/src/App.tsx`, build เป็น `ui/dist/` และ FastAPI ให้บริการที่ `/ui`
 
 ## Analyst Workspace
 

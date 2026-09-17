@@ -1,6 +1,6 @@
 # ดัชนีเอกสาร Security-Alert
 
-อัปเดต 17 กันยายน 2026
+อัปเดต 18 กันยายน 2026 หลัง merge PR #6 และแก้ merge regression
 
 ## เริ่มอ่านจากตรงนี้
 
@@ -9,6 +9,7 @@
 3. [ลำดับการทำงานตามไฟล์โค้ด](SYSTEM_FLOW_CODE_GUIDE_TH.md) — end-to-end code walkthrough
 4. [API contract](API_OVERVIEW_TH.md) — endpoints, schemas, headers, errors
 5. [การรันและ Privacy](DEPLOYMENT_PRIVACY_TH.md) — environment, consent, retention
+6. [คู่มือโครงการแบบละเอียด](PROJECT_DETAILED_GUIDE_TH.md) — ภาพรวมติดตั้ง ใช้งาน ประเมิน และข้อจำกัด
 
 ## สถานะและผลประเมิน
 
@@ -24,6 +25,8 @@
 - [บทนำเสนอ 10 นาทีสำหรับ 4 คน](PRESENTATION_SCRIPT_4_PEOPLE_TH.md)
 - [สคริปต์เดโม 3 นาที](DEMO_SCRIPT_3_MIN_TH.md)
 - [UI reference](UI_REFERENCE_TH.md)
+- [บทสาธิต Analyst Workspace สำหรับคนที่ 3](PRESENTATION_SCRIPT_PERSON_3_ANALYST_WORKSPACE_TH.md)
+- [คำถาม–คำตอบเชิงทฤษฎี](THEORY_QA_ATTACK_INFERENCE_TH.md)
 
 ## หลักฐานที่เครื่องสร้าง
 

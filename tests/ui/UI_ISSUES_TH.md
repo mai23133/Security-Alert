@@ -1,4 +1,4 @@
-# ผลตรวจและเชื่อมข้อมูล UI — 15 กันยายน 2026
+# ผลตรวจและเชื่อมข้อมูล UI — ตรวจทานล่าสุด 18 กันยายน 2026
 
 อ่าน `security-alert-attack-technique-inference.md` ทั้งไฟล์ก่อนทำงาน และอ้างอิงหัวข้อ 6 Data Schemas, 8 API Contract, 9 Evaluation, 10 Security & Guardrails และ 11 UI สัปดาห์ที่ 6
 

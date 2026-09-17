@@ -1,6 +1,6 @@
 # สถานะงานตามแผนปิดโครงการ
 
-อัปเดต 17 กันยายน 2026 บน base commit `0a9071e` โดยยึด [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md)
+อัปเดต 18 กันยายน 2026 หลัง merge PR #6 (`d6c431d`) และแก้ merge regression โดยยึด [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md)
 
 | งาน | ผลปัจจุบัน | งานคงเหลือ |
 | --- | --- | --- |
@@ -9,8 +9,8 @@
 | Online inference | Gemini/OpenRouter ครบ Parser → Router → Inferencer → Judge, consent/redaction/circuit breaker | full-set metrics หลังได้ quota ที่เพียงพอ |
 | API/Security | lifespan, typed errors, 4 workers, 60s default deadline, auth, rate limit, CORS, safe logs | gateway/HTTPS/distributed quota หาก deploy จริง |
 | Evaluation | 35 gold alerts, Iteration 2 comparison, diagnostics, prompt/model/hash metadata | locked labels และ independent review |
-| Acceptance | 207 tests, browser E2E รวม prompt-injection fail-closed, demo 5 ขั้น, clean-copy verification และ numeric gates ผ่าน | final course approval และ CI confirmation หลัง push |
-| Presentation | 10-minute script, 3-minute demo, model-results table | ซ้อมเวลาและ commit/push เอกสารล่าสุด |
+| Acceptance | 207 tests, browser E2E รวม prompt-injection fail-closed, demo 5 ขั้น และ numeric gates ผ่านหลัง merge-fix | regenerate release evidence, ยืนยัน CI บน fix commit และ final course approval |
+| Presentation | 10-minute script, 3-minute demo, Analyst Workspace script, theory Q&A และ model-results table | ซ้อมเวลา |
 
 ## ผลล่าสุด
 
@@ -29,6 +29,6 @@
 2. ทำ ingestion ด้วย approved manifest แล้วรัน full gates ใหม่โดยไม่เปลี่ยน gold/threshold ตาม output
 3. ให้ผู้ตรวจอิสระตรวจ semantic grounding และ confidence
 4. หากต้องการคะแนน LLM ให้ใช้ quota/model ที่ระบุแน่นอน แล้วรัน strict full-set ใหม่
-5. ยืนยัน CI/release หลัง commit/push
+5. Commit/push merge-fix และเอกสาร จากนั้นยืนยัน CI/release artifacts บน commit ใหม่
 
 ผล local ผ่าน numeric gates แต่ `acceptance_ready` ยังเป็น false เพราะ approval สองรายการแรกยังไม่ครบ

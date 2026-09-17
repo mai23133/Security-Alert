@@ -2,9 +2,9 @@
   "metadata": {
     "report_kind": "runtime_quality",
     "not_a_runtime_quality_gate": false,
-    "generated_at": "2026-09-14T19:15:04.174401+00:00",
-    "commit": "720c6baa8d44172be329bea990676329de03e63b",
-    "code_sha256": "9a8b4821c2dc762277ee055dc214aa6bf419c0d9093f1da01aafe8e2778a643a",
+    "generated_at": "2026-09-17T17:52:22.601424+00:00",
+    "commit": "d6c431d4876a62a3656a5c2c7452ad162e464325",
+    "code_sha256": "aa8d6803a2c9f7ba0fe46660e33a57b3ab33cc149d784b9b7f16974e1c178b75",
     "dataset_version": "development-3",
     "dataset_sha256": "41ba23e243a421c52ba120dea1334e83cc761b80f43dafe6bde6a0bdcaa2daed",
     "evaluation_scope": "development",
@@ -16,10 +16,17 @@
     "stix_sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
     "allowlist_sha256": "1eabe813c368beba685c649064e85a1ec4e902c75daafccab4d9403b5c2f91aa",
     "candidates_sha256": "c5a512f8396d11b53b0d7bda18a3ef58609819e98fa597afc382206964573bc4",
-    "prediction_sha256": "a097697daba8b9470966d447405a46989537007786391a49ec5a46b73619919f",
+    "prediction_sha256": "b535545e929bebf546fed1da4224799ff9d4f8df34fa0bd5a9415ebde49351d8",
     "model_version": "behavior-rules-v3",
     "prompt_version": "provider-disabled",
     "provider_mode": "disabled",
+    "provider_completed_alert_count": null,
+    "category_counts": {
+      "positive": 38,
+      "multi_technique": 5,
+      "ambiguous": 6,
+      "negative": 7
+    },
     "python_version": "3.11.15",
     "dependency_versions": {
       "Pygments": "2.20.0",
@@ -111,6 +118,778 @@
     "Independent semantic validation and final subset approval remain outstanding."
   ],
   "disclaimer": "Advisory evaluation only. Dataset labels require review. Verbatim and behavior-rule checks are not independent expert semantic validation.",
+  "case_results": [
+    {
+      "alert_id": "dev-01",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-02",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.003"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-03",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.004"
+      ],
+      "predicted_technique_ids": [
+        "T1059.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-04",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1003.001"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-05",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-06",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.003"
+      ],
+      "predicted_technique_ids": [
+        "T1110.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-07",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1003.008"
+      ],
+      "predicted_technique_ids": [
+        "T1003.008"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-08",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1053.003"
+      ],
+      "predicted_technique_ids": [
+        "T1053.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-09",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-10",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.002"
+      ],
+      "predicted_technique_ids": [
+        "T1566.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-11",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1047"
+      ],
+      "predicted_technique_ids": [
+        "T1047"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-12",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-13",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1555.003"
+      ],
+      "predicted_technique_ids": [
+        "T1555.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-14",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1056.001"
+      ],
+      "predicted_technique_ids": [
+        "T1056.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-15",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1003.001",
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001",
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-16",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-17",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-18",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-19",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-20",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-21",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1003.001"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-22",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-23",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-24",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.001"
+      ],
+      "predicted_technique_ids": [
+        "T1110.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-25",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.003"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-26",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-27",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1189"
+      ],
+      "predicted_technique_ids": [
+        "T1189"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-28",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-29",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1091"
+      ],
+      "predicted_technique_ids": [
+        "T1091"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-30",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1106"
+      ],
+      "predicted_technique_ids": [
+        "T1106"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-31",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.004"
+      ],
+      "predicted_technique_ids": [
+        "T1204.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-32",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1555.003"
+      ],
+      "predicted_technique_ids": [
+        "T1555.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-33",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-34",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-35",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1059"
+      ],
+      "predicted_technique_ids": [
+        "T1059"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-36",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-37",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1047"
+      ],
+      "predicted_technique_ids": [
+        "T1047"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-38",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1189"
+      ],
+      "predicted_technique_ids": [
+        "T1189"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-39",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.001"
+      ],
+      "predicted_technique_ids": [
+        "T1110.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-40",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-41",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-42",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1078",
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1078",
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-43",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1091"
+      ],
+      "predicted_technique_ids": [
+        "T1091"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-44",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1059"
+      ],
+      "predicted_technique_ids": [
+        "T1059"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-45",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-46",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-47",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-48",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-49",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1078",
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1078",
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-50",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1091"
+      ],
+      "predicted_technique_ids": [
+        "T1091"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-51",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-52",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-53",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-54",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-55",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "dev-56",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    }
+  ],
   "diagnostics": {
     "error_counts": {},
     "error_rates": {},
@@ -158,6 +937,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -168,7 +948,27 @@
           ],
           "after_grounding": [
             "T1059.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -202,6 +1002,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -212,7 +1013,27 @@
           ],
           "after_grounding": [
             "T1059.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -246,6 +1067,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -256,7 +1078,27 @@
           ],
           "after_grounding": [
             "T1059.004"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -290,6 +1132,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -300,7 +1143,27 @@
           ],
           "after_grounding": [
             "T1003.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -334,6 +1197,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -344,7 +1208,27 @@
           ],
           "after_grounding": [
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -378,6 +1262,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -388,7 +1273,27 @@
           ],
           "after_grounding": [
             "T1110.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -422,6 +1327,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -432,7 +1338,27 @@
           ],
           "after_grounding": [
             "T1003.008"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -466,6 +1392,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -476,7 +1403,27 @@
           ],
           "after_grounding": [
             "T1053.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -510,6 +1457,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -520,7 +1468,27 @@
           ],
           "after_grounding": [
             "T1566.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -554,6 +1522,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -564,7 +1533,27 @@
           ],
           "after_grounding": [
             "T1566.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -598,6 +1587,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -608,7 +1598,27 @@
           ],
           "after_grounding": [
             "T1047"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -642,6 +1652,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -652,7 +1663,27 @@
           ],
           "after_grounding": [
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -686,6 +1717,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -696,7 +1728,27 @@
           ],
           "after_grounding": [
             "T1555.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -730,6 +1782,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -740,7 +1793,27 @@
           ],
           "after_grounding": [
             "T1056.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -786,6 +1859,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -798,7 +1872,27 @@
           "after_grounding": [
             "T1003.001",
             "T1059.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -832,6 +1926,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -842,7 +1937,27 @@
           ],
           "after_grounding": [
             "T1059.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -861,13 +1976,34 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -886,38 +2022,66 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
         "alert_id": "dev-19",
         "category": "negative",
         "gold_ids": [],
-        "retrieved_ids": [
-          "T1059.001",
-          "T1556.005",
-          "T1059.003",
-          "T1552.003",
-          "T1059"
-        ],
+        "retrieved_ids": [],
         "predicted_ids": [],
         "needs_human_review": true,
         "errors": [],
         "evidence": [],
         "stages": {
-          "tactics": [
-            "initial-access",
-            "execution",
-            "credential-access"
-          ],
-          "before_grounding": [],
-          "after_grounding": []
+          "security_guardrail": "prompt-injection-blocked",
+          "parser_status": "blocked",
+          "router_status": "blocked",
+          "judge_status": "blocked",
+          "inferencer_status": "blocked",
+          "parser_provider": "none",
+          "router_provider": "none",
+          "judge_provider": "none",
+          "inferencer_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "inferencer_model": "none",
+          "fallback_used": false,
+          "fallback_reason": "none",
+          "judge_fallback_reason": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "none",
+          "inference_prompt_version": "none",
+          "evaluation_attempts": 1
         }
       },
       {
@@ -936,13 +2100,34 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -976,6 +2161,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -986,7 +2172,27 @@
           ],
           "after_grounding": [
             "T1003.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1005,13 +2211,34 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1045,6 +2272,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1055,7 +2283,27 @@
           ],
           "after_grounding": [
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1089,6 +2337,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1099,7 +2348,27 @@
           ],
           "after_grounding": [
             "T1110.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1133,6 +2402,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1143,7 +2413,27 @@
           ],
           "after_grounding": [
             "T1059.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1177,6 +2467,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1187,7 +2478,27 @@
           ],
           "after_grounding": [
             "T1566.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1221,6 +2532,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1231,7 +2543,27 @@
           ],
           "after_grounding": [
             "T1189"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1265,6 +2597,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1275,7 +2608,27 @@
           ],
           "after_grounding": [
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1309,6 +2662,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1319,7 +2673,27 @@
           ],
           "after_grounding": [
             "T1091"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1353,6 +2727,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1363,7 +2738,27 @@
           ],
           "after_grounding": [
             "T1106"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1397,6 +2792,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1407,7 +2803,27 @@
           ],
           "after_grounding": [
             "T1204.004"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1441,6 +2857,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1451,7 +2868,27 @@
           ],
           "after_grounding": [
             "T1555.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1485,6 +2922,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1495,7 +2933,27 @@
           ],
           "after_grounding": [
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1529,6 +2987,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1539,7 +2998,27 @@
           ],
           "after_grounding": [
             "T1078"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1573,6 +3052,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1583,7 +3063,27 @@
           ],
           "after_grounding": [
             "T1059"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1617,6 +3117,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1627,7 +3128,27 @@
           ],
           "after_grounding": [
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1661,6 +3182,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1671,7 +3193,27 @@
           ],
           "after_grounding": [
             "T1047"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1705,6 +3247,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1715,7 +3258,27 @@
           ],
           "after_grounding": [
             "T1189"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1749,6 +3312,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1759,7 +3323,27 @@
           ],
           "after_grounding": [
             "T1110.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1793,6 +3377,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1803,7 +3388,27 @@
           ],
           "after_grounding": [
             "T1566.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1837,6 +3442,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1847,7 +3453,27 @@
           ],
           "after_grounding": [
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1893,6 +3519,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1905,7 +3532,27 @@
           "after_grounding": [
             "T1078",
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1939,6 +3586,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1949,7 +3597,27 @@
           ],
           "after_grounding": [
             "T1091"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1983,6 +3651,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1993,7 +3662,27 @@
           ],
           "after_grounding": [
             "T1059"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2039,6 +3728,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2051,7 +3741,27 @@
           "after_grounding": [
             "T1003.001",
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2070,13 +3780,34 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2095,13 +3826,34 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2135,6 +3887,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2145,7 +3898,27 @@
           ],
           "after_grounding": [
             "T1566.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2191,6 +3964,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2203,7 +3977,27 @@
           "after_grounding": [
             "T1078",
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2237,6 +4031,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2247,7 +4042,27 @@
           ],
           "after_grounding": [
             "T1091"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2293,6 +4108,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2305,7 +4121,27 @@
           "after_grounding": [
             "T1003.001",
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2363,6 +4199,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2377,7 +4214,27 @@
             "T1059.001",
             "T1078",
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2411,6 +4268,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2421,7 +4279,27 @@
           ],
           "after_grounding": [
             "T1078"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2455,6 +4333,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2465,7 +4344,27 @@
           ],
           "after_grounding": [
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2499,6 +4398,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2509,7 +4409,27 @@
           ],
           "after_grounding": [
             "T1059.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -2543,6 +4463,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2553,7 +4474,27 @@
           ],
           "after_grounding": [
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       }
     ],

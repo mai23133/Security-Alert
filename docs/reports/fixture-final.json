@@ -2,9 +2,9 @@
   "metadata": {
     "report_kind": "fixture_validation",
     "not_a_runtime_quality_gate": true,
-    "generated_at": "2026-09-14T16:33:06.399352+00:00",
-    "commit": "0be7a1092ed46d0d34d4b5df1de28ea33d39370f",
-    "code_sha256": "f93e95f8e83a1a5f61b2f77c7d1663735eab099b2b682348510578403b936f48",
+    "generated_at": "2026-09-17T17:52:19.895543+00:00",
+    "commit": "d6c431d4876a62a3656a5c2c7452ad162e464325",
+    "code_sha256": "aa8d6803a2c9f7ba0fe46660e33a57b3ab33cc149d784b9b7f16974e1c178b75",
     "dataset_version": "1.0.0-rc1",
     "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
     "evaluation_scope": "full_course_pack",
@@ -20,6 +20,13 @@
     "model_version": "synthetic-saved-predictions",
     "prompt_version": "none",
     "provider_mode": "disabled",
+    "provider_completed_alert_count": null,
+    "category_counts": {
+      "positive": 20,
+      "multi_technique": 5,
+      "ambiguous": 5,
+      "negative": 5
+    },
     "python_version": "3.11.15",
     "dependency_versions": {
       "Pygments": "2.20.0",
@@ -106,5 +113,491 @@
     "Gold-label approval and dataset composition require course confirmation.",
     "Independent semantic validation and final subset approval remain outstanding."
   ],
-  "disclaimer": "Advisory evaluation only. Dataset labels require review. Verbatim and behavior-rule checks are not independent expert semantic validation."
+  "disclaimer": "Advisory evaluation only. Dataset labels require review. Verbatim and behavior-rule checks are not independent expert semantic validation.",
+  "case_results": [
+    {
+      "alert_id": "eval-001",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-002",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.003"
+      ],
+      "predicted_technique_ids": [
+        "T1110.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-003",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.001"
+      ],
+      "predicted_technique_ids": [
+        "T1110.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-004",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-005",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.004"
+      ],
+      "predicted_technique_ids": [
+        "T1059.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-006",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.003"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-007",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-008",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-009",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-010",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-011",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1189"
+      ],
+      "predicted_technique_ids": [
+        "T1189"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-012",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-013",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1091"
+      ],
+      "predicted_technique_ids": [
+        "T1091"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-014",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1003.001"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-015",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1555.003"
+      ],
+      "predicted_technique_ids": [
+        "T1555.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-016",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1047"
+      ],
+      "predicted_technique_ids": [
+        "T1047"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-017",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1053.005"
+      ],
+      "predicted_technique_ids": [
+        "T1053.005"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-018",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1106"
+      ],
+      "predicted_technique_ids": [
+        "T1106"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-019",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.002"
+      ],
+      "predicted_technique_ids": [
+        "T1566.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-020",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.004"
+      ],
+      "predicted_technique_ids": [
+        "T1204.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-021",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.001",
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001",
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-022",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.003",
+        "T1204.002",
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003",
+        "T1204.002",
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-023",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.004",
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1059.004",
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-024",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-025",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-026",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-027",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1059"
+      ],
+      "predicted_technique_ids": [
+        "T1059"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-028",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-029",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-030",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-031",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-032",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-033",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-034",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-035",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    }
+  ]
 }

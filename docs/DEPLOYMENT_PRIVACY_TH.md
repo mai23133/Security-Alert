@@ -1,6 +1,6 @@
 # การรันระบบและนโยบายข้อมูลใน course sandbox
 
-อัปเดต 17 กันยายน 2026 ขอบเขตที่รับรองคือ local course sandbox กับข้อมูลจำลอง ไม่ใช่ production deployment
+อัปเดต 18 กันยายน 2026 หลัง merge-fix ขอบเขตที่รับรองคือ local course sandbox กับข้อมูลจำลอง ไม่ใช่ production deployment
 
 ## ติดตั้งและเปิดบริการ
 

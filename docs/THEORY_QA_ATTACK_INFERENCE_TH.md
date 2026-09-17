@@ -1,6 +1,6 @@
 # คำถาม–คำตอบเชิงทฤษฎี: Security Alert → MITRE ATT&CK Inference
 
-อัปเดต 17 กันยายน 2026 เอกสารนี้ใช้เตรียมตอบคำถามหลังการนำเสนอ โดยยึด `security-alert-attack-technique-inference.md` และ implementation ปัจจุบันเป็นหลัก
+อัปเดต 18 กันยายน 2026 เอกสารนี้ใช้เตรียมตอบคำถามหลังการนำเสนอ โดยยึด `security-alert-attack-technique-inference.md` และ implementation ปัจจุบันเป็นหลัก
 
 > คำศัพท์สำคัญ: ระบบนี้เป็นระบบช่วยแนะนำ Technique แก่นักวิเคราะห์ ไม่ใช่ระบบยืนยันเหตุการณ์หรือทำ Incident Response อัตโนมัติ
 
@@ -418,4 +418,3 @@ F1 = 2 × Precision × Recall / (Precision + Recall)
 - `src/rag/retriever.py` — retrieval
 - `src/agents/grounding_judge.py` — grounding/review rules
 - `src/agents/provider_safety.py` — external-provider consent และ redaction
-

@@ -1,6 +1,6 @@
 # บทนำเสนอคนที่ 3 — Live Demo และ Security บน Analyst Workspace
 
-อัปเดต 17 กันยายน 2026 เอกสารนี้เขียนให้ตรงกับ UI และ implementation ปัจจุบันของโปรเจกต์ โดยอ้างอิงข้อกำหนดหลักในหัวข้อ Agent Architecture, Knowledge Base, API Contract, Security & Guardrails และแผนสาธิต 3 นาที
+อัปเดต 18 กันยายน 2026 เอกสารนี้เขียนให้ตรงกับ UI และ implementation ปัจจุบันของโปรเจกต์ โดยอ้างอิงข้อกำหนดหลักในหัวข้อ Agent Architecture, Knowledge Base, API Contract, Security & Guardrails และแผนสาธิต 3 นาที
 
 > ข้อความสำคัญที่ต้องพูดให้ตรงกัน: ระบบให้คำแนะนำแก่ Analyst เท่านั้น ไม่ยืนยันว่าเหตุการณ์ปลอดภัย และไม่ดำเนินการตอบสนองเหตุการณ์โดยอัตโนมัติ
 
@@ -331,4 +331,3 @@ No-match หมายถึงระบบไม่มีหลักฐาน�
 6. `src/agents/grounding_judge.py` — review conditions
 7. `src/agents/provider_safety.py` — consent และ redaction ขั้นต้น
 8. `src/schemas.py` — API response schema
-

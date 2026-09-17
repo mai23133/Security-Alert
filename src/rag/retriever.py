@@ -50,10 +50,14 @@ class BaselineRetriever:
         self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5,
         *, observed_actions: Collection[str] = (), iocs: Collection[str] = (),
     ) -> list[TechniqueCandidate]:
-        return [candidate for _, candidate in self.search_scored(narrative, tactic, top_k)]
+        return [candidate for _, candidate in self.search_scored(
+            narrative, tactic, top_k,
+            observed_actions=observed_actions, iocs=iocs,
+        )]
 
     def search_scored(
-        self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5
+        self, narrative: str, tactic: str | Collection[str] | None = None, top_k: int = 5,
+        *, observed_actions: Collection[str] = (), iocs: Collection[str] = (),
     ) -> list[tuple[float, TechniqueCandidate]]:
         """Return ranked candidates with BM25 scores for specialist aggregation."""
         if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:

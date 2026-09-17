@@ -1,6 +1,6 @@
 # สถาปัตยกรรมปัจจุบัน
 
-อัปเดต 17 กันยายน 2026 อ้างอิงข้อกำหนดหลักหัวข้อ Agent Architecture, Data Schemas, Knowledge Base, API Contract และ Security & Guardrails
+อัปเดต 18 กันยายน 2026 หลัง merge PR #6 และแก้ merge regression อ้างอิงข้อกำหนดหลักหัวข้อ Agent Architecture, Data Schemas, Knowledge Base, API Contract และ Security & Guardrails
 
 ## ภาพรวม
 

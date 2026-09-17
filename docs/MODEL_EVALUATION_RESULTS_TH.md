@@ -1,6 +1,6 @@
 # ผลประเมินโมเดลสำหรับการนำเสนอ
 
-อัปเดต 17 กันยายน 2026 เอกสารนี้เป็นแหล่งอ้างอิงหลักสำหรับหัวข้อ Model evaluation/results ในการนำเสนอ
+อัปเดต 18 กันยายน 2026 หลัง merge-fix เอกสารนี้เป็นแหล่งอ้างอิงหลักสำหรับหัวข้อ Model evaluation/results ในการนำเสนอ
 
 อ้างอิงข้อกำหนดหลักหัวข้อ Evaluation Pack, Dataset และ Security & Guardrails
 
@@ -13,9 +13,9 @@
 | Gemini `gemini-3.5-flash-lite` | Intended 35 alerts | N/A | N/A | N/A | N/A | Incomplete: rate-limited ที่ `eval-005` |
 | OpenRouter `openrouter/free` | Intended 35 alerts | N/A | N/A | N/A | N/A | Incomplete: rate-limited ที่ `eval-001` |
 
-ผล offline ล่าสุดสร้างจาก base commit
-`c623961a8e27a76ddf4f635c8e562ed424778f6a` และมี test evidence 207 tests,
-failures/errors/skipped เท่ากับ 0
+ผล Offline ถูกสร้างใหม่หลัง merge-fix โดยผูกกับ `code_sha256` ใน
+`docs/reports/runtime-final.json` และมี test evidence 207 tests,
+failures/errors/skipped เท่ากับ 0 รายงานใช้ source hash เพื่อจับความล้าสมัยแม้ working tree ยังไม่ถูก commit
 
 ## วิธีตีความ
 

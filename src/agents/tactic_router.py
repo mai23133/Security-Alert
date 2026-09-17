@@ -2,6 +2,8 @@
 import json
 from collections.abc import Callable
 
+from pydantic import BaseModel, Field
+
 from src.agents.provider_chain import generate_text
 from src.schemas import ParsedAlert
 
@@ -62,8 +64,8 @@ def route_tactics(
         "\n</untrusted_alert>"
     )
     try:
-        tactics = _json_payload(generate(prompt))
-        if not isinstance(tactics, list):
+        raw_tactics = _json_payload(generate(prompt))
+        if not isinstance(raw_tactics, list):
             if trace is not None:
                 trace["provider_succeeded"] = False
             return IN_SCOPE_TACTICS.copy()

@@ -1,8 +1,10 @@
 # สรุปการดำเนินงานตาม PROJECT_COMPLETION_PLAN_TH
 
-อัปเดต 17 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f`; หลักฐานล่าสุดอ้าง base commit `0a9071e`
+อัปเดต 18 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f` หลัง merge PR #6 (`d6c431d`) และแก้ merge regression
 
 ดำเนินส่วน implementation, tests, evaluation และเอกสารตามแผนแล้วหลายส่วน โดย numeric quality gates ผ่านในเครื่องแล้ว แต่ **ยังไม่ครบ 100% ตาม Definition of Done**: subset/gold labels ยังไม่มีหลักฐานอนุมัติ และยังไม่ได้ตรวจ semantic grounding/calibration โดยผู้ตรวจอิสระ
+
+หลัง merge พบ conflict resolution ทำให้ `tactic_router.py`, `inference_pipeline.py`, `retriever.py` และ guardrail test ไม่สอดคล้องกัน จึงแก้ imports/ตัวแปร, ลบ legacy provider imports และส่ง actions/IOCs ผ่าน scored retrieval ให้ครบ จากนั้นรัน 207 tests, demo และ browser acceptance ผ่านอีกครั้ง
 
 เอกสารนี้อธิบายทั้งงานสะสมจากรอบก่อนและงานที่ทำต่อ โดยใช้ [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) หัวข้อ Agent Architecture, Knowledge Base, API Contract, Evaluation, Security & Guardrails และ Milestone Mapping เป็นหลัก
 
@@ -106,7 +108,7 @@ CI เพิ่ม development runtime gate, Chromium acceptance และ full 
 
 ## ผลตรวจและ artifacts
 
-Tests ล่าสุด: **207 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
+Tests ล่าสุดหลัง merge-fix: **207 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
 Development มี 56 records และผ่าน numeric gates ด้วย F1/parent recall 100% แต่เป็นข้อมูลที่ผู้พัฒนาสร้างเพื่อทดสอบ ไม่ใช่ independent holdout
 
 | หลักฐาน | ไฟล์/คำสั่ง |
