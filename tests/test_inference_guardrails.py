@@ -2,7 +2,8 @@ from src.agents.alert_parser import parse_alert
 from src.agents.evidence_linker import link_evidence
 from src.agents.grounding_judge import judge_result
 from src.agents.tactic_router import IN_SCOPE_TACTICS, route_tactics
-from src.agents.technique_inferencer import infer_techniques
+from src.agents.tactic_specialists import retrieve_with_specialists
+from src.agents.technique_inferencer import infer_techniques, infer_techniques_with_provider
 from src.schemas import InferredTechnique, ParsedAlert, TechniqueCandidate
 
 

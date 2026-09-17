@@ -16,6 +16,19 @@ from src.schemas import ATTACKInferenceResult, InferredTechnique, TechniqueCandi
 
 
 @pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as test_client:
+        yield test_client
+
+
+@pytest.fixture
 def files():
     dataset = json.loads(DEFAULT_DATASET.read_text())
     predictions = json.loads(DEFAULT_PREDICTIONS.read_text())

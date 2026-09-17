@@ -1,6 +1,8 @@
 """Deterministic orchestration of the in-scope ATT&CK inference agents."""
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from src.agents.alert_parser import parse_alert
 from src.agents.behavior import prompt_injection_detected
 from src.agents.evidence_linker import link_evidence
@@ -9,7 +11,8 @@ from src.agents.llm_grounding_judge import semantic_judge
 from src.agents.llm_technique_inferencer import infer_with_llm, PROMPT_VERSION
 from src.agents.provider_chain import ProviderChain
 from src.agents.tactic_router import route_tactics
-from src.agents.technique_inferencer import infer_techniques
+from src.agents.tactic_specialists import retrieve_with_specialists
+from src.agents.technique_inferencer import infer_techniques, infer_techniques_with_provider
 from src.rag.retriever import BaselineRetriever
 from src.schemas import ATTACKInferenceResult
 

@@ -7,6 +7,12 @@ from src.schemas import ParsedAlert
 
 IN_SCOPE_TACTICS = ["initial-access", "execution", "credential-access"]
 
+
+class TacticRoutingDecision(BaseModel):
+    """Validated provider output before specialist dispatch."""
+
+    tactics: list[str] = Field(min_length=1, max_length=3)
+
 SYSTEM_PROMPT = f"""You are a MITRE ATT&CK tactic classifier for security alerts.
 Given a parsed security alert, predict which of these tactics are relevant:
 {json.dumps(IN_SCOPE_TACTICS)}
@@ -61,7 +67,8 @@ def route_tactics(
             if trace is not None:
                 trace["provider_succeeded"] = False
             return IN_SCOPE_TACTICS.copy()
-        requested = set(item for item in tactics if isinstance(item, str))
+        decision = TacticRoutingDecision.model_validate({"tactics": raw_tactics})
+        requested = set(item for item in decision.tactics if isinstance(item, str))
         valid = [tactic for tactic in IN_SCOPE_TACTICS if tactic in requested]
         if not valid:
             if trace is not None:
