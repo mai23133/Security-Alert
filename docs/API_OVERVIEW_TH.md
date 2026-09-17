@@ -1,112 +1,106 @@
 # API contract ปัจจุบัน
 
-ตรวจ 7 กันยายน 2026 บน mai-work (ฐาน e2ee2da + C 5d56d31 ผ่าน 6b3a38c); [specification](../security-alert-attack-technique-inference.md) หัวข้อ 6/8/10 เป็นข้อกำหนดหลัก
+อัปเดต 17 กันยายน 2026 อ้างอิงข้อกำหนดหลักหัวข้อ Data Schemas, API Contract และ Security & Guardrails
 
 ## เตรียมระบบ
 
-รัน python -m src.rag.ingest_stix ก่อน import app หรือเปิด uvicorn เพราะ alerts.py สร้าง retriever ทันที ทั้ง single และ search ใช้ retriever ชุดเดียวกันในหน่วยความจำ หลัง rebuild ต้อง restart server เพื่อให้ inference กับ taxonomy ใช้ข้อมูลชุดเดียวกัน
+```bash
+.venv/bin/python -m src.rag.ingest_stix
+.venv/bin/python -m uvicorn src.api.main:app \
+  --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+หากใช้ Gemini/OpenRouter ให้ตั้ง server-side key, `PROVIDER_CONSENT=reviewed-synthetic-only` และเปิดด้วย `--env-file .env` ใช้เฉพาะ reviewed synthetic alerts
+
+FastAPI lifespan โหลดและตรวจ `data/processed/kb_snapshot.json` ครั้งเดียว ทุก route ใช้ snapshot เดียวกัน หลัง ingestion ต้อง restart server ตรวจความพร้อมที่ `/ready`
 
 ## Endpoints
 
 | Method/path | Input | Response |
 | --- | --- | --- |
-| GET / | ไม่มี | {"status":"ok","stix_version":"19.1"} |
-| GET /ui | ไม่มี | HTML UI วิเคราะห์ alert เดี่ยว |
-| POST /alerts/infer | alert_id optional, narrative | ATTACKInferenceResult |
-| POST /alerts/infer/batch | alerts 1–25 รายการ | {"results":[ATTACKInferenceResult,...]} |
-| POST /rag/search | narrative, tactic list optional, top_k | {"candidates":[TechniqueCandidate,...]} |
-| GET /taxonomy/techniques | tactic query optional | {"count":จำนวน,"techniques":[...]} |
-| GET /taxonomy/techniques/{technique_id} | ID ไม่สนตัวพิมพ์ | TechniqueCandidate หรือ 404 |
-| POST /evaluate | mode=runtime/fixture, top_k=1–25 | report metrics/metadata/quality_gates/disclaimer จาก bundled dataset |
-
-FastAPI มี /docs, /redoc และ /openapi.json เพิ่มโดย framework UI /ui ไม่อยู่ใน OpenAPI schema
+| GET `/` | ไม่มี | liveness + STIX version |
+| GET `/ready` | ไม่มี | readiness + subset status หรือ 503 |
+| GET `/ui` | ไม่มี | Analyst UI |
+| POST `/alerts/infer` | `alert_id?`, `narrative`, `inference_mode?` | `ATTACKInferenceResult` |
+| POST `/alerts/infer/batch` | alerts 1–25 รายการ | results ตามลำดับ |
+| POST `/rag/search` | narrative, tactic list?, top_k 1–25 | candidates |
+| GET `/taxonomy/techniques` | tactic? | techniques ใน snapshot |
+| GET `/taxonomy/techniques/{id}` | Technique ID | candidate หรือ 404 |
+| POST `/evaluate` | runtime/fixture, top_k, diagnostics | offline evaluation report |
 
 ## Single inference
 
-~~~json
+```json
 {
   "alert_id": "demo-001",
-  "narrative": "Encoded PowerShell commands were executed."
+  "narrative": "Encoded PowerShell commands were executed.",
+  "inference_mode": "offline"
 }
-~~~
+```
 
-alert_id ยาวไม่เกิน 128 และหากส่งต้องไม่ว่างหลัง trim; narrative ยาว 1–20,000 ตัวอักษรหลัง trim หากไม่ส่ง ID หรือส่ง null จะสร้าง UUID
+- `alert_id`: optional, trim แล้วไม่ว่าง, สูงสุด 128; ไม่ส่งแล้วสร้าง UUID
+- `narrative`: 1–20,000 ตัวอักษร
+- `inference_mode`: `offline` (default), `gemini`, `openrouter`
+- ผล 0–3 Techniques พร้อม evidence; no-match ต้องส่ง human review
 
-ATTACKInferenceResult มี alert_id, inferred_techniques, candidates_considered, needs_human_review และ disclaimer
+Schema canonical อยู่ที่ `src/schemas.py`: `ParsedAlert`, `TechniqueCandidate`, `InferredTechnique`, `ATTACKInferenceResult` ไม่มีการเพิ่ม provider metadata ลง body เพื่อรักษา contract เดิม
 
-Prediction แต่ละรายการมี technique_id, technique_name, tactic, confidence, evidence_spans, mitre_url ส่วน candidate มี technique_id, technique_name, tactic, description_excerpt, stix_version
+## Provider headers
 
-ตัวอย่างรูปแบบ no-match (ไม่ใช่ผลที่รับประกันสำหรับ narrative ด้านบน):
+Single response ส่งสถานะผ่าน headers เช่น:
 
-~~~json
-{
-  "alert_id": "demo-001",
-  "inferred_techniques": [],
-  "candidates_considered": [],
-  "needs_human_review": true,
-  "disclaimer": "Advisory tagging only. Not autonomous SOC action. Verify with senior analyst."
-}
-~~~
+- `X-AI-Parser-Status/Provider/Model`
+- `X-AI-Router-Status/Provider/Model`
+- `X-AI-Inferencer-Status/Provider/Model/Fallback-Reason`
+- `X-AI-Judge-Status/Provider/Model/Fallback-Reason`
+- `X-AI-Fallback-Used`, `X-AI-Fallback-Reason`
+- `X-AI-Inference-Prompt-Version`
+- `X-AI-Confidence-Source`: `rule-score` หรือ `llm-self-assessed`
+- `X-Security-Guardrail`: `passed` หรือ `prompt-injection-blocked`
 
-candidates_considered อาจไม่ว่างแม้ predictions ว่าง ผล 0–3 รายการเป็น baseline แบบจับคำ; confidence เป็น heuristic ไม่ใช่ probability ที่ผ่าน calibration
+UI อ่าน headers เหล่านี้ผ่าน CORS exposure Batch คง body schema เดิมและไม่มี per-item provider headers
 
-## Batch
+Fallback reasons ที่ปลอดภัย ได้แก่ `rate-limited`, `timeout`, `network-error`, `temporary-error`, `configuration-error`, `missing-key`, `consent-required`, `invalid-response`, `provider-error` และสถานะ skipped ที่ไม่ใช่ provider failure
 
-~~~json
-{
-  "alerts": [
-    {"alert_id": "a-001", "narrative": "Encoded PowerShell commands."},
-    {"narrative": "Routine patch management completed."}
-  ]
-}
-~~~
+## พฤติกรรม inference
 
-ประมวลผลตามลำดับ ไม่ใช่ parallel batch หาก validation ผิดจะ 422 ทั้ง request หาก error รายการหนึ่งถูกแปลงเป็น HTTPException ใน _run_alert จะคืน no-match/review ใน results ของรายการนั้นและ HTTP 200 ของ batch ไม่มี per-item error code ใน schema ปัจจุบัน จึงแยก benign no-match กับ processing failure จาก body เพียงอย่างเดียวไม่ได้
+- ก่อน Parser/Provider ระบบตรวจ instruction-like payload แบบ deterministic หากเข้าข่าย prompt injection จะหยุดทั้ง request ก่อนเรียกโมเดล คืน Techniques/Candidates ว่าง, `needs_human_review=true`, disclaimer มาตรฐาน และไม่สะท้อน payload กลับในผลลัพธ์
+- Offline: Parser คง narrative, Router เปิดสาม tactics, BM25 retrieval, rules inference, contextual evidence และ deterministic judge
+- Online: provider เดียวทำ Parser → Router → LLM Inferencer → LLM Judge
+- LLM Inferencer เลือกได้เฉพาะ retrieved IDs ไม่เกิน 3 และอ้าง `evidence_ids` ที่ระบบ map กลับข้อความต้นฉบับ
+- Pipeline ตรวจ ID/name/tactic/MITRE URL/duplicate/จำนวนผลและ evidence อีกครั้ง
+- หาก provider หรือ semantic judge ล้มเหลว ระบบใช้ conservative rule result และ `needs_human_review=true`; ไม่สลับไป provider อื่น
 
-## RAG search
+## Batch, RAG และ taxonomy
 
-~~~json
-{
-  "narrative": "encoded PowerShell execution",
-  "tactic": ["execution"],
-  "top_k": 5
-}
-~~~
+Batch ประมวลผลตามลำดับ รักษาลำดับ input และแปลง item failure เป็น no-match/review ตาม contract; ถ้า total deadline หมดทั้ง request ตอบ 504
 
-top_k เป็น strict integer 1–25 ค่า default 5 ไม่รับ bool/string; tactic รับเฉพาะ initial-access/execution/credential-access ซ้ำถูกตัดออก, []/null/ไม่ส่งหมายถึงไม่กรอง narrative ใช้ขีดจำกัดเดียวกับ single
-
-Taxonomy list กรอง tactic แบบ exact match ไม่มี validation แบบ RAG: ค่าไม่รู้จักคืน count=0; หากไฟล์ candidates หายหลัง app import แล้วจะคืน list ว่าง ไม่ใช่ 503
+RAG `top_k` เป็น strict integer 1–25; tactics รับเฉพาะ `initial-access`, `execution`, `credential-access`; `[]`/null หมายถึงไม่กรอง Taxonomy และ inference ใช้ in-memory retriever ชุดเดียวกัน
 
 ## Evaluation
 
-POST /evaluate รับ {"mode":"runtime","top_k":5} หรือ {} (default runtime/5) mode fixture ใช้ saved predictions ส่วน runtime เรียก pipeline จริงโดย use_provider=False ปิด Gemini แม้มี key ใน .env
+`POST /evaluate` เป็น offline-only เสมอ ใช้ bundled synthetic dataset 35 alerts ไม่รับ path/provider จาก request และไม่เขียน narrative ลง disk `diagnostics` เก็บเฉพาะ IDs, stage status และ evidence offsets/hash
 
-ใช้เฉพาะ dataset จำลองที่ bundle มา 35 alerts ห้าม field dataset/output/path/provider หรือ input เพิ่มเติม; top_k strict integer 1–25 route sync ทำงานใน worker thread ไม่ block event loop และไม่บันทึก report/alert ลง disk
+CLI รองรับ `--mode llm --provider gemini|openrouter` แยกต่างหาก โดย strict run ปฏิเสธ provider fallback ผลปัจจุบันดู [MODEL_EVALUATION_RESULTS_TH.md](MODEL_EVALUATION_RESULTS_TH.md)
 
-Response มี metadata (versions/hashes/provider mode), metrics, quality_gates, numeric_gates_passed, acceptance_ready=false และ disclaimer HTTP 200 หมายถึงประเมินเสร็จ ไม่ใช่ผ่าน F1 gates; 422 สำหรับ request ผิด, 503 EVALUATION_UNAVAILABLE สำหรับข้อมูล/KB ผิดหรือหาย, 500 EVALUATION_FAILED สำหรับ unexpected failure ไม่มี exception ดิบ
+## Middleware, errors และ limits
 
-## Headers และ errors (ทุก API)
+- body สูงสุด 600,000 bytes
+- workers สูงสุด 4 ต่อ process
+- deadline default 60 วินาที ปรับได้มากกว่า 0 ถึง 120 วินาที
+- rate limit default 120 requests/min/client IP/process
+- เมื่อตั้ง `SECURITY_ALERT_API_KEY` routes ที่ป้องกันต้องส่ง `X-API-Key`
+- CORS เป็น explicit HTTP(S) origins; wildcard ถูกปฏิเสธ
+- ทุก response เพิ่ม request/server trace ID, MITRE version, `no-store`, `nosniff`, `no-referrer`
 
-Middleware เพิ่ม X-Request-ID และ X-MITRE-ATTaCK-Version: enterprise-attack-19.1 ให้ response ที่ผ่าน call_next สำเร็จ ค่า stix_version ใน JSON candidates/health เป็น 19.1
-
-Request ID ยอมรับ ASCII letters/numbers และ . _ : - ความยาว 1–128; ค่าไม่ผ่านถูกแทน UUID ต่างจาก alert_id ไม่ควรรับประกัน headers บน unhandled exception ทุกกรณี
-
-| HTTP | Body/เงื่อนไข |
+| HTTP | ความหมาย |
 | --- | --- |
-| 422 | FastAPI validation detail list; ไม่ใช่ typed error wrapper เดียวกับ 500 |
-| 404 | taxonomy detail ไม่พบ ID; detail เป็น string |
-| 503 | detail.code=KNOWLEDGE_BASE_UNAVAILABLE เมื่อ OSError/FileNotFoundError หลุดถึง try ของ single/search |
-| 504 | detail.code=INFERENCE_TIMEOUT เมื่อ TimeoutError หลุดถึง single route |
-| 500 | detail.code=INTERNAL_ERROR สำหรับ Exception ที่ single จับได้ |
+| 401 | API key ไม่ถูกต้อง |
+| 413 | body เกินขนาด |
+| 422 | request ไม่ตรง contract และไม่สะท้อน input |
+| 429 | rate limit พร้อม `Retry-After` |
+| 503 | KB/evaluation ไม่พร้อม |
+| 504 | total deadline หมด |
+| 500 | safe internal error ไม่มี raw exception |
 
-~~~json
-{"detail":{"code":"INFERENCE_TIMEOUT","message":"Inference timed out. Human review is required."}}
-~~~
-
-ถ้า processed files ไม่มีตั้งแต่เริ่ม server จะล้มตอน import ก่อนถึง handler 503 ส่วน Gemini exception ใน parser/router ถูกจับแล้ว fallback จึงไม่จำเป็นต้องได้ 504 และไม่มี total request deadline
-
-CORS default คือ http://127.0.0.1:8000 และ http://localhost:8000 ปรับผ่าน CORS_ALLOWED_ORIGINS (comma-separated); allow GET/POST และ Content-Type/X-Request-ID ยังไม่ได้ตั้ง expose_headers ให้ frontend ข้าม origin อ่าน custom response headers
-
-## ขอบเขตความปลอดภัย
-
-Response inference มี advisory disclaimer แต่ taxonomy/search/health ไม่ได้ใช้ ATTACKInferenceResult จึงไม่มี disclaimer field แบบเดียวกัน logs ของ middleware ไม่เก็บ narrative โดยตรง แต่ exception logging ยังต้องตรวจ privacy เพิ่ม ไม่มี auth/rate limiting และยังไม่ถือว่าพร้อม production ดู [รายงาน](PROJECT_REVIEW_TH.md)
+รายละเอียด privacy/deployment อยู่ที่ [DEPLOYMENT_PRIVACY_TH.md](DEPLOYMENT_PRIVACY_TH.md)

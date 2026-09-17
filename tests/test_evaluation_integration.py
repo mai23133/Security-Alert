@@ -12,7 +12,7 @@ from eval.run_eval import (
 )
 from src.api.main import app
 from src.api.routes import evaluate as evaluate_route
-from src.schemas import ATTACKInferenceResult, InferredTechnique
+from src.schemas import ATTACKInferenceResult, InferredTechnique, TechniqueCandidate
 
 
 @pytest.fixture
@@ -34,6 +34,11 @@ def files():
     predictions = json.loads(DEFAULT_PREDICTIONS.read_text())
     allowlist = set(json.loads(evaluator.DEFAULT_ALLOWLIST.read_text()))
     return dataset, predictions, allowlist
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
 
 @pytest.mark.parametrize("field,value", [
@@ -98,6 +103,64 @@ def test_fixture_and_runtime_are_distinct_and_offline(monkeypatch):
     assert calls == []
 
 
+def test_llm_evaluation_reports_real_provider_mode_separately(monkeypatch, files):
+    import src.inference_pipeline as pipeline
+
+    dataset, _, _ = files
+    by_id = {item["alert_id"]: item for item in dataset["alerts"]}
+
+    def provider_prediction(**kwargs):
+        item = by_id[kwargs["alert_id"]]
+        trace = kwargs["trace"]
+        trace.update(
+            parser_status="success", router_status="success",
+            inferencer_status="success", judge_status=(
+                "success" if item["gold_technique_ids"] else "skipped-no-predictions"
+            ), fallback_used=False, fallback_reason="none",
+        )
+        inferred = [InferredTechnique(
+            technique_id=technique_id, technique_name="Test technique", tactic="execution",
+            confidence=0.91, evidence_spans=[item["narrative"]],
+            mitre_url="https://attack.mitre.org/techniques/" + technique_id.replace(".", "/") + "/",
+        ) for technique_id in item["gold_technique_ids"]]
+        candidates = [TechniqueCandidate(
+            technique_id=technique_id, technique_name="Test technique", tactic="execution",
+            description_excerpt="Pinned candidate", stix_version="19.1",
+        ) for technique_id in item["gold_technique_ids"]]
+        return ATTACKInferenceResult(
+            alert_id=kwargs["alert_id"], inferred_techniques=inferred,
+            candidates_considered=candidates, needs_human_review=False,
+        )
+
+    monkeypatch.setattr(pipeline, "run_inference", provider_prediction)
+    report = evaluator.create_report(mode="llm", provider="gemini")
+
+    assert report["metadata"]["report_kind"] == "llm_quality_observation"
+    assert report["metadata"]["not_a_runtime_quality_gate"] is True
+    assert report["metadata"]["provider_mode"] == "gemini"
+    assert report["metadata"]["provider_completed_alert_count"] == 35
+    assert report["metrics"]["exact_technique"]["f1"] == 1
+
+
+def test_llm_evaluation_rejects_provider_fallback(monkeypatch):
+    import src.inference_pipeline as pipeline
+
+    def fallback(**kwargs):
+        kwargs["trace"].update(
+            parser_status="fallback", router_status="fallback",
+            inferencer_status="fallback", judge_status="fallback",
+            fallback_reason="missing-key",
+        )
+        return ATTACKInferenceResult(
+            alert_id=kwargs["alert_id"], inferred_techniques=[],
+            candidates_considered=[], needs_human_review=True,
+        )
+
+    monkeypatch.setattr(pipeline, "run_inference", fallback)
+    with pytest.raises(ValueError, match="provider did not complete alert eval-001"):
+        evaluator.create_report(mode="llm", provider="gemini")
+
+
 def test_iteration_2_release_subset_is_bounded_and_reported():
     report = evaluator.create_report(
         mode="runtime", subset_path=evaluator.ITERATION_2_SUBSET
@@ -128,30 +191,57 @@ def test_runtime_quality_errors_reach_metrics(monkeypatch):
 
 @pytest.mark.parametrize("payload", [
     {"dataset": "/etc/passwd"}, {"output": "/tmp/report"},
-    {"mode": "online"}, {"top_k": True}, {"top_k": 0}, {"top_k": 26},
+    {"mode": "online"}, {"mode": "llm"}, {"top_k": True}, {"top_k": 0}, {"top_k": 26},
 ])
 @pytest.mark.anyio
-async def test_api_rejects_paths_and_unbounded_inputs(payload, client):
-    assert (await client.post("/evaluate", json=payload)).status_code == 422
+async def test_api_rejects_paths_and_unbounded_inputs(payload):
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            assert (await client.post("/evaluate", json=payload)).status_code == 422
 
 
 @pytest.mark.anyio
-async def test_evaluate_api_real_report(client):
-    response = await client.post("/evaluate", json={})
+async def test_evaluate_api_real_report():
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/evaluate", json={})
     assert response.status_code == 200
     assert response.json()["metadata"]["report_kind"] == "runtime_quality"
+    assert sum(response.json()["metadata"]["category_counts"].values()) == 35
+    assert len(response.json()["case_results"]) == response.json()["metrics"]["alert_count"]
+    assert set(response.json()["case_results"][0]) == {
+        "alert_id", "category", "gold_technique_ids", "predicted_technique_ids",
+        "match", "grounded", "needs_human_review", "out_of_subset_ids",
+    }
     assert response.json()["disclaimer"]
     assert response.headers["x-request-id"]
     assert response.headers["x-mitre-attack-version"] == "enterprise-attack-19.1"
 
 
+@pytest.mark.parametrize(("gold", "predicted", "expected"), [
+    ({"T1059.001"}, {"T1059.001"}, "Exact"),
+    ({"T1059.001"}, {"T1059"}, "Parent"),
+    ({"T1059.001", "T1110"}, {"T1059", "T1110"}, "Parent"),
+    ({"T1059.001", "T1110.001"}, {"T1059.001", "T1110"}, "Parent"),
+    ({"T1059.001", "T1110"}, {"T1059"}, "Miss"),
+    ({"T1059.001"}, {"T1059", "T1110"}, "Miss"),
+    (set(), set(), "Exact"),
+])
+def test_case_match_requires_complete_coverage_without_extra_predictions(
+    gold, predicted, expected
+):
+    assert evaluator.classify_case_match(gold, predicted) == expected
+
+
 @pytest.mark.parametrize("error, status", [(FileNotFoundError("secret"), 503), (RuntimeError("secret"), 500)])
 @pytest.mark.anyio
-async def test_evaluate_api_errors_are_safe(monkeypatch, error, status, client):
+async def test_evaluate_api_errors_are_safe(monkeypatch, error, status):
     def fail(**kwargs):
         raise error
     monkeypatch.setattr(evaluate_route, "create_report", fail)
-    response = await client.post("/evaluate", json={})
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/evaluate", json={})
     assert response.status_code == status
     assert "secret" not in response.text
 

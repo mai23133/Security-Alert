@@ -1,0 +1,28 @@
+{
+  "report_kind": "llm_provider_evaluation_incomplete",
+  "generated_at": "2026-09-17T14:04:49+07:00",
+  "commit": "0a9071e5132b5e01c96a01daa3eabbe1d848b6b8",
+  "provider": "openrouter",
+  "model": "openrouter/free",
+  "prompt_version": "candidate-inference-v1",
+  "dataset_version": "1.0.0-rc1",
+  "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
+  "intended_alert_count": 35,
+  "validated_before_failure_alert_count": 0,
+  "failed_alert_id": "eval-001",
+  "provider_success_required": true,
+  "fallback_accepted_as_llm_result": false,
+  "status": "incomplete",
+  "failure_reason": "rate-limited",
+  "attempts_for_failed_alert": 3,
+  "failed_stages": [
+    "parser",
+    "router",
+    "inferencer",
+    "judge"
+  ],
+  "metrics": null,
+  "numeric_gates_passed": null,
+  "acceptance_ready": false,
+  "disclaimer": "No LLM quality score is claimed. The strict full-set run rejected provider fallback and stopped after the configured retries. OpenRouter data collection was denied and only bundled synthetic alerts were sent with explicit provider consent."
+}

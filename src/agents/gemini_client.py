@@ -5,10 +5,11 @@ import os
 
 from google import genai
 from google.genai import types
+from src.agents.provider_safety import redact_prompt, require_provider_consent
 
-GEMINI_MODEL = "gemini-3.5-flash"
+GEMINI_MODEL = "gemini-3.5-flash-lite"
 GEMINI_TIMEOUT_MS = 10_000
-GEMINI_RETRY_ATTEMPTS = 3
+GEMINI_RETRY_ATTEMPTS = 2
 
 
 def _api_key() -> str:
@@ -37,9 +38,13 @@ def _client() -> genai.Client:
 
 def generate_text(prompt: str) -> str:
     """Generate text with bounded SDK timeouts and transient-error retries."""
+    require_provider_consent()
+    # Defense in depth for explicitly enabled, reviewed synthetic prompts.
+    # Arbitrary secrets cannot be detected reliably; API remains offline.
+    prompt = redact_prompt(prompt)
     client = _client()
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-    )
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+        return response.text.strip()
+    finally:
+        client.close()

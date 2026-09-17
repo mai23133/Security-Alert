@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": [
+    "mode_selector_and_empty_input_guard",
+    "loading",
+    "actual_api_multi_technique",
+    "evidence",
+    "top_5_candidates",
+    "offline_provider_status",
+    "benign_no_match_review",
+    "prompt_injection_fail_closed_before_provider",
+    "gemini_safe_fallback_without_key",
+    "judge_offline_reason_visible",
+    "openrouter_independent_mode_safe_fallback",
+    "mock_llm_score_source_and_inferencer_status",
+    "disclaimer_attribution",
+    "clear_no_browser_storage",
+    "actual_api_evaluation_quality_gates",
+    "theme_screenshots"
+  ],
+  "provider_mode": "disabled",
+  "synthetic_data_only": true
+}

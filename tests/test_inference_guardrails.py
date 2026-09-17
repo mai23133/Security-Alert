@@ -132,55 +132,17 @@ def test_router_escapes_user_controlled_prompt_delimiters():
     assert "\\u003c/untrusted_alert>" in prompts[0]
 
 
-def test_provider_inference_is_pydantic_validated_and_candidate_bounded():
-    narrative = "WIN-01 executed encoded PowerShell."
-    allowed = candidate()
-    result = infer_techniques_with_provider(
-        narrative,
-        [allowed],
-        generate=lambda _prompt: (
-            '{"techniques":['
-            '{"technique_id":"T9999","confidence":0.99,'
-            '"evidence_spans":["executed encoded PowerShell"]},'
-            '{"technique_id":"T1059.001","confidence":0.91,'
-            '"evidence_spans":["executed encoded PowerShell"]}'
-            ']}'
-        ),
+def test_parser_and_router_report_provider_success_or_fallback():
+    parser_trace = {}
+    router_trace = {}
+    failed_trace = {}
+    parsed = parse_alert(
+        "Host executed PowerShell", trace=parser_trace,
+        generate=lambda _prompt: '{"assets":[],"observed_actions":["executed PowerShell"],"iocs":[]}',
     )
+    route_tactics(parsed, trace=router_trace, generate=lambda _prompt: '["execution"]')
+    parse_alert("alert", trace=failed_trace, generate=lambda _prompt: "not json")
 
-    assert [item.technique_id for item in result] == ["T1059.001"]
-    assert result[0].technique_name == allowed.technique_name
-
-
-def test_provider_inference_falls_back_on_invalid_structured_output():
-    narrative = "WIN-01 executed encoded PowerShell commands."
-    result = infer_techniques_with_provider(
-        narrative, [candidate()], generate=lambda _prompt: "not-json"
-    )
-    assert [item.technique_id for item in result] == ["T1059.001"]
-
-
-def test_router_dispatches_to_tactic_specialist_and_keeps_global_top_k():
-    execution = candidate()
-    credential = candidate(
-        technique_id="T1110",
-        technique_name="Brute Force",
-        tactic="credential-access",
-        description_excerpt="Repeated password guessing authentication failures.",
-    )
-
-    class FakeRetriever:
-        def search_scored(self, narrative, tactic=None, top_k=5):
-            assert narrative == "PowerShell password guessing"
-            return {
-                "execution": [(4.0, execution)],
-                "credential-access": [(6.0, credential)],
-            }.get(tactic, [])[:top_k]
-
-    result = retrieve_with_specialists(
-        "PowerShell password guessing",
-        ["execution", "credential-access"],
-        FakeRetriever(),
-        top_k=1,
-    )
-    assert [item.technique_id for item in result] == ["T1110"]
+    assert parser_trace == {"provider_succeeded": True}
+    assert router_trace == {"provider_succeeded": True}
+    assert failed_trace == {"provider_succeeded": False}

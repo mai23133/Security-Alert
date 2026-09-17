@@ -1,0 +1,6 @@
+Reject spans not present verbatim in the original narrative.
+Check behavior support and the complete enclosing clause to prevent negation removal.
+Reject IDs, names, tactics and URLs that do not match retrieved candidates.
+Require human review for no-match, ambiguity, unresolved competing candidates,
+prompt injection, or confidence below the versioned review threshold.
+Offline rule validation is not independent expert semantic validation.

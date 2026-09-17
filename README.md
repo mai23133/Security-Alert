@@ -2,18 +2,20 @@
 
 ระบบรับ Security Alert แบบข้อความและแนะนำ MITRE ATT&CK Technique พร้อม confidence, evidence และสถานะให้มนุษย์ตรวจ ผลลัพธ์เป็น advisory เท่านั้น ไม่มีการตอบสนองเหตุการณ์อัตโนมัติ
 
-สถานะ 7 กันยายน 2026: `mai-work` รวม C แล้ว มี dataset/metrics/runner, release subset 10 รายการ, `eval_report.md` และ `/evaluate` พร้อมผล runtime จริง ยังไม่ผ่าน final-demo quality gates หรือการรับรอง gold labels ดู [สรุปการรวม C](docs/C_IMPLEMENTATION_SUMMARY_TH.md) และ [release notes v0.2.0](RELEASE_NOTES_v0.2.0.md)
+สถานะ 15 กันยายน 2026: พัฒนาต่อจากแผนปิดโครงการแล้ว มี snapshot lifecycle, behavior grounding, operational controls และ browser acceptance; full-pack F1 และ parent recall เท่ากับ 97.30%, FPR 0% จึงผ่าน numeric quality gates ในเครื่องแล้ว แต่ยังรอการรับรอง subset/gold labels และ independent semantic review ดู [สรุปงานและหลักฐานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
 ## เริ่มอ่าน
 
 - [ข้อกำหนดหลัก](security-alert-attack-technique-inference.md) — Source of Truth
-- [คู่มือโครงการแบบละเอียด](docs/PROJECT_DETAILED_GUIDE_TH.md) — ภาพรวมระบบ วิธีติดตั้ง ใช้งาน ประเมินผล และงานที่เหลือ
-- [แผนปิดโครงการ](docs/PROJECT_COMPLETION_PLAN_TH.md) — ขั้นตอนลงมือทำเพื่อให้ผ่านเกณฑ์รับมอบ
-- [รายงานตรวจล่าสุด](docs/PROJECT_REVIEW_TH.md) — สิ่งที่ทำได้ ข้อจำกัด และผลทดสอบ
-- [สรุปไฟล์ทั้งโปรเจกต์](docs/PROJECT_FILE_MAP_TH.md) — หน้าที่และความสัมพันธ์รายไฟล์
-- [คู่มือโครงการฉบับเต็ม](docs/COMPLETE_PROJECT_GUIDE_TH.md) — data flow, การเรียกโค้ดต่อกัน, เหตุผลการออกแบบ และไฟล์ทุกกลุ่ม
+- [แผนปิดโครงการ](docs/PROJECT_COMPLETION_PLAN_TH.md) — เกณฑ์และสถานะแต่ละขั้น
+- [สรุปฉบับอ่านง่าย: สิ่งที่ทำไปแล้ว](docs/สิ่งที่ทำไปแล้ว_TH.md)
+- [สรุปสิ่งที่ทำและงานคงเหลือ](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+- [คู่มือ deployment/privacy](docs/DEPLOYMENT_PRIVACY_TH.md)
 - [แผนงาน](docs/WORK_PLAN_TH.md) — งานคงเหลือและลำดับก่อนรวม C
-- [คู่มือเอกสาร](docs/PROJECT_READING_GUIDE_TH.md) — เอกสารใดใช้อ่านเรื่องอะไร
+- [สรุปแบบอ่านง่าย](docs/สิ่งที่ทำไปแล้ว_TH.md) — สิ่งที่ทำแล้วและเงื่อนไขที่ยังไม่ผ่าน
+- [สถาปัตยกรรม](docs/architecture.md) — data flow และขอบเขต provider
+- [ภาพรวม API](docs/API_OVERVIEW_TH.md) — endpoint และ contract ปัจจุบัน
+- [UI จากกิ่ง ui-test](docs/UI_REFERENCE_TH.md) — ธีมสว่าง/มืด ตาราง evaluation และ injection probe
 
 ## ติดตั้งและทดสอบจาก clean checkout
 
@@ -30,30 +32,27 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m pytest -q
 git diff --check
 ~~~
 
-ต้องทำ ingestion ก่อน pytest และก่อนเปิด API เพราะ alerts route โหลด retriever ตอน import; fresh clone ไม่มี data/processed/ ซึ่งเป็น generated files ที่ถูก ignore ไม่ต้อง commit ข้อมูลนี้
+ต้องทำ ingestion ก่อน pytest และก่อนใช้งาน inference; API เปิดได้แม้ KB ไม่มี แต่ /ready และ routes ที่ต้องใช้ KB จะตอบ 503 จนสร้าง KB แล้ว restart server ข้อมูลใน data/processed/ เป็น generated files ไม่ต้อง commit
 
-ใช้ Python 3.11.15 ใน .venv; ผลตรวจ integration ล่าสุดดู docs/C_IMPLEMENTATION_SUMMARY_TH.md ไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
+ใช้ Python 3.11.15 ใน .venv; ผลตรวจล่าสุดดู docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md ซึ่งไม่ใช่การรับรอง GitHub Actions หรือคุณภาพโมเดลผ่านทุก gate
 
-requirements.txt ตรึงบาง package เช่น FastAPI, HTTPX และ rank-bm25 แต่หลายรายการใช้ช่วงเวอร์ชัน จึงยังไม่ใช่ dependency lock ที่ทำซ้ำได้ทุกเวอร์ชัน
+requirements.txt อ้างอิง requirements.lock ซึ่งตรึง direct/transitive dependencies ที่ตรวจบน Python 3.11
 
 ## เปิด local demo แบบไม่เรียก provider
 
 ~~~bash
-GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m uvicorn src.api.main:app --reload
+GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m uvicorn src.api.main:app --host 127.0.0.1 --no-access-log
 ~~~
 
 เปิด http://127.0.0.1:8000/ui สำหรับกรอก alert เดี่ยว หรือ http://127.0.0.1:8000/docs สำหรับ API docs
 
-main.py โหลด .env ด้วย python-dotenv; การกำหนด key ทั้งสองเป็นค่าว่างใน environment ช่วยกันค่าจาก .env เปิด provider โดยไม่ตั้งใจ หากต้องการเปิด Gemini ให้ตั้ง GOOGLE_API_KEY หรือ GEMINI_API_KEY ใน environment/.env ภายใน sandbox ที่อนุญาตก่อนรัน ตรวจ .env.example เป็นตัวอย่างและห้าม commit secret
+เลือกโหมดได้แยกกัน: `Offline / Rules`, `Gemini 3.5 Flash-Lite` (`gemini-3.5-flash-lite`) และ `OpenRouter` (`OPENROUTER_MODEL` ค่าเริ่มต้น `openrouter/free`) แต่ละโหมดออนไลน์ใช้เฉพาะ provider ที่เลือก หากเกิดปัญหาจะ fallback เป็น local rules โดยไม่สลับไป provider อื่น เมื่อ LLM Judge ล้มเหลว UI จะแสดงหมายเหตุสาเหตุ เช่น โควตาหมด, timeout หรือคำตอบผิดรูปแบบ พร้อมให้มนุษย์ตรวจสอบ สำหรับ AI demo ให้คัดลอกค่าจาก `.env.example` ไป `.env`, ใส่ `GOOGLE_API_KEY` หรือ `OPENROUTER_API_KEY` ตามโหมดที่ใช้, ตั้ง `PROVIDER_CONSENT=reviewed-synthetic-only` และเปิด server ด้วย `--env-file .env` ใช้เฉพาะข้อมูลจำลองที่ตรวจแล้วตามคู่มือ privacy โหมด Offline ไม่เรียก provider แม้ process จะมี key
 
-ตรวจเส้นทาง LLM จริงด้วย sample ที่ validate ผลลัพธ์ผ่าน Pydantic และจะ fail หาก
-Gemini ตอบไม่สำเร็จครบ Parser, Router และ Technique Inferencer:
+โหมดออนไลน์ใช้ LLM ใน Parser → Router → **Technique Inferencer** → Grounding Judge โดย Inferencer อ่าน log และ retrieved candidates เพื่อเลือก ID, คะแนน และหมายเลขช่วงหลักฐาน ระบบเชื่อมหลักฐานกลับข้อความต้นฉบับและตรวจ ID/บริบทก่อน Judge จึงไม่จำเป็นต้องตรง positive keyword ของกฎออฟไลน์ คะแนนแสดงเป็น `LLM SUPPORT SCORE` หรือ `RULE SUPPORT SCORE` บนสเกล 0–100 และยังไม่ใช่ความน่าจะเป็นที่สอบเทียบแล้ว หาก Inferencer หรือ Judge ล้มเหลว จะระบุเหตุผลและใช้ผล/คะแนนจากกฎออฟไลน์ พร้อมบังคับ human review การประเมิน `/evaluate` ยังเป็น offline baseline ไม่ใช่ผลประเมินคุณภาพ LLM
 
-```bash
-python -m scripts.live_llm_smoke
-```
-
-เมื่อไม่มี key: parser คง narrative แต่คืน assets/actions/IOCs ว่าง, router ค้นทั้งสาม tactics ส่วน BM25 และ inferencer ทำงานต่อได้ เมื่อมี key: parser/router/inferencer ส่ง narrative ไป Google การตรวจ live smoke ล่าสุดผ่านด้วย `gemini-3.5-flash`
+~~~bash
+.venv/bin/python -m uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --no-access-log --env-file .env
+~~~
 
 ## ระบบทำอะไรได้
 
@@ -84,15 +83,11 @@ curl -X POST http://127.0.0.1:8000/alerts/infer \
 
 จำนวน 127 ยังเกินเป้าหมายประมาณ 30–50 ใน specification ต้องตัดสินใจ subset กับทีม/ผู้สอนก่อนรับมอบ ไม่เปลี่ยนข้อกำหนดให้ตรง implementation โดยอัตโนมัติ
 
-Router dispatch ไปยัง specialist แยกตาม Initial Access, Execution และ Credential
-Access แล้วรวม BM25 score เป็น global top-k เมื่อเปิด provider Gemini จะทำ structured
-candidate selection ซึ่ง Pydantic ตรวจและจำกัด ID ให้อยู่ใน retrieved candidates;
-offline eval ใช้ lexical fallback เพื่อให้ทำซ้ำได้ Evidence เป็น exact substring และ
-judge คืน review flag ยังไม่ตรวจ semantic grounding หรือความกำกวมครบถ้วน
+Retriever ใช้ BM25 จาก full description ร่วมกับ behavior reranking และ weighted verbatim query; index อยู่ใน memory ส่วน TextEmbedder.embed() ยังไม่มี dense embeddings Inference/evidence ตรวจพฤติกรรมใน clause และบริบท negation/benign/ambiguity โดย score เป็นคะแนนตามกฎ ไม่ใช่ความน่าจะเป็นที่สอบเทียบแล้ว กฎเหล่านี้ยังไม่ใช่การตรวจ semantic โดยผู้เชี่ยวชาญอิสระ
 
 ## CI และขอบเขตการตรวจ
 
-.github/workflows/ci.yml ใช้ Ubuntu, Python 3.11, timeout job 10 นาที: install → ingestion → pytest (key ทั้งสองว่าง) → fixture evaluation subset smoke → git diff --check รันเมื่อ push เข้า main/mai-work/feature-d-integration/feature-c-integration และ PR เข้า main/mai-work รายการ branch D ที่ลบแล้วใน trigger ไม่ทำให้ mai-work หยุดทำงาน
+.github/workflows/ci.yml ใช้ Ubuntu/Python 3.11: install → ingestion → pytest → fixture → development runtime gates → Chromium acceptance → whitespace check อีก job บังคับ full runtime quality gates และเก็บ report แม้ไม่ผ่าน สถานะ local ล่าสุดยังไม่ใช่หลักฐานว่า GitHub Actions ผ่าน
 
 ~~~bash
 python -m compileall -q src eval tests
@@ -101,7 +96,7 @@ git diff --check
 git status --short
 ~~~
 
-Tests ที่ผ่านไม่ยืนยัน F1, semantic safety, browser workflow หรือ production readiness และยังไม่มี global network-blocking test fixture
+ผล tests และ browser acceptance มีหลักฐานใน docs/reports/ ส่วน full quality gate และการอนุมัติรับมอบต้องตรวจแยกกัน
 
 ## ประเมินผล (offline แม้มี key)
 
@@ -112,12 +107,12 @@ python -m eval.run_eval --mode runtime --require-quality-gates
 curl -X POST http://127.0.0.1:8000/evaluate -H 'Content-Type: application/json' -d '{"mode":"runtime","top_k":5}'
 ~~~
 
-CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผลปัจจุบันยังไม่ผ่าน) การประเมินสำเร็จไม่เท่ากับผ่านเกณฑ์ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
+CLI default เป็น fixture และ subset `iteration-2` 10 รายการ; ใช้ `--subset full` เมื่อต้องการวัด course pack 35 รายการ. API default runtime/full pack; --require-quality-gates คืน exit 1 หาก numeric gates ไม่ผ่าน (ผล local ปัจจุบันผ่านและคืน exit 0) การผ่าน numeric gates ยังไม่เท่ากับได้รับอนุมัติรับมอบ ใช้ --output /tmp/runtime-report.json หากต้องการบันทึก report โดยไม่มี raw narratives
 
 ## งานต่อไปและ privacy (หลัง integration)
 
-C integration มี fixture/runtime report แล้ว งานต่อคือปิด semantic grounding, ตรวจ gold labels, subset และ metadata gaps ตาม [handoff](docs/HANDOFF_TH.md)
+งานคงเหลือมี independent semantic/calibration review และการยืนยัน subset/dataset ตาม [สรุปงานล่าสุด](docs/PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
-CORS default จำกัด localhost แต่ยังไม่มี authentication/rate limiting/retention enforcement การเปิด provider ส่งข้อความออกนอกเครื่อง และ error logging ยังมี traceback จึงต้องกำหนด privacy controls ก่อนใช้ alert จริง
+มี CORS allowlist, optional API key, rate limit ต่อ IP/process, request deadline และ logs ที่ไม่เก็บ input/traceback ค่าเริ่มต้นใช้ loopback sandbox และไม่ส่ง alert ไป provider ดูข้อจำกัด deployment และ retention ใน [คู่มือ privacy](docs/DEPLOYMENT_PRIVACY_TH.md)
 
 MITRE ATT&CK เป็นเครื่องหมายการค้าของ The MITRE Corporation โครงการใช้ Enterprise STIX รุ่น 19.1; attribution ใน README ไม่ทดแทนการตรวจ license/terms สำหรับการแจกจ่ายหรือ deploy

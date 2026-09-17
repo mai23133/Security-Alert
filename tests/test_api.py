@@ -14,10 +14,11 @@ def anyio_backend():
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver"
-    ) as test_client:
-        yield test_client
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as test_client:
+            yield test_client
 
 
 async def test_read_root_has_version_and_request_headers(client):

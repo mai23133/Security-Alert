@@ -1,5 +1,10 @@
 # แผนปิดโครงการให้ครบตามข้อกำหนด
 
+> สถานะ 17 กันยายน 2026: ขั้น implementation และ numeric gates ดำเนินการแล้ว รายละเอียดผลจริงอยู่ใน [PROJECT_COMPLETION_IMPLEMENTATION_TH.md](PROJECT_COMPLETION_IMPLEMENTATION_TH.md) และ [WORK_PLAN_TH.md](WORK_PLAN_TH.md) เอกสารนี้คงไว้เป็นแผนและเกณฑ์ ไม่ใช่สถานะ runtime ล่าสุด
+
+สถานะดำเนินการล่าสุด 17 กันยายน 2026: ดู [สรุป implementation และสถานะแต่ละขั้น](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
+ผล local ล่าสุด full-pack F1 97.30%, parent recall 97.30%, FPR 0% จึงผ่าน numeric quality gates แล้ว แต่ยังไม่ครบ Definition of Done เพราะยังรอ subset/gold-label approval และ independent semantic review
+
 เอกสารนี้เป็นรายการทำงานตามลำดับเพื่อพาโครงการจาก baseline v0.2.0 ไปสู่สถานะที่ผ่านเกณฑ์สาธิตและพร้อมรับมอบตาม `security-alert-attack-technique-inference.md` ไม่ใช่คู่มือใช้งานระบบ
 
 คำว่า **เสร็จ 100%** ในเอกสารนี้หมายถึง:

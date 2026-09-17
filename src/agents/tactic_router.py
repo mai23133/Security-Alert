@@ -2,9 +2,7 @@
 import json
 from collections.abc import Callable
 
-from pydantic import BaseModel, Field
-
-from src.agents.gemini_client import generate_text
+from src.agents.provider_chain import generate_text
 from src.schemas import ParsedAlert
 
 IN_SCOPE_TACTICS = ["initial-access", "execution", "credential-access"]
@@ -51,7 +49,8 @@ def _untrusted_payload(alert: ParsedAlert) -> str:
 
 
 def route_tactics(
-    alert: ParsedAlert, *, generate: TextGenerator = generate_text
+    alert: ParsedAlert, *, generate: TextGenerator = generate_text,
+    trace: dict | None = None,
 ) -> list[str]:
     """Return valid tactics, or all in-scope tactics on uncertain/failing output.
 
@@ -63,14 +62,24 @@ def route_tactics(
         "\n</untrusted_alert>"
     )
     try:
-        raw_tactics = _json_payload(generate(prompt))
-        if not isinstance(raw_tactics, list):
+        tactics = _json_payload(generate(prompt))
+        if not isinstance(tactics, list):
+            if trace is not None:
+                trace["provider_succeeded"] = False
             return IN_SCOPE_TACTICS.copy()
         decision = TacticRoutingDecision.model_validate({"tactics": raw_tactics})
         requested = set(item for item in decision.tactics if isinstance(item, str))
         valid = [tactic for tactic in IN_SCOPE_TACTICS if tactic in requested]
-        return valid or IN_SCOPE_TACTICS.copy()
+        if not valid:
+            if trace is not None:
+                trace["provider_succeeded"] = False
+            return IN_SCOPE_TACTICS.copy()
+        if trace is not None:
+            trace["provider_succeeded"] = True
+        return valid
     except Exception:
+        if trace is not None:
+            trace["provider_succeeded"] = False
         return IN_SCOPE_TACTICS.copy()
 
 

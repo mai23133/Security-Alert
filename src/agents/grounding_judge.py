@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 from src.agents.evidence_linker import link_evidence
+from src.agents.behavior import AMBIGUOUS, INJECTION, evidence
 from src.schemas import InferredTechnique, TechniqueCandidate
 
 
-LOW_CONFIDENCE_THRESHOLD = 0.65
+LOW_CONFIDENCE_THRESHOLD = 0.80
 
 
 def judge_result(
@@ -14,6 +15,7 @@ def judge_result(
     candidates: list[TechniqueCandidate],
     *,
     low_confidence_threshold: float = LOW_CONFIDENCE_THRESHOLD,
+    require_behavior: bool = True,
 ) -> bool:
     """Return whether the result requires human review.
 
@@ -26,9 +28,18 @@ def judge_result(
         raise ValueError("low_confidence_threshold must be in [0, 1]")
     if not inferred or len(inferred) > 3:
         return True
+    if AMBIGUOUS.search(narrative) or INJECTION.search(narrative):
+        return True
+    chosen_ids = {item.technique_id for item in inferred}
+    for candidate in candidates if require_behavior else []:
+        spans = evidence(narrative, candidate.technique_id, candidate.technique_name)
+        if spans and candidate.technique_id not in chosen_ids and not any(
+            t.startswith(candidate.technique_id + ".") for t in chosen_ids
+        ):
+            return True
 
     candidate_by_id = {candidate.technique_id: candidate for candidate in candidates}
-    grounded_ids = {item.technique_id for item in link_evidence(narrative, inferred)}
+    grounded_ids = {item.technique_id for item in link_evidence(narrative, inferred, require_behavior=require_behavior)}
     seen_ids: set[str] = set()
     for technique in inferred:
         candidate = candidate_by_id.get(technique.technique_id)
@@ -38,6 +49,7 @@ def judge_result(
             or technique.technique_name != candidate.technique_name
             or technique.tactic != candidate.tactic
             or technique.technique_id not in grounded_ids
+            or technique.mitre_url != "https://attack.mitre.org/techniques/" + technique.technique_id.replace(".", "/") + "/"
             or technique.confidence < low_confidence_threshold
         ):
             return True

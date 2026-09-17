@@ -1,0 +1,6 @@
+{
+  "title": "Security Alert | ATT&CK Inference",
+  "description": "Security alert analysis workspace. Advisory only; expert review required.",
+  "language": "en",
+  "robots": { "index": false }
+}

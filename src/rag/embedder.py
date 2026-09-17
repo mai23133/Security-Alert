@@ -16,7 +16,11 @@ class TextEmbedder:
         if not text:
             return []
         # แปลงเป็นพิมพ์เล็กและดึงมาเฉพาะตัวอักษร/ตัวเลข
-        tokens = re.findall(r'\w+', text.lower())
+        tokens = re.findall(r't\d{4}(?:\.\d{3})?|\w+', text.lower())
+        aliases = {"pwsh": "powershell", "rdp": "remote desktop protocol",
+                   "wmic": "windows management instrumentation", "logon": "login",
+                   "authentication": "login", "encodedcommand": "encoded command"}
+        tokens += [term for token in list(tokens) for term in aliases.get(token, "").split()]
         return tokens
 
     def embed(self, text: str) -> list[float]:
