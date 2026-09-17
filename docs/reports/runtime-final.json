@@ -2,9 +2,9 @@
   "metadata": {
     "report_kind": "runtime_quality",
     "not_a_runtime_quality_gate": false,
-    "generated_at": "2026-09-17T07:07:23.943517+00:00",
-    "commit": "0a9071e5132b5e01c96a01daa3eabbe1d848b6b8",
-    "code_sha256": "b44591d92580f7e2c92e5a9bba3ce31d3ebf0a855f785cde3e57e39894f51ddb",
+    "generated_at": "2026-09-17T09:38:27.609698+00:00",
+    "commit": "c623961a8e27a76ddf4f635c8e562ed424778f6a",
+    "code_sha256": "4570071ab7a89bf6e0822d566c76bd400354cd961dc455f8ea3aaaf3c9e833ca",
     "dataset_version": "1.0.0-rc1",
     "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
     "evaluation_scope": "full_course_pack",
@@ -657,6 +657,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -721,6 +722,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -785,6 +787,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -849,6 +852,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -913,6 +917,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -977,6 +982,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1041,6 +1047,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1105,6 +1112,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1169,6 +1177,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1233,6 +1242,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1297,6 +1307,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1374,6 +1385,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1440,6 +1452,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1504,6 +1517,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1568,6 +1582,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1632,6 +1647,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1696,6 +1712,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1760,6 +1777,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1824,6 +1842,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1888,6 +1907,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -1964,6 +1984,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2045,6 +2066,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2123,6 +2145,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2213,6 +2236,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2293,6 +2317,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2359,6 +2384,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2423,6 +2449,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2487,6 +2514,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2551,6 +2579,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2615,6 +2644,7 @@
           }
         ],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2664,6 +2694,7 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2709,6 +2740,7 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2754,6 +2786,7 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2799,6 +2832,7 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",
@@ -2844,6 +2878,7 @@
         "errors": [],
         "evidence": [],
         "stages": {
+          "security_guardrail": "passed",
           "tactics": [
             "initial-access",
             "execution",

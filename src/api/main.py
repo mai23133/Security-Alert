@@ -145,7 +145,7 @@ def create_app(*, snapshot_path=None, api_key=None, rate_limit=None, request_tim
                         "X-AI-Judge-Model", "X-AI-Fallback-Reason", "X-AI-Judge-Fallback-Reason",
                         "X-AI-Inferencer-Status", "X-AI-Inferencer-Provider", "X-AI-Inferencer-Model",
                         "X-AI-Inferencer-Fallback-Reason", "X-AI-Confidence-Source",
-                        "X-AI-Inference-Prompt-Version"])
+                        "X-AI-Inference-Prompt-Version", "X-Security-Guardrail"])
     application.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
     application.include_router(evaluate_router, tags=["evaluation"])
     application.include_router(rag_router, prefix="/rag", tags=["rag"])

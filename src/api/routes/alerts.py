@@ -112,6 +112,7 @@ async def infer_techniques(request: AlertRequest, http_request: Request,
         "X-AI-Inferencer-Fallback-Reason": trace.get("inferencer_fallback_reason", "none"),
         "X-AI-Confidence-Source": trace.get("confidence_source", "unknown"),
         "X-AI-Inference-Prompt-Version": trace.get("inference_prompt_version", "none"),
+        "X-Security-Guardrail": trace.get("security_guardrail", "unknown"),
     })
 
 

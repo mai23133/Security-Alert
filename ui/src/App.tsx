@@ -65,6 +65,7 @@ interface InferenceResult {
 }
 
 interface ProviderStatus {
+  securityGuardrail: string;
   inferencer: string;
   inferencerProvider: string;
   inferencerModel: string;
@@ -252,6 +253,7 @@ function AnalystWorkspace() {
 
       if (!controller.signal.aborted) {
         setProviderStatus({
+          securityGuardrail: response.headers.get("X-Security-Guardrail") || "unknown",
           parser: response.headers.get("X-AI-Parser-Status") || "unknown",
           router: response.headers.get("X-AI-Router-Status") || "unknown",
           judge: response.headers.get("X-AI-Judge-Status") || "unknown",
@@ -505,6 +507,16 @@ function AnalystWorkspace() {
                       {" จึงแสดงผลและคะแนนจากกฎออฟไลน์ ผลนี้ยังไม่ผ่านการตรวจโดย LLM และต้องให้มนุษย์ตรวจสอบ"}
                     </p>
                   )}
+                </div>
+              )}
+              {providerStatus?.securityGuardrail === "prompt-injection-blocked" && (
+                <div role="alert" style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "var(--radius)", padding: "14px 16px" }}>
+                  <div className="mono" style={{ color: "var(--red)", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em" }}>
+                    PROMPT INJECTION BLOCKED
+                  </div>
+                  <p style={{ color: "var(--card-foreground)", fontSize: 12, margin: "6px 0 0" }}>
+                    ตรวจพบข้อความที่พยายามเปลี่ยนคำสั่งของระบบ จึงหยุดก่อนเรียกโมเดล ไม่สร้าง Technique และส่งให้มนุษย์ตรวจสอบ
+                  </p>
                 </div>
               )}
               {/* Review Flag */}

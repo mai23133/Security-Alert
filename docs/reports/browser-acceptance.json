@@ -8,6 +8,7 @@
     "top_5_candidates",
     "offline_provider_status",
     "benign_no_match_review",
+    "prompt_injection_fail_closed_before_provider",
     "gemini_safe_fallback_without_key",
     "judge_offline_reason_visible",
     "openrouter_independent_mode_safe_fallback",

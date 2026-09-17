@@ -47,7 +47,7 @@ Diagnostics เหลือ extra prediction 1 รายการ และ infe
 F1/parent recall 97.30%, grounding 100% และ hallucinated IDs 0%
 นี่เป็นผล automated functional demo ไม่ใช่หลักฐานวิดีโอหรือการนำเสนอสด
 
-Test evidence ล่าสุดมี 199 tests, failures/errors/skipped เท่ากับ 0 ดู
+Test evidence ล่าสุดมี 207 tests, failures/errors/skipped เท่ากับ 0 ดู
 [tests.xml](docs/reports/tests.xml) และ release hashes ใน
 [release-manifest.json](docs/reports/release-manifest.json)
 

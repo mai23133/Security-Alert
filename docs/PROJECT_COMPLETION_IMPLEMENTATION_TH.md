@@ -106,7 +106,7 @@ CI เพิ่ม development runtime gate, Chromium acceptance และ full 
 
 ## ผลตรวจและ artifacts
 
-Tests ล่าสุด: **199 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
+Tests ล่าสุด: **207 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
 Development มี 56 records และผ่าน numeric gates ด้วย F1/parent recall 100% แต่เป็นข้อมูลที่ผู้พัฒนาสร้างเพื่อทดสอบ ไม่ใช่ independent holdout
 
 | หลักฐาน | ไฟล์/คำสั่ง |

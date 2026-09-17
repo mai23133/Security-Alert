@@ -30,7 +30,7 @@
 ไฟล์ใน `docs/reports/` เป็น artifacts จาก tests/evaluation/acceptance ไม่ควรแก้ตัวเลขด้วยมือเพื่อให้ผ่านเกณฑ์ รายงานหลักคือ:
 
 - `runtime-final.json` — Offline full gold-set metrics
-- `tests.xml` — 199 tests ล่าสุด
+- `tests.xml` — 207 tests ล่าสุด
 - `browser-acceptance.json` — Chromium/UI acceptance
 - `clean-verification.json` — clean-copy verification
 - `release-manifest.json` — hashes, test summary และ blockers

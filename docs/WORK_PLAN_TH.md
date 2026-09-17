@@ -9,7 +9,7 @@
 | Online inference | Gemini/OpenRouter ครบ Parser → Router → Inferencer → Judge, consent/redaction/circuit breaker | full-set metrics หลังได้ quota ที่เพียงพอ |
 | API/Security | lifespan, typed errors, 4 workers, 60s default deadline, auth, rate limit, CORS, safe logs | gateway/HTTPS/distributed quota หาก deploy จริง |
 | Evaluation | 35 gold alerts, Iteration 2 comparison, diagnostics, prompt/model/hash metadata | locked labels และ independent review |
-| Acceptance | 199 tests, browser E2E, demo 5 ขั้น, clean-copy verification และ numeric gates ผ่าน | final course approval และ CI confirmation หลัง push |
+| Acceptance | 207 tests, browser E2E รวม prompt-injection fail-closed, demo 5 ขั้น, clean-copy verification และ numeric gates ผ่าน | final course approval และ CI confirmation หลัง push |
 | Presentation | 10-minute script, 3-minute demo, model-results table | ซ้อมเวลาและ commit/push เอกสารล่าสุด |
 
 ## ผลล่าสุด
@@ -19,7 +19,7 @@
 - Evidence grounding: 100% (เกณฑ์ ≥85%)
 - Hallucinated ID: 0%
 - False-positive rate บน negative controls 5 รายการ: 0%
-- Tests: 199 ผ่าน, failures/errors/skipped = 0
+- Tests: 207 ผ่าน, failures/errors/skipped = 0
 
 ตัวเลขทั้งหมดเป็นผล Offline `behavior-rules-v3` บน full gold set 35 alerts ไม่ใช่คะแนน Gemini/OpenRouter
 

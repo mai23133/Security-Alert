@@ -10,6 +10,7 @@ sequenceDiagram
     participant UI as ui/src/App.tsx
     participant API as src/api/routes/alerts.py
     participant Pipeline as src/inference_pipeline.py
+    participant Preflight as behavior.py injection guard
     participant Parser as src/agents/alert_parser.py
     participant Router as src/agents/tactic_router.py
     participant Retriever as src/rag/retriever.py
@@ -20,6 +21,12 @@ sequenceDiagram
     User->>UI: กรอก narrative + เลือก mode
     UI->>API: POST /alerts/infer
     API->>Pipeline: run_inference(...)
+    Pipeline->>Preflight: prompt_injection_detected(narrative)
+    alt injection detected
+        Preflight-->>Pipeline: blocked
+        Pipeline-->>API: empty result + human review
+        API-->>UI: safe disclaimer + X-Security-Guardrail
+    else passed
     Pipeline->>Parser: parse_alert(narrative)
     Parser-->>Pipeline: ParsedAlert
     Pipeline->>Router: route_tactics(parsed)
@@ -35,6 +42,7 @@ sequenceDiagram
     Pipeline-->>API: ATTACKInferenceResult + trace
     API-->>UI: JSON body + X-AI-* headers
     UI-->>User: cards, evidence, candidates, review, disclaimer
+    end
 ```
 
 ## 0. สร้างฐานความรู้ก่อนเปิดระบบ
@@ -113,6 +121,10 @@ JSON ไปที่ `src/api/routes/alerts.py:infer_techniques()` และ UI 
 ### ส่งต่อ
 
 Pipeline รับ `alert_id`, narrative, retriever, top-k, mode/provider และ mutable trace
+
+## 4.1 Prompt-injection preflight
+
+`src/agents/behavior.py:prompt_injection_detected()` ตรวจ instruction-like payload ก่อน Parser, Retriever และ provider ทุกโหมด หากพบ `src/inference_pipeline.py` จะ fail closed ทันที: ไม่เรียก LLM, ไม่คืน Technique/Candidate, ตั้ง `needs_human_review=true` และใช้ disclaimer คงที่ที่ไม่สะท้อน payload Route ส่งสถานะ `prompt-injection-blocked` ผ่าน `X-Security-Guardrail` ให้ UI แสดงกล่องเตือนเฉพาะ
 
 ## 5. Alert Parser
 
@@ -244,7 +256,7 @@ Pipeline รวม accepted techniques กับ review flags เป็น canon
 
 ### Provider diagnostics
 
-`src/api/routes/alerts.py` แปลง trace เป็น `X-AI-*` headers โดยไม่เปลี่ยน response schema และไม่ส่ง raw exception/secret
+`src/api/routes/alerts.py` แปลง trace เป็น `X-AI-*` และ `X-Security-Guardrail` headers โดยไม่เปลี่ยน response schema และไม่ส่ง raw exception/secret
 
 ### UI
 
@@ -281,7 +293,7 @@ UI เรียก `src/api/routes/evaluate.py:evaluate_dataset()` ซึ่ง�
 - `scripts/release_manifest.py` รวม hashes, test summary, numeric gates และ blockers
 - `.github/workflows/ci.yml` รัน ingestion/tests/evaluation/browser jobs ใน CI
 
-ผลล่าสุด: 199 tests ผ่าน, Offline full-set gates ผ่าน, browser/demo/clean-copy ผ่าน แต่ final acceptance ยังรอ gold/subset และ independent review
+ผลตรวจ working tree ปัจจุบันและ release evidence: 207 tests ผ่าน; Offline full-set gates, browser/demo ผ่าน และ browser acceptance ครอบคลุม prompt-injection fail-closed แล้ว ส่วน final acceptance ยังรอ gold/subset และ independent review
 
 ## ไฟล์ที่ควรเปิดตามลำดับเมื่อตรวจโค้ด
 

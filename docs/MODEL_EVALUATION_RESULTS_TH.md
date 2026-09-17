@@ -14,7 +14,7 @@
 | OpenRouter `openrouter/free` | Intended 35 alerts | N/A | N/A | N/A | N/A | Incomplete: rate-limited ที่ `eval-001` |
 
 ผล offline ล่าสุดสร้างจาก base commit
-`0a9071e5132b5e01c96a01daa3eabbe1d848b6b8` และมี test evidence 199 tests,
+`c623961a8e27a76ddf4f635c8e562ed424778f6a` และมี test evidence 207 tests,
 failures/errors/skipped เท่ากับ 0
 
 ## วิธีตีความ

@@ -19,7 +19,9 @@ flowchart TD
     SNAP --> RET[src/rag/retriever.py]
     UI[ui/src/App.tsx] --> API[src/api/routes/alerts.py]
     API --> PIPE[src/inference_pipeline.py]
-    PIPE --> PARSE[Alert Parser]
+    PIPE --> PRE{Prompt-injection preflight}
+    PRE -->|blocked| SAFE[Safe empty result + human review]
+    PRE -->|passed| PARSE[Alert Parser]
     PARSE --> ROUTE[Tactic Router]
     ROUTE --> RET
     RET --> INF{Inference mode}
@@ -46,10 +48,11 @@ FastAPI lifespan ใน `src/api/main.py` เรียก `src/api/runtime.py:lo
 1. Middleware จำกัด body, auth, rate limit, CORS, request ID และ total deadline
 2. Pydantic ใน `src/api/routes/alerts.py` ตรวจ input และเลือก `offline`, `gemini` หรือ `openrouter`
 3. `run_bounded()` ส่งงาน synchronous เข้า thread pool สูงสุด 4 งาน
-4. `run_inference()` orchestrate agents และตรวจ ID/name/tactic/URL/duplicate/จำนวนผลซ้ำ
-5. Alert และ output จาก provider ถือเป็น untrusted input เสมอ
-6. Online mode ต้องมี server-side key และ `PROVIDER_CONSENT=reviewed-synthetic-only`; prompt ผ่าน redaction ขั้นต้น
-7. ผลตอบกลับมี disclaimer และ `needs_human_review`; ระบบไม่ทำ automated response
+4. `run_inference()` ตรวจ prompt injection ก่อน Parser/LLM; เมื่อพบจะหยุดก่อนเรียก provider คืนผลว่างและบังคับ human review
+5. เมื่อผ่าน preflight จึง orchestrate agents และตรวจ ID/name/tactic/URL/duplicate/จำนวนผลซ้ำ
+6. Alert และ output จาก provider ถือเป็น untrusted input เสมอ
+7. Online mode ต้องมี server-side key และ `PROVIDER_CONSENT=reviewed-synthetic-only`; prompt ผ่าน redaction ขั้นต้น
+8. ผลตอบกลับมี disclaimer และ `needs_human_review`; ระบบไม่ทำ automated response
 
 ## Evaluation architecture
 

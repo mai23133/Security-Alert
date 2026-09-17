@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from src.agents.alert_parser import parse_alert
+from src.agents.behavior import prompt_injection_detected
 from src.agents.evidence_linker import link_evidence
 from src.agents.grounding_judge import judge_result
 from src.agents.llm_grounding_judge import semantic_judge
@@ -11,6 +12,12 @@ from src.agents.tactic_router import route_tactics
 from src.agents.technique_inferencer import infer_techniques
 from src.rag.retriever import BaselineRetriever
 from src.schemas import ATTACKInferenceResult
+
+
+PROMPT_INJECTION_DISCLAIMER = (
+    "Potential prompt injection detected. Inference was blocked before model "
+    "execution. No ATT&CK techniques were produced; human review is required."
+)
 
 
 def run_inference(
@@ -25,6 +32,37 @@ def run_inference(
     and all in-scope tactics, so the endpoint remains deterministic and does
     not require Gemini credentials to operate safely.
     """
+    if prompt_injection_detected(narrative):
+        if trace is not None:
+            trace.update(
+                security_guardrail="prompt-injection-blocked",
+                parser_status="blocked",
+                router_status="blocked",
+                judge_status="blocked",
+                inferencer_status="blocked",
+                parser_provider="none",
+                router_provider="none",
+                judge_provider="none",
+                inferencer_provider="none",
+                parser_model="none",
+                router_model="none",
+                judge_model="none",
+                inferencer_model="none",
+                fallback_used=False,
+                fallback_reason="none",
+                judge_fallback_reason="none",
+                inferencer_fallback_reason="none",
+                confidence_source="none",
+                inference_prompt_version="none",
+            )
+        return ATTACKInferenceResult(
+            alert_id=alert_id,
+            inferred_techniques=[],
+            candidates_considered=[],
+            needs_human_review=True,
+            disclaimer=PROMPT_INJECTION_DISCLAIMER,
+        )
+
     parser_trace: dict = {}
     router_trace: dict = {}
     if use_provider:
@@ -130,7 +168,8 @@ def run_inference(
             if use_provider and not stage.get("provider_succeeded") and stage.get("fallback_reason", "none") == "none":
                 stage.update(provider="offline", model="none", fallback_used=True,
                              fallback_reason="invalid-response")
-        trace.update(tactics=tactics, before_grounding=[t.technique_id for t in inferred],
+        trace.update(security_guardrail="passed",
+                     tactics=tactics, before_grounding=[t.technique_id for t in inferred],
                      after_grounding=[t.technique_id for t in grounded],
                      semantic_provider_succeeded=semantic_provider_succeeded,
                      parser_status=parser_status, router_status=router_status,

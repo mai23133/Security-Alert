@@ -56,6 +56,7 @@ Single response ส่งสถานะผ่าน headers เช่น:
 - `X-AI-Fallback-Used`, `X-AI-Fallback-Reason`
 - `X-AI-Inference-Prompt-Version`
 - `X-AI-Confidence-Source`: `rule-score` หรือ `llm-self-assessed`
+- `X-Security-Guardrail`: `passed` หรือ `prompt-injection-blocked`
 
 UI อ่าน headers เหล่านี้ผ่าน CORS exposure Batch คง body schema เดิมและไม่มี per-item provider headers
 
@@ -63,6 +64,7 @@ Fallback reasons ที่ปลอดภัย ได้แก่ `rate-limited
 
 ## พฤติกรรม inference
 
+- ก่อน Parser/Provider ระบบตรวจ instruction-like payload แบบ deterministic หากเข้าข่าย prompt injection จะหยุดทั้ง request ก่อนเรียกโมเดล คืน Techniques/Candidates ว่าง, `needs_human_review=true`, disclaimer มาตรฐาน และไม่สะท้อน payload กลับในผลลัพธ์
 - Offline: Parser คง narrative, Router เปิดสาม tactics, BM25 retrieval, rules inference, contextual evidence และ deterministic judge
 - Online: provider เดียวทำ Parser → Router → LLM Inferencer → LLM Judge
 - LLM Inferencer เลือกได้เฉพาะ retrieved IDs ไม่เกิน 3 และอ้าง `evidence_ids` ที่ระบบ map กลับข้อความต้นฉบับ

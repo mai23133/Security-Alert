@@ -10,7 +10,18 @@ import re
 
 VERSION = "behavior-rules-v3"
 AMBIGUOUS = re.compile(r"\b(may|might|could|possible|possibly|unclear|uncertain|suspected|potential|unconfirmed|unidentified|unspecified|insufficient|unknown|inconclusive|cannot determine|cannot be confirmed|could not be confirmed|not confirmed|not recorded|not captured|missing details|incomplete (?:evidence|telemetry|source|pattern)|(?:evidence|telemetry|source|pattern)(?: data)? (?:was )?incomplete)\b", re.I)
-INJECTION = re.compile(r"\b(ignore\b.{0,60}\b(instructions?|rules?|previous)|return\s+T\d{4}|system\s*prompt|assistant\s*:|output\s+(?:only\s+)?T\d{4})", re.I)
+INJECTION = re.compile(
+    r"\b("
+    r"(?:ignore|disregard|override)\b.{0,80}\b(?:instructions?|rules?|previous|system)"
+    r"|(?:reveal|show|print|repeat)\b.{0,60}\b(?:system\s*prompt|hidden\s*instructions?)"
+    r"|return\s+(?:technique_id\s*[\"']?\s*)?T\d{4}(?:\.\d{3})?"
+    r"|system\s*prompt"
+    r"|assistant\s*:"
+    r"|output\s+(?:only\s+)?T\d{4}(?:\.\d{3})?"
+    r"|you\s+are\s+now\b.{0,60}\b(?:assistant|developer|system|mode)"
+    r")",
+    re.I | re.S,
+)
 BENIGN = re.compile(r"\b(authorized|approved|routine maintenance|patch[ -]management|training|simulation|benign|health[ -]check|no malicious activity|legitimate maintenance)\b", re.I)
 NEGATED = re.compile(r"\b(no evidence of|did not|does not|was not (?:execut\w*|observed|detected|launched)|were not (?:execut\w*|observed|detected|launched)|never|without (?:execut\w*|running|launch\w*|dump\w*|steal\w*|access\w*)|not observed|not executed|no (?:powershell|credential|brute|script|command))\b", re.I)
 ACTION = r"\b(execut\w*|ran|run\w*|launch\w*|invok\w*|spawn\w*|abus\w*|download\w*|load\w*|open\w*|steal\w*|stole|extract\w*|dump\w*|captur\w*|read|access\w*|attempt\w*|exploit\w*|sent|receiv\w*|deliver\w*|creat\w*|modif\w*|schedul\w*|collect\w*|obtain\w*)\b"
@@ -108,6 +119,16 @@ for _key, _variants in ALTERNATIVES.items():
 
 def clauses(narrative: str) -> list[str]:
     return [part.strip() for part in re.split(r"(?<=[.!?;])\s+|\s+but\s+|\s+however[,]?\s+", narrative, flags=re.I) if part.strip()]
+
+
+def prompt_injection_detected(narrative: str) -> bool:
+    """Conservatively detect instruction-like text before any provider call.
+
+    This is a deterministic preflight guard, not a claim that arbitrary prompt
+    injection can be classified perfectly. A match causes the whole request to
+    fail closed instead of attempting to sanitize and continue.
+    """
+    return bool(INJECTION.search(narrative))
 
 
 def safe_clause(span: str) -> bool:
