@@ -2,9 +2,9 @@
   "metadata": {
     "report_kind": "runtime_quality",
     "not_a_runtime_quality_gate": false,
-    "generated_at": "2026-09-14T22:04:04.801494+00:00",
-    "commit": "4cf586a9dccf83cb0fc7b6fddc59c200a26b8c8d",
-    "code_sha256": "2174f19c05a0b72d248b87224f764fc4734bb184e3d53c0aae324cb152b4c83a",
+    "generated_at": "2026-09-17T07:07:23.943517+00:00",
+    "commit": "0a9071e5132b5e01c96a01daa3eabbe1d848b6b8",
+    "code_sha256": "b44591d92580f7e2c92e5a9bba3ce31d3ebf0a855f785cde3e57e39894f51ddb",
     "dataset_version": "1.0.0-rc1",
     "dataset_sha256": "16cb5c286a460cda4447ec1633ba4eb81f38cd08f58c7496cbbda65661334088",
     "evaluation_scope": "full_course_pack",
@@ -20,6 +20,13 @@
     "model_version": "behavior-rules-v3",
     "prompt_version": "provider-disabled",
     "provider_mode": "disabled",
+    "provider_completed_alert_count": null,
+    "category_counts": {
+      "positive": 20,
+      "multi_technique": 5,
+      "ambiguous": 5,
+      "negative": 5
+    },
     "python_version": "3.11.15",
     "dependency_versions": {
       "Pygments": "2.20.0",
@@ -111,6 +118,492 @@
     "Independent semantic validation and final subset approval remain outstanding."
   ],
   "disclaimer": "Advisory evaluation only. Dataset labels require review. Verbatim and behavior-rule checks are not independent expert semantic validation.",
+  "case_results": [
+    {
+      "alert_id": "eval-001",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-002",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.003"
+      ],
+      "predicted_technique_ids": [
+        "T1110.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-003",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1110.001"
+      ],
+      "predicted_technique_ids": [
+        "T1110.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-004",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-005",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.004"
+      ],
+      "predicted_technique_ids": [
+        "T1059.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-006",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1059.003"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-007",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-008",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1566.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-009",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-010",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-011",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1189"
+      ],
+      "predicted_technique_ids": [
+        "T1189"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-012",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1078",
+        "T1133"
+      ],
+      "match": "Miss",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-013",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1091"
+      ],
+      "predicted_technique_ids": [
+        "T1091"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-014",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1003.001"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-015",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1555.003"
+      ],
+      "predicted_technique_ids": [
+        "T1555.003"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-016",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1047"
+      ],
+      "predicted_technique_ids": [
+        "T1047"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-017",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1053.005"
+      ],
+      "predicted_technique_ids": [
+        "T1053.005"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-018",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1106"
+      ],
+      "predicted_technique_ids": [
+        "T1106"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-019",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1566.002"
+      ],
+      "predicted_technique_ids": [
+        "T1566.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-020",
+      "category": "positive",
+      "gold_technique_ids": [
+        "T1204.004"
+      ],
+      "predicted_technique_ids": [
+        "T1204.004"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-021",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.001",
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001",
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-022",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.003",
+        "T1204.002",
+        "T1566.001"
+      ],
+      "predicted_technique_ids": [
+        "T1059.003",
+        "T1204.002"
+      ],
+      "match": "Miss",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-023",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.004",
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1059.004",
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-024",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "predicted_technique_ids": [
+        "T1059.001",
+        "T1078",
+        "T1133"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-025",
+      "category": "multi_technique",
+      "gold_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1003.001",
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": false,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-026",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1110"
+      ],
+      "predicted_technique_ids": [
+        "T1110"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-027",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1059"
+      ],
+      "predicted_technique_ids": [
+        "T1059"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-028",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1204.002"
+      ],
+      "predicted_technique_ids": [
+        "T1204.002"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-029",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1078"
+      ],
+      "predicted_technique_ids": [
+        "T1078"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-030",
+      "category": "ambiguous",
+      "gold_technique_ids": [
+        "T1190"
+      ],
+      "predicted_technique_ids": [
+        "T1190"
+      ],
+      "match": "Exact",
+      "grounded": true,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-031",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-032",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-033",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-034",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    },
+    {
+      "alert_id": "eval-035",
+      "category": "negative",
+      "gold_technique_ids": [],
+      "predicted_technique_ids": [],
+      "match": "Exact",
+      "grounded": null,
+      "needs_human_review": true,
+      "out_of_subset_ids": []
+    }
+  ],
   "diagnostics": {
     "error_counts": {
       "extra_prediction": 1,
@@ -174,7 +667,27 @@
           ],
           "after_grounding": [
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -218,7 +731,27 @@
           ],
           "after_grounding": [
             "T1110.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -262,7 +795,27 @@
           ],
           "after_grounding": [
             "T1110.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -306,7 +859,27 @@
           ],
           "after_grounding": [
             "T1059.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -350,7 +923,27 @@
           ],
           "after_grounding": [
             "T1059.004"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -394,7 +987,27 @@
           ],
           "after_grounding": [
             "T1059.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -438,7 +1051,27 @@
           ],
           "after_grounding": [
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -482,7 +1115,27 @@
           ],
           "after_grounding": [
             "T1566.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -526,7 +1179,27 @@
           ],
           "after_grounding": [
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -570,7 +1243,27 @@
           ],
           "after_grounding": [
             "T1078"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -614,7 +1307,27 @@
           ],
           "after_grounding": [
             "T1189"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -673,7 +1386,27 @@
           "after_grounding": [
             "T1078",
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -717,7 +1450,27 @@
           ],
           "after_grounding": [
             "T1091"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -761,7 +1514,27 @@
           ],
           "after_grounding": [
             "T1003.001"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -805,7 +1578,27 @@
           ],
           "after_grounding": [
             "T1555.003"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -849,7 +1642,27 @@
           ],
           "after_grounding": [
             "T1047"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -893,7 +1706,27 @@
           ],
           "after_grounding": [
             "T1053.005"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -937,7 +1770,27 @@
           ],
           "after_grounding": [
             "T1106"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -981,7 +1834,27 @@
           ],
           "after_grounding": [
             "T1566.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1025,7 +1898,27 @@
           ],
           "after_grounding": [
             "T1204.004"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1083,7 +1976,27 @@
           "after_grounding": [
             "T1059.001",
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1144,7 +2057,27 @@
           "after_grounding": [
             "T1059.003",
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1202,7 +2135,27 @@
           "after_grounding": [
             "T1059.004",
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1274,7 +2227,27 @@
             "T1059.001",
             "T1078",
             "T1133"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1332,7 +2305,27 @@
           "after_grounding": [
             "T1003.001",
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1376,7 +2369,27 @@
           ],
           "after_grounding": [
             "T1110"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1420,7 +2433,27 @@
           ],
           "after_grounding": [
             "T1059"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1464,7 +2497,27 @@
           ],
           "after_grounding": [
             "T1204.002"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1508,7 +2561,27 @@
           ],
           "after_grounding": [
             "T1078"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1552,7 +2625,27 @@
           ],
           "after_grounding": [
             "T1190"
-          ]
+          ],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1577,7 +2670,27 @@
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1602,7 +2715,27 @@
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1627,7 +2760,27 @@
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1652,7 +2805,27 @@
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       },
       {
@@ -1677,7 +2850,27 @@
             "credential-access"
           ],
           "before_grounding": [],
-          "after_grounding": []
+          "after_grounding": [],
+          "semantic_provider_succeeded": null,
+          "parser_status": "not-used",
+          "router_status": "not-used",
+          "judge_status": "not-used",
+          "inferencer_status": "not-used",
+          "inferencer_provider": "offline",
+          "inferencer_model": "none",
+          "inferencer_fallback_reason": "none",
+          "confidence_source": "rule-score",
+          "inference_prompt_version": "none",
+          "parser_provider": "offline",
+          "router_provider": "offline",
+          "judge_provider": "none",
+          "parser_model": "none",
+          "router_model": "none",
+          "judge_model": "none",
+          "judge_fallback_reason": "none",
+          "fallback_reason": "none",
+          "fallback_used": false,
+          "evaluation_attempts": 1
         }
       }
     ],

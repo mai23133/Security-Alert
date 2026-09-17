@@ -2,7 +2,7 @@
 
 ผลล่าสุดสำหรับ Iteration 3: full pack 35 alerts ได้ Exact F1 และ parent recall
 **97.30%** ผ่าน numeric demo thresholds ทุกข้อ ผลจาก local run บน commit
-`4cf586a9dccf83cb0fc7b6fddc59c200a26b8c8d` ด้วย `behavior-rules-v3`
+`0a9071e5132b5e01c96a01daa3eabbe1d848b6b8` ด้วย `behavior-rules-v3`
 ดู metadata, dependency versions และ hashes ใน [runtime-final.json](docs/reports/runtime-final.json)
 
 ## เปรียบเทียบก่อน–หลังบน full pack เดียวกัน
@@ -46,6 +46,26 @@ Diagnostics เหลือ extra prediction 1 รายการ และ infe
 ผลใหม่มี `functional_demo_passed: true`, `quality_gates_passed: true`,
 F1/parent recall 97.30%, grounding 100% และ hallucinated IDs 0%
 นี่เป็นผล automated functional demo ไม่ใช่หลักฐานวิดีโอหรือการนำเสนอสด
+
+Test evidence ล่าสุดมี 199 tests, failures/errors/skipped เท่ากับ 0 ดู
+[tests.xml](docs/reports/tests.xml) และ release hashes ใน
+[release-manifest.json](docs/reports/release-manifest.json)
+
+## ผลประเมิน provider จริง
+
+วันที่ 17 กันยายน 2026 ได้ทดลอง strict full-set evaluation แยก provider โดยกำหนดว่า
+ทุก stage ต้องใช้ provider สำเร็จ และห้ามนับ offline fallback เป็นผล LLM:
+
+| Provider / model | Intended alerts | ผล | Metrics |
+| --- | ---: | --- | --- |
+| Gemini `gemini-3.5-flash-lite` | 35 | หยุดที่ `eval-005` หลัง retry 3 ครั้ง เพราะ rate limit; 4 alerts ก่อนหน้าผ่าน strict stages | ไม่คำนวณ เพื่อไม่สรุปจากชุดข้อมูลไม่ครบ |
+| OpenRouter `openrouter/free` | 35 | หยุดที่ `eval-001` หลัง retry 3 ครั้ง เพราะ rate limit | ไม่คำนวณ |
+
+ทั้งสอง provider ยืนยัน connectivity/key/consent ด้วย synthetic alert เท่านั้น แต่ยังไม่มี
+full-set LLM score ที่รับรอง จึงห้ามนำค่า offline 97.30% ไปอ้างเป็นคุณภาพ Gemini หรือ
+OpenRouter ดูหลักฐานแบบไม่เก็บ narrative/secret ที่
+[llm-gemini-full.json](docs/reports/llm-gemini-full.json) และ
+[llm-openrouter-full.json](docs/reports/llm-openrouter-full.json)
 
 รันจาก repository root หลังติดตั้ง dependencies ที่ตรึงไว้:
 

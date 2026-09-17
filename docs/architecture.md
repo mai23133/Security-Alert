@@ -1,55 +1,72 @@
 # สถาปัตยกรรมปัจจุบัน
 
-ตรวจ 7 กันยายน 2026: mai-work รวม A+B+C+D; [ข้อกำหนด](../security-alert-attack-technique-inference.md) หัวข้อ 5/6/7/8/10
+อัปเดต 17 กันยายน 2026 อ้างอิงข้อกำหนดหลักหัวข้อ Agent Architecture, Data Schemas, Knowledge Base, API Contract และ Security & Guardrails
 
-## เส้นทางข้อมูล
+## ภาพรวม
 
-~~~mermaid
+ระบบมีสามเส้นทางที่ใช้แกนกลางเดียวกัน:
+
+- **Offline / Rules** — BM25 + `behavior-rules-v3`; เป็นโหมดค่าเริ่มต้นและโหมดที่ผ่าน full gold-set evaluation
+- **Gemini** — ใช้ `gemini-3.5-flash-lite` กับ Parser, Router, LLM Inferencer และ LLM Grounding Judge
+- **OpenRouter** — ใช้ `OPENROUTER_MODEL` (ค่าเริ่มต้น `openrouter/free`) กับขั้น LLM เดียวกัน
+
+โหมดออนไลน์ใช้ provider ที่ผู้ใช้เลือกเพียงรายเดียว หากล้มเหลวจะ fallback เป็นกฎออฟไลน์ภายใน request และบังคับ human review โดยไม่สลับ provider เงียบ ๆ
+
+```mermaid
 flowchart TD
-    S["Pinned raw STIX 19.1"] --> ING["Offline ingestion"]
-    ING --> KB["Generated candidates + allowlist"]
-    KB --> R["BM25 ในหน่วยความจำ"]
-    U["UI หรือ API client"] --> V["FastAPI validation"]
-    V --> P["Parser"]
-    P --> T["Tactic router"]
-    T --> R
-    R --> I["Lexical inferencer สูงสุด 3 predictions"]
-    I --> E["Exact-substring evidence linker"]
-    E --> J["Judge คืน review flag"]
-    J --> O["ATTACKInferenceResult"]
-    P -. "เมื่อเปิด key" .-> G["Gemini provider"]
-    T -. "เมื่อเปิด key" .-> G
-~~~
+    STIX[Pinned Enterprise ATT&CK 19.1] --> ING[src/rag/ingest_stix.py]
+    ING --> SNAP[data/processed/kb_snapshot.json]
+    SNAP --> RET[src/rag/retriever.py]
+    UI[ui/src/App.tsx] --> API[src/api/routes/alerts.py]
+    API --> PIPE[src/inference_pipeline.py]
+    PIPE --> PARSE[Alert Parser]
+    PARSE --> ROUTE[Tactic Router]
+    ROUTE --> RET
+    RET --> INF{Inference mode}
+    INF -->|offline| RULE[technique_inferencer.py + behavior.py]
+    INF -->|gemini/openrouter| LLM[llm_technique_inferencer.py]
+    RULE --> LINK[evidence_linker.py]
+    LLM --> LINK
+    LINK --> GUARD[grounding_judge.py]
+    GUARD --> SEM[llm_grounding_judge.py เมื่อใช้ provider]
+    SEM --> RESULT[ATTACKInferenceResult]
+    GUARD --> RESULT
+```
 
-ไม่มี dense vector database; TextEmbedder ใช้ tokenize เท่านั้น embed() ยังคืน [] eval มี fixture/runtime runner และ /evaluate แล้ว; prompt files ยังเป็น placeholders
+## Knowledge Base และ lifecycle
 
-## Runtime
+`src/rag/ingest_stix.py` ตรวจ SHA-256 ของ `data/raw/enterprise-attack-19.1.json`, กรองเฉพาะ Initial Access, Execution และ Credential Access บน Windows/Linux และตัด revoked/deprecated ก่อน publish snapshot แบบ atomic
 
-1. main import alerts route ซึ่งโหลด RETRIEVER จาก processed files ก่อนรับ request จากนั้น main โหลด .env
-2. request ผ่าน Pydantic validation; UI ส่ง narrative ไป single endpoint
-3. parser คง narrative ต้นฉบับเสมอ router เลือก tactics ที่ผ่าน allowlist
-4. ไม่มี key/provider ใช้ไม่ได้ → parser lists ว่างและ router ค้นทุก tactic ใน scope ไม่ได้หยุด inference
-5. BM25 จัดอันดับจากชื่อและ description excerpt, กรอง allowlist/tactic, ตัด score≤0 และใช้ technique_id ตัดสินคะแนนเสมอ
-6. inferencer ใช้คำร่วมอย่างน้อยสองคำและ confidence heuristic ไม่เรียก LLM
-7. linker ตัด evidence ที่ไม่อยู่ใน narrative; judge ตรวจ structural conditions แล้วคืน bool เพื่อใส่ needs_human_review
+FastAPI lifespan ใน `src/api/main.py` เรียก `src/api/runtime.py:load_knowledge_base()` ครั้งเดียวตอน startup และตรวจ snapshot เทียบ pinned STIX จริง ทุก endpoint ใช้ retriever generation เดียวกัน หลัง rebuild ต้อง restart server `/ready` ตอบ 503 หาก KB ไม่พร้อม ส่วน `/` เป็น liveness
 
-ผลรวมอาจเปลี่ยนเมื่อเปิด provider เพราะ router เลือก tactic ต่างกันได้ คำว่า deterministic ใช้กับ retrieval/inference baseline เมื่อ input/candidates/mode เหมือนกัน ไม่ใช่รับประกัน live provider ซ้ำทุกครั้ง
+ค่าเริ่มต้นยังเป็น provisional subset 127 IDs เพื่อรักษาผล baseline จนกว่าผู้สอนจะอนุมัติ manifest 30–50 IDs
 
-## Lifecycle และ trust boundaries
+## Runtime และ trust boundaries
 
-- Raw STIX อยู่ใน Git; processed files ถูก ignore และสร้างด้วย ingestion ก่อนเปิด API/tests
-- API inference/search แชร์ retriever ตอน import; taxonomy อ่านไฟล์ใหม่ทุก request จึงต้อง restart หลัง rebuild
-- Request/LLM output เป็น untrusted; parser/router escape delimiters และ validate JSON แต่ไม่ใช่หลักประกัน semantic correctness
-- Judge คืน review flag ไม่ได้ sanitize prediction ทุกประเภทเอง; pipeline ใช้ candidate-bounded inferencer และ linker ร่วมกัน
-- Provider เป็น external boundary; ข้อมูลอาจออกนอกเครื่องเมื่อมี key ต้องผ่านนโยบาย sandbox ก่อนใช้ข้อมูลจริง
-- Async route เรียก synchronous SDK/pipeline; batch วนทีละ alert ยังไม่มี worker/total deadline
+1. Middleware จำกัด body, auth, rate limit, CORS, request ID และ total deadline
+2. Pydantic ใน `src/api/routes/alerts.py` ตรวจ input และเลือก `offline`, `gemini` หรือ `openrouter`
+3. `run_bounded()` ส่งงาน synchronous เข้า thread pool สูงสุด 4 งาน
+4. `run_inference()` orchestrate agents และตรวจ ID/name/tactic/URL/duplicate/จำนวนผลซ้ำ
+5. Alert และ output จาก provider ถือเป็น untrusted input เสมอ
+6. Online mode ต้องมี server-side key และ `PROVIDER_CONSENT=reviewed-synthetic-only`; prompt ผ่าน redaction ขั้นต้น
+7. ผลตอบกลับมี disclaimer และ `needs_human_review`; ระบบไม่ทำ automated response
 
 ## Evaluation architecture
 
-CLI หรือ /evaluate → eval/evaluator.py → validate dataset/allowlist → fixture หรือ run_inference(use_provider=False) → adapter candidates_considered เป็น candidates → eval/metrics.py → report
+`eval/run_eval.py` → `eval/evaluator.py` → `run_inference()` → `eval/metrics.py` → JSON report
 
-Runtime output ที่มี quality error ยังถูกส่งเข้า metrics ไม่ผ่าน strict fixture validator จึงวัด hallucinated IDs และ invalid evidence ได้ /evaluate รับเฉพาะ mode/top_k ของ bundled dataset และไม่เขียนไฟล์ Provider ถูกปิดแบบ explicit ใน evaluation โดย single/batch inference เดิมยังทำงานตาม key
+- `runtime`: ปิด provider อย่างชัดเจนและใช้ full gold set 35 alerts
+- `llm`: เลือก Gemini/OpenRouter และกำหนดให้ทุก stage สำเร็จจริง; fallback ทำให้ run ไม่ผ่าน
+- `fixture`: ตรวจ saved predictions และ metric plumbing
+- `diagnostics`: เก็บ ID, stage status และ evidence offset/hashโดยไม่เก็บ raw narrative
 
-## งานที่ยังไม่อยู่ใน architecture (คงเหลือ)
+ผลรับรองเชิงตัวเลขปัจจุบันเป็นของ Offline `behavior-rules-v3`: F1 97.30%, parent recall 97.30%, grounding 100%, hallucinated ID 0% ส่วน full LLM runs ยัง incomplete เพราะ provider rate limit
 
-locked evaluation dataset, semantic judge, calibrated confidence, operational privacy/auth/rate limiting และ dependency lock ดู [แผนงาน](WORK_PLAN_TH.md) ก่อนเปลี่ยน schema หรือ subset
+อ่านลำดับไฟล์และข้อมูลแบบละเอียดที่ [SYSTEM_FLOW_CODE_GUIDE_TH.md](SYSTEM_FLOW_CODE_GUIDE_TH.md)
+
+## ข้อจำกัดที่ยังเปิดอยู่
+
+- subset 127 IDs และ gold labels ยังรอการรับรอง
+- confidence เป็น rule support score หรือ LLM self-assessed score ไม่ใช่ calibrated probability
+- in-memory rate limit/auth เหมาะกับ course sandbox; production หลาย instance ต้องมี gateway
+- LLM full-set evaluation ยังไม่มี metrics ที่ครบชุด

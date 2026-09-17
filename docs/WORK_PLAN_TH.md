@@ -1,26 +1,34 @@
 # สถานะงานตามแผนปิดโครงการ
 
-อัปเดต 15 กันยายน 2026 บน mai-work โดยยึด [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md) และ [PROJECT_COMPLETION_PLAN_TH](PROJECT_COMPLETION_PLAN_TH.md)
+อัปเดต 17 กันยายน 2026 บน base commit `0a9071e` โดยยึด [ข้อกำหนดหลัก](../security-alert-attack-technique-inference.md)
 
-| งาน | ผลล่าสุด | งานคงเหลือ |
+| งาน | ผลปัจจุบัน | งานคงเหลือ |
 | --- | --- | --- |
-| KB/retrieval | ตรวจ pinned hash, atomic snapshot, metadata ครบ, full-description BM25 และ behavior reranking | approved subset 30–50 IDs และ retrieval misses ที่ยังเหลือ |
-| Inference/guardrails | behavior-rules-v3, contextual evidence, negation/ambiguity, candidate/ID/URL guard | independent semantic review/calibration |
-| API/security | lifespan, typed 503, bounded workers/deadline, auth/rate limit/CORS, safe logs, offline API | target deployment approval และ controls ระดับ gateway หาก deploy จริง |
-| Evaluation | 56 development cases, error taxonomy, confidence audit, fixture/full runtime gates | locked course dataset/gold review |
-| Acceptance | unit/integration tests, browser E2E, demo 5 ขั้น, clean-copy verification scripts และ numeric gates ผ่านในเครื่อง | final acceptance เมื่อ approval และ independent review ครบ |
+| KB/Retrieval | pinned STIX hash, atomic snapshot, metadata, BM25 + behavior reranking | ผู้สอนอนุมัติ subset 30–50 IDs หรืออนุมัติ 127 IDs |
+| Offline inference | `behavior-rules-v3`, contextual evidence, candidate/ID/URL guards | independent semantic review/calibration |
+| Online inference | Gemini/OpenRouter ครบ Parser → Router → Inferencer → Judge, consent/redaction/circuit breaker | full-set metrics หลังได้ quota ที่เพียงพอ |
+| API/Security | lifespan, typed errors, 4 workers, 60s default deadline, auth, rate limit, CORS, safe logs | gateway/HTTPS/distributed quota หาก deploy จริง |
+| Evaluation | 35 gold alerts, Iteration 2 comparison, diagnostics, prompt/model/hash metadata | locked labels และ independent review |
+| Acceptance | 199 tests, browser E2E, demo 5 ขั้น, clean-copy verification และ numeric gates ผ่าน | final course approval และ CI confirmation หลัง push |
+| Presentation | 10-minute script, 3-minute demo, model-results table | ซ้อมเวลาและ commit/push เอกสารล่าสุด |
 
-Full course pack: F1 97.30%, parent recall 97.30%, FPR 0%, hallucinated ID 0%, verbatim grounding 100%.
-Numeric quality gates ผ่านในเครื่องแล้ว แต่ห้ามสรุปว่าโครงการเสร็จ 100% จนกว่าจะมี approval และ independent review ตามข้อกำหนด.
+## ผลล่าสุด
 
-ดู [ไฟล์อธิบายสิ่งที่ทำทั้งหมด](PROJECT_COMPLETION_IMPLEMENTATION_TH.md), [decision record](PROJECT_COMPLETION_DECISIONS_TH.md) และ [หลักฐาน](reports/runtime-final.json)
+- Exact F1: 97.30% (เกณฑ์ ≥70%)
+- Parent recall: 97.30% (เกณฑ์ ≥90%)
+- Evidence grounding: 100% (เกณฑ์ ≥85%)
+- Hallucinated ID: 0%
+- False-positive rate บน negative controls 5 รายการ: 0%
+- Tests: 199 ผ่าน, failures/errors/skipped = 0
+
+ตัวเลขทั้งหมดเป็นผล Offline `behavior-rules-v3` บน full gold set 35 alerts ไม่ใช่คะแนน Gemini/OpenRouter
 
 ## ลำดับที่ยังต้องปิด
 
-1. ผู้สอนยืนยัน subset, composition, gold labels, parent credit, FPR threshold และ environment โดยบันทึกหลักฐานจริง
-2. ใช้ approved manifest ทำ ingestion และตรวจ snapshot/allowlist ให้ตรงกับ evaluation ก่อนล็อกข้อมูล
-3. ตรวจ regression และ diagnostics ที่ยังเหลือโดยไม่เปลี่ยน gold/threshold ให้เข้ากับ output
-4. ตรวจ semantic grounding และ confidence บนชุดข้อมูลที่ผู้ตรวจอิสระรับรอง
-5. รัน full runtime quality gates ซ้ำใน CI แล้วทำ acceptance/release ใน environment ที่อนุมัติ
+1. ผู้สอนยืนยัน subset, composition, gold labels, parent credit, FPR threshold และ target environment
+2. ทำ ingestion ด้วย approved manifest แล้วรัน full gates ใหม่โดยไม่เปลี่ยน gold/threshold ตาม output
+3. ให้ผู้ตรวจอิสระตรวจ semantic grounding และ confidence
+4. หากต้องการคะแนน LLM ให้ใช้ quota/model ที่ระบุแน่นอน แล้วรัน strict full-set ใหม่
+5. ยืนยัน CI/release หลัง commit/push
 
-ผลใน docs/reports เป็นผล local ไม่ใช่การรับรอง GitHub Actions หรือ deployment ภายนอก
+ผล local ผ่าน numeric gates แต่ `acceptance_ready` ยังเป็น false เพราะ approval สองรายการแรกยังไม่ครบ

@@ -1,5 +1,7 @@
 # สิ่งที่ทำไปแล้ว
 
+อัปเดต 17 กันยายน 2026
+
 เอกสารนี้สรุปงานที่ทำในโปรเจกต์ด้วยภาษาง่าย สำหรับอ่านก่อนดูรายงานเชิงเทคนิคฉบับเต็มใน [PROJECT_COMPLETION_IMPLEMENTATION_TH.md](PROJECT_COMPLETION_IMPLEMENTATION_TH.md)
 
 ## ระบบนี้ทำอะไร
@@ -36,6 +38,7 @@
 - รองรับ API key, rate limit และ CORS allowlist สำหรับการตั้งค่าตาม environment
 - Error response และ log ไม่สะท้อนข้อความ alert, secret, alert ID หรือ traceback ภายใน
 - ค่าเริ่มต้นทำงานแบบ offline และไม่ส่ง alert ไปยัง Gemini/provider
+- ผู้ใช้เลือก Gemini/OpenRouter ได้สำหรับ reviewed synthetic alerts; Online path มี LLM Inferencer/Judge, consent/redaction, circuit breaker และ offline fallback พร้อม human review
 - หน้า UI มี disclaimer, MITRE attribution, ปุ่มล้างข้อมูล และไม่ใช้ browser storage
 
 ### 4. เพิ่มการประเมินและการทดสอบ
@@ -51,7 +54,7 @@
 
 | รายการ | ผล |
 | --- | ---: |
-| Tests | 134 ผ่าน |
+| Tests | 199 ผ่าน |
 | Exact F1 | 97.30% — ผ่านเกณฑ์ 70% |
 | Parent recall | 97.30% — ผ่านเกณฑ์ 90% |
 | Hallucinated ID rate | 0% — ผ่าน |
@@ -59,6 +62,8 @@
 | False-positive rate ใน negative controls 5 รายการ | 0% |
 | Browser acceptance | ผ่าน |
 | Demo 5 ขั้น | ผ่านด้านการทำงาน |
+| Gemini full-set | Incomplete: rate-limit ที่ eval-005 หลัง 4 alerts ผ่าน strict stages |
+| OpenRouter full-set | Incomplete: rate-limit ที่ eval-001 |
 
 ## สิ่งที่ยังทำไม่เสร็จ
 
@@ -77,6 +82,8 @@
 - [Decision record ที่รอผู้สอนยืนยัน](PROJECT_COMPLETION_DECISIONS_TH.md)
 - [คู่มือ privacy และ deployment](DEPLOYMENT_PRIVACY_TH.md)
 - [ผลประเมิน runtime ล่าสุด](reports/runtime-final.json)
+- [ลำดับการทำงานตามไฟล์โค้ด](SYSTEM_FLOW_CODE_GUIDE_TH.md)
+- [ผลเปรียบเทียบโมเดล](MODEL_EVALUATION_RESULTS_TH.md)
 - [ผลทดสอบทั้งหมด](reports/tests.xml)
 
 ## วิธีตรวจซ้ำแบบสั้น

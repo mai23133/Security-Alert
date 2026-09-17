@@ -1,36 +1,40 @@
-# UI ที่ปรับจากกิ่ง ui-test
+# UI ปัจจุบัน
 
-อ้างอิง `ui/src/App.tsx` และ `ui/src/index.css` ของกิ่ง
-[ui-test](https://github.com/mai23133/Security-Alert/tree/ui-test/ui)
-นำรูปแบบ SOC workspace สองคอลัมน์ สี amber, sample picker, confidence bars,
-candidate drawer, scorecards, ตารางกรองผล และ guardrail cards มาปรับใช้
-ยังเปิดผ่าน `/ui` ได้โดยไม่ต้องติดตั้ง Node หรือ build frontend เพิ่ม
+อัปเดต 17 กันยายน 2026 UI หลักอยู่ที่ `ui/src/App.tsx`, build เป็น `ui/dist/` และ FastAPI ให้บริการที่ `/ui`
 
-ธีมเริ่มต้นเป็นสว่าง และมีปุ่มสลับเป็นธีมมืดตามต้นฉบับ
-ไม่เก็บการเลือกธีม, API key หรือ narrative ใน browser storage
+## Analyst Workspace
 
-## การใช้งานที่เชื่อมกับระบบจริง
+- รับ Alert แบบข้อความและ optional alert ID ตาม PRD
+- เลือก `Offline / Rules`, `Gemini 3.5 Flash-Lite` หรือ `OpenRouter`
+- แสดง Technique 0–3 รายการ, tactic, support score, evidence spans และ MITRE URL
+- แสดง `needs_human_review`, disclaimer และ MITRE ATT&CK Enterprise 19.1 attribution
+- เปิด candidate drawer เพื่อดู top-5 ที่ Retriever พิจารณา
+- แสดงสถานะ Parser/Router/Inferencer/Judge, provider/model, fallback reason และ confidence source จาก response headers
+- ไม่ส่ง API key จาก browser; key อยู่ฝั่ง serverเท่านั้น
 
-- Analyst Workspace เรียก `/alerts/infer`, แสดง evidence และ review จาก API
-- Candidate drawer แสดง candidates ที่ใช้จริงพร้อมลำดับและ tactic
-- Full Evaluation เรียก `/evaluate` ด้วย `diagnostics: true` เพื่อแสดง 35 records
-- กรอง All / Exact / Parent / Miss จากชุด gold/predicted IDs จริง; Exact ต้องตรงทั้งชุด
-- Prompt injection ส่งข้อความจำลองที่ขอ T9999 และ system prompt ผ่าน inference
-  PASS เฉพาะเมื่อไม่คืน prediction และตั้ง human review; ไม่อ้างว่าป้องกันทุก payload ได้
-- Status ตรวจ `/ready` และรองรับ API key ที่กรอกใน workspace
+## Evaluation dashboard
 
-กิ่งต้นฉบับมี evaluation rows, คะแนน, จำนวน injection tests และ calibration/leakage
-metrics แบบ hard-coded จึงนำรูปแบบมาเชื่อมกับข้อมูลที่มีจริงแทน
-Guardrail cards ด้าน scope/privacy อธิบาย policy ไม่ใช่ผล security audit
-No-match ไม่ได้หมายความว่า alert ปลอดภัยแน่นอน และ confidence เป็นคะแนนตามกฎ
+เรียก `/evaluate` ใน `runtime` mode ซึ่งปิด provider และใช้ bundled synthetic gold set 35 alerts แสดง Exact F1, Parent Recall, Grounding และ Hallucinated ID พร้อมตาราง Exact/Parent/Miss
 
-## API compatibility และข้อจำกัด
+คะแนน 97.30% เป็นผล Offline `behavior-rules-v3` ไม่ใช่ Gemini/OpenRouter ดู [MODEL_EVALUATION_RESULTS_TH.md](MODEL_EVALUATION_RESULTS_TH.md)
 
-เพิ่ม optional boolean `diagnostics` ใน `/evaluate` ค่าเริ่มต้น false
-request เดิมยังใช้ได้ diagnostics คืนเฉพาะ bundled synthetic dataset
-โดยมี IDs และ evidence offsets/hash ไม่มี narrative หรือ evidence ดิบเพิ่ม
-Schema ผล inference, pinned STIX 19.1 และขอบเขตสาม tactics คงเดิม
-ไม่ย้าย mock IDs นอกขอบเขต, version สมมติ หรือ dependency ของ React/Tailwind เข้ามา
+## Guardrails ที่มองเห็นได้
 
-การตรวจ browser ครอบคลุมผล inference/evidence, benign, error, evaluation/filter,
-injection probe, theme toggle และ mobile overflow ผ่าน `scripts/browser_acceptance.py`
+- no-match ไม่ถูกนำเสนอว่าเป็นการรับรองว่า benign
+- score แยก `RULE SUPPORT SCORE` กับ `LLM SUPPORT SCORE` และระบุว่าไม่ใช่ calibrated probability
+- prompt-injection probe ต้องไม่สร้าง T9999 และต้องส่ง review
+- ปุ่ม Clear ล้าง state; UI ไม่ใช้ localStorage/sessionStorage
+- online provider failure แสดง fallback reason โดยไม่แสดง raw exception/secret
+
+## การ build และทดสอบ
+
+```bash
+npm run build --prefix ui
+PLAYWRIGHT_BROWSERS_PATH=/tmp/security-alert-browsers \
+  .venv/bin/python scripts/browser_acceptance.py \
+  --output docs/reports/browser-acceptance.json
+```
+
+Browser acceptance ล่าสุดผ่าน mode selector, inference/evidence, candidates, benign no-match, provider-safe fallback, LLM score rendering, evaluation dashboard, disclaimer, no browser storage และ theme screenshots
+
+UI นี้เป็น dashboard สำหรับ alert text ตาม PRD จึงไม่จำเป็นต้องทำ upload/chat เพิ่ม เว้นแต่ข้อกำหนดเปลี่ยน

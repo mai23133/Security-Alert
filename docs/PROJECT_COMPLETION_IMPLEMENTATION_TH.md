@@ -1,6 +1,6 @@
 # สรุปการดำเนินงานตาม PROJECT_COMPLETION_PLAN_TH
 
-อัปเดต 15 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f` บน `mai-work`
+อัปเดต 17 กันยายน 2026 — ต่อจาก baseline commit `0be7a1092ed46d0d34d4b5df1de28ea33d39370f`; หลักฐานล่าสุดอ้าง base commit `0a9071e`
 
 ดำเนินส่วน implementation, tests, evaluation และเอกสารตามแผนแล้วหลายส่วน โดย numeric quality gates ผ่านในเครื่องแล้ว แต่ **ยังไม่ครบ 100% ตาม Definition of Done**: subset/gold labels ยังไม่มีหลักฐานอนุมัติ และยังไม่ได้ตรวจ semantic grounding/calibration โดยผู้ตรวจอิสระ
 
@@ -39,6 +39,9 @@ Human-review rate ล่าสุด 31.43%, tactic accuracy 97.14%; diagnostics
 6. ทำไฟล์สรุปฉบับนี้และปรับ README, WORK_PLAN, decision record และแผนให้แสดงสถานะจริง
 7. เพิ่มกฎทั่วไปสำหรับ phishing attachment, external remote service, valid accounts, removable media, user execution และ exploit public-facing application พร้อมแก้ actor binding ของ User Execution
 8. เพิ่ม development fixtures เป็น 56 records (`development-3`) และ regression tests สำหรับรูปแบบใหม่/ambiguity จากนั้นรัน full runtime gates จนผ่านโดยไม่แก้ gold labels หรือ threshold
+9. เพิ่ม selectable Gemini/OpenRouter pipeline ครบ Parser, Router, LLM Technique Inferencer และ LLM Grounding Judge พร้อม candidate/evidence validation, consent/redaction, circuit breaker และ safe fallback
+10. เพิ่ม strict LLM evaluation mode ที่ไม่ยอมรับ offline fallback; Gemini/OpenRouter full runs ถูกบันทึกเป็น incomplete เมื่อ provider rate-limit โดยไม่สร้าง partial score
+11. เพิ่ม UI mode selector, provider-stage diagnostics, score-source label และ browser acceptance สำหรับ safe fallback/LLM rendering
 
 ## สถานะเทียบแผนทุกขั้น
 
@@ -65,7 +68,7 @@ Runtime อ่าน `kb_snapshot.json` ไฟล์เดียวที่ pub
 Server ถือ generation เดิมจน restart เพื่อให้ taxonomy และ inference ใช้ข้อมูลชุดเดียวกัน
 
 Retriever ใช้ full-description BM25, aliases ของศัพท์ security และ behavior reranking หลังกรอง allowlist/tactics
-Weighted query รับเฉพาะ actions/IOCs ที่เป็น substring ของ narrative เพื่อไม่ให้ annotation จาก provider เพิ่มคำที่ไม่อยู่ใน input ค่า top-k เริ่มต้นยังเป็น 5; development Recall@3/5 ผ่าน แต่ course Recall@5 ยังมีช่องว่าง
+Weighted query รับเฉพาะ actions/IOCs ที่เป็น substring ของ narrative เพื่อไม่ให้ annotation จาก provider เพิ่มคำที่ไม่อยู่ใน input ค่า top-k เริ่มต้นยังเป็น 5; full course Recall@5 ล่าสุด 100%
 โหมด offline ปัจจุบัน parser fallback คืน annotations ว่าง จึงยังใช้ประโยชน์จาก weighted actions/IOCs ไม่เต็มที่
 
 ### Inference, evidence และ review
@@ -77,16 +80,18 @@ Linker ตรวจทั้ง span แบบ verbatim, พฤติกรร�
 Judge ส่ง review เมื่อ no-match, confidence ต่ำ, พบ prompt injection/ambiguity หรือมี candidate ที่ยังแข่งขันกัน
 คะแนน 0.82/0.60/0.55 และ threshold 0.80 เป็น policy score; UI ระบุว่าไม่ใช่ probability การ audit confidence bins บน development ไม่ทดแทน independent calibration
 
+Online path ใช้ `llm_technique_inferencer.py` เลือกเฉพาะ retrieved IDs และ evidence indices จากนั้น `llm_grounding_judge.py` คืน accept/reject/review ที่จำกัดด้วย schema หาก provider/Judge ล้มเหลว Pipeline ไม่เผย unreviewed LLM proposal แต่กลับไป conservative rules result และ human review
+
 ### API และ privacy
 
 - API เปิดได้แม้ KB หาย; `/ready` และ routes ที่ต้องใช้ KB ตอบ typed 503
-- Inference/RAG/evaluation ทำงานผ่าน worker จำกัด 4 งานต่อ process และ deadline รวมเริ่มต้น 15 วินาที
+- Inference/RAG/evaluation ทำงานผ่าน worker จำกัด 4 งานต่อ process และ deadline รวมเริ่มต้น 60 วินาที (ปรับได้สูงสุด 120)
 - Thread ที่ timeout ยังคงครอง slot จนจบ ป้องกันการสะสมงานค้างไม่จำกัด
 - Batch รักษาลำดับ; item failure เป็น no-match/review ตาม contract เดิม ส่วน deadline รวมตอบ 504
 - จำกัด request body, narrative และ batch; validation error ไม่สะท้อน input
 - มี API-key auth เมื่อตั้งค่า, per-IP/process rate limit และ explicit CORS allowlist
 - Structured logs เก็บเฉพาะ route template/status/latency/server-generated request ID; ไม่มี narrative, alert ID หรือ exception traceback
-- API offline เสมอและไม่โหลด .env อัตโนมัติ; provider wrapper สำหรับการทดลองโดยตรงต้องมี consent และมี redaction ขั้นต้น
+- API ไม่โหลด `.env` อัตโนมัติ; request เลือก `offline` (default), `gemini` หรือ `openrouter` ได้ Online mode ต้องมี server-side key และ explicit consent ใช้เฉพาะ reviewed synthetic data พร้อม redaction ขั้นต้น
 - UI มีปุ่มล้างข้อมูล, ไม่มี local/session storage, แสดง disclaimer และ MITRE attribution
 
 อ่านค่าตั้งและข้อจำกัดใน [DEPLOYMENT_PRIVACY_TH](DEPLOYMENT_PRIVACY_TH.md)
@@ -101,7 +106,7 @@ CI เพิ่ม development runtime gate, Chromium acceptance และ full 
 
 ## ผลตรวจและ artifacts
 
-Tests ล่าสุด: **134 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
+Tests ล่าสุด: **199 passed**, ไม่มี failures/errors/skips ดู [JUnit](reports/tests.xml)
 Development มี 56 records และผ่าน numeric gates ด้วย F1/parent recall 100% แต่เป็นข้อมูลที่ผู้พัฒนาสร้างเพื่อทดสอบ ไม่ใช่ independent holdout
 
 | หลักฐาน | ไฟล์/คำสั่ง |

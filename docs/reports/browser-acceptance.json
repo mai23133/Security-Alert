@@ -1,19 +1,21 @@
 {
   "passed": true,
   "checks": [
-    "empty_input",
+    "mode_selector_and_empty_input_guard",
     "loading",
     "actual_api_multi_technique",
     "evidence",
     "top_5_candidates",
+    "offline_provider_status",
     "benign_no_match_review",
-    "error_state_simulated_503",
+    "gemini_safe_fallback_without_key",
+    "judge_offline_reason_visible",
+    "openrouter_independent_mode_safe_fallback",
+    "mock_llm_score_source_and_inferencer_status",
     "disclaimer_attribution",
     "clear_no_browser_storage",
     "actual_api_evaluation_quality_gates",
-    "real_evaluation_rows_and_filters",
-    "actual_injection_probe",
-    "theme_and_mobile_layout"
+    "theme_screenshots"
   ],
   "provider_mode": "disabled",
   "synthetic_data_only": true
