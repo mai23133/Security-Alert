@@ -7,7 +7,7 @@ produce an empty, review-safe parse rather than leaking an exception.
 import json
 from collections.abc import Callable
 
-from src.agents.gemini_client import generate_text
+from src.agents.provider_chain import generate_text
 from src.schemas import ParsedAlert
 
 SYSTEM_PROMPT = """You are a security alert parser. Extract structured information from security alert narratives.
@@ -49,10 +49,13 @@ def _untrusted_payload(narrative: str) -> str:
 
 
 def parse_alert(
-    narrative: str, *, generate: TextGenerator = generate_text
+    narrative: str, *, generate: TextGenerator = generate_text,
+    trace: dict | None = None,
 ) -> ParsedAlert:
     """Return a structured alert or an empty safe parse on provider failure."""
     if not narrative.strip():
+        if trace is not None:
+            trace["provider_succeeded"] = False
         return _empty_parse(narrative)
 
     prompt = (
@@ -62,14 +65,21 @@ def parse_alert(
     try:
         data = _json_payload(generate(prompt))
         if not isinstance(data, dict):
+            if trace is not None:
+                trace["provider_succeeded"] = False
             return _empty_parse(narrative)
-        return ParsedAlert(
+        parsed = ParsedAlert(
             narrative=narrative,
             assets=data.get("assets", []),
             observed_actions=data.get("observed_actions", []),
             iocs=data.get("iocs", []),
         )
+        if trace is not None:
+            trace["provider_succeeded"] = True
+        return parsed
     except Exception:
+        if trace is not None:
+            trace["provider_succeeded"] = False
         return _empty_parse(narrative)
 
 

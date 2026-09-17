@@ -54,7 +54,10 @@ def candidates_file(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    app.dependency_overrides[get_retriever] = lambda: SimpleNamespace(candidates=[TechniqueCandidate(**c) for c in candidates])
+    async def override_retriever():
+        return SimpleNamespace(candidates=[TechniqueCandidate(**c) for c in candidates])
+
+    app.dependency_overrides[get_retriever] = override_retriever
     yield test_file
     app.dependency_overrides.pop(get_retriever, None)
 

@@ -43,7 +43,11 @@ class FakeRetriever:
 
 async def test_rag_search_uses_validated_parameters(client, monkeypatch):
     retriever = FakeRetriever()
-    monkeypatch.setitem(app.dependency_overrides, get_retriever, lambda: retriever)
+
+    async def override_retriever():
+        return retriever
+
+    monkeypatch.setitem(app.dependency_overrides, get_retriever, override_retriever)
 
     response = await client.post(
         "/rag/search",
@@ -79,7 +83,11 @@ async def test_rag_search_rejects_invalid_input(client, payload):
 
 async def test_rag_search_treats_empty_tactic_as_all_scope(client, monkeypatch):
     retriever = FakeRetriever()
-    monkeypatch.setitem(app.dependency_overrides, get_retriever, lambda: retriever)
+
+    async def override_retriever():
+        return retriever
+
+    monkeypatch.setitem(app.dependency_overrides, get_retriever, override_retriever)
 
     response = await client.post(
         "/rag/search",

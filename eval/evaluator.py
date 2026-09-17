@@ -50,19 +50,44 @@ def _commit() -> str | None:
         return None
 
 
-def runtime_predictions(dataset: dict, retriever, *, top_k: int = 5, traces: dict | None = None) -> dict:
+def runtime_predictions(dataset: dict, retriever, *, top_k: int = 5, traces: dict | None = None,
+                        provider: str | None = None, require_provider_success: bool = False,
+                        provider_attempts: int = 3) -> dict:
     from src.inference_pipeline import run_inference
 
     predictions = []
     for alert in dataset["alerts"]:
-        trace = {}
-        result = run_inference(
-            alert_id=alert["alert_id"], narrative=alert["narrative"],
-            retriever=retriever, top_k=top_k, use_provider=False,
-            **({"trace": trace} if traces is not None else {}),
-        )
+        failed = []
+        for attempt in range(1, provider_attempts + 1 if require_provider_success else 2):
+            trace = {}
+            result = run_inference(
+                alert_id=alert["alert_id"], narrative=alert["narrative"],
+                retriever=retriever, top_k=top_k, use_provider=provider is not None,
+                provider=provider or "gemini", trace=trace,
+            )
+            stages = {
+                "parser": trace.get("parser_status"),
+                "router": trace.get("router_status"),
+                "inferencer": trace.get("inferencer_status"),
+                "judge": trace.get("judge_status"),
+            }
+            allowed = {
+                "parser": {"success"}, "router": {"success"},
+                "inferencer": {"success", "skipped-no-candidates"},
+                "judge": {"success", "skipped-no-predictions", "skipped-guardrail"},
+            }
+            failed = [name for name, status in stages.items() if status not in allowed[name]]
+            if not require_provider_success or not failed:
+                trace["evaluation_attempts"] = attempt
+                break
         if traces is not None:
             traces[alert["alert_id"]] = trace
+        if require_provider_success and failed:
+            reason = trace.get("fallback_reason", "provider-error")
+            raise ValueError(
+                f"LLM evaluation provider did not complete alert {alert['alert_id']} "
+                f"after {provider_attempts} attempts; stages={','.join(failed)} reason={reason}"
+            )
         # Validate structure, but retain quality errors (e.g. unknown IDs) for metrics.
         checked = ATTACKInferenceResult.model_validate(result).model_dump()
         if checked["alert_id"] != alert["alert_id"]:
@@ -108,21 +133,45 @@ def _select_iteration_subset(
     )
 
 
+def classify_case_match(gold: set[str], predicted: set[str]) -> str:
+    """Classify a case without hiding missing or unrelated multi-label predictions."""
+    if predicted == gold:
+        return "Exact"
+
+    accepted_predictions = gold | {
+        technique_id.split(".", 1)[0] if "." in technique_id else technique_id
+        for technique_id in gold
+    }
+    every_gold_is_covered = all(
+        technique_id in predicted
+        or ("." in technique_id and technique_id.split(".", 1)[0] in predicted)
+        for technique_id in gold
+    )
+    if every_gold_is_covered and predicted <= accepted_predictions:
+        return "Parent"
+    return "Miss"
+
+
 def create_report(
-    *, mode: Literal["fixture", "runtime"] = "runtime", top_k: int = 5,
+    *, mode: Literal["fixture", "runtime", "llm"] = "runtime", top_k: int = 5,
     dataset_path: Path = DEFAULT_DATASET,
     predictions_path: Path = DEFAULT_PREDICTIONS,
     allowlist_path: Path = DEFAULT_ALLOWLIST,
     subset_path: Path | None = None,
     retriever=None, development: bool = False, diagnostics: bool = False,
+    provider: Literal["gemini", "openrouter"] | None = None,
 ) -> dict:
-    if mode not in {"fixture", "runtime"}:
-        raise ValueError("mode must be fixture or runtime")
+    if mode not in {"fixture", "runtime", "llm"}:
+        raise ValueError("mode must be fixture, runtime or llm")
+    if mode == "llm" and provider not in {"gemini", "openrouter"}:
+        raise ValueError("LLM evaluation requires provider gemini or openrouter")
+    if mode != "llm" and provider is not None:
+        raise ValueError("provider is valid only for LLM evaluation")
     if isinstance(top_k, bool) or not isinstance(top_k, int) or not 1 <= top_k <= 25:
         raise ValueError("top_k must be an integer from 1 to 25")
     dataset = _json(dataset_path)
-    if development and (mode != "runtime" or subset_path is not None):
-        raise ValueError("Development evaluation requires runtime mode and the full development set")
+    if development and (mode not in {"runtime", "llm"} or subset_path is not None):
+        raise ValueError("Development evaluation requires runtime/llm mode and the full development set")
     canonical_ids = sorted(retriever.allowlist_ids) if retriever else _json(DEFAULT_ALLOWLIST)
     supplied_ids = _json(allowlist_path)
     snapshot_ids = _json(SNAPSHOT)
@@ -155,10 +204,25 @@ def create_report(
             raise ValueError("candidate IDs differ from pinned allowlist")
         if any(item.stix_version != "19.1" for item in retriever.candidates):
             raise ValueError("candidate version differs from pinned STIX")
-        predictions = runtime_predictions(dataset, retriever, top_k=top_k, traces=traces if diagnostics else None)
-        from src.agents.behavior import VERSION
-        model_version = VERSION
-        prompt_version = "provider-disabled"
+        capture_traces = diagnostics or mode == "llm"
+        predictions = runtime_predictions(
+            dataset, retriever, top_k=top_k,
+            traces=traces if capture_traces else None,
+            provider=provider if mode == "llm" else None,
+            require_provider_success=mode == "llm",
+        )
+        if mode == "llm":
+            from src.agents.gemini_client import GEMINI_MODEL
+            from src.agents.openrouter_client import OPENROUTER_MODEL
+            from src.agents.llm_technique_inferencer import PROMPT_VERSION
+            import os
+            model_version = (GEMINI_MODEL if provider == "gemini"
+                             else os.getenv("OPENROUTER_MODEL", OPENROUTER_MODEL))
+            prompt_version = PROMPT_VERSION
+        else:
+            from src.agents.behavior import VERSION
+            model_version = VERSION
+            prompt_version = "provider-disabled"
         prediction_hash = hashlib.sha256(
             json.dumps(predictions, sort_keys=True).encode()
         ).hexdigest()
@@ -167,7 +231,7 @@ def create_report(
     )
     records = build_records(selected_dataset, selected_predictions)
     metrics = evaluate(records, allowlist)
-    if mode == "runtime":
+    if mode in {"runtime", "llm"}:
         from src.agents.behavior import contextual_span_valid
         predictions_flat = [(r, p) for r in records for p in r["inferred_techniques"]]
         metrics["behavior_evidence_rate"] = sum(bool(p["evidence_spans"]) and all(
@@ -182,13 +246,7 @@ def create_report(
     for record in records:
         gold = set(record["gold_technique_ids"])
         predicted = {item["technique_id"] for item in record["inferred_techniques"]}
-        if predicted == gold:
-            match = "Exact"
-        elif any("." in technique_id and technique_id.split(".", 1)[0] in predicted
-                 for technique_id in gold):
-            match = "Parent"
-        else:
-            match = "Miss"
+        match = classify_case_match(gold, predicted)
         predictions_for_case = record["inferred_techniques"]
         grounded = None if not predictions_for_case else all(
             isinstance(item.get("evidence_spans"), list)
@@ -213,12 +271,13 @@ def create_report(
         "grounding_at_least_0_85": metrics["evidence_grounding_rate"] >= 0.85,
         "hallucinated_id_rate_is_zero": metrics["hallucinated_id_rate"] == 0.0,
     }
-    if mode == "runtime":
+    if mode in {"runtime", "llm"}:
         gates["behavior_evidence_at_least_0_85"] = metrics["behavior_evidence_rate"] >= 0.85
     report = {
         "metadata": {
-            "report_kind": "fixture_validation" if mode == "fixture" else "runtime_quality",
-            "not_a_runtime_quality_gate": mode == "fixture",
+            "report_kind": ({"fixture": "fixture_validation", "runtime": "runtime_quality",
+                             "llm": "llm_quality_observation"}[mode]),
+            "not_a_runtime_quality_gate": mode != "runtime",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "commit": _commit(),
             "code_sha256": _code_hash(),
@@ -236,7 +295,8 @@ def create_report(
             "prediction_sha256": prediction_hash,
             "model_version": model_version,
             "prompt_version": prompt_version,
-            "provider_mode": "disabled",
+            "provider_mode": provider if mode == "llm" else "disabled",
+            "provider_completed_alert_count": len(traces) if mode == "llm" else None,
             "category_counts": {
                 category: sum(record["category"] == category for record in records)
                 for category in ("positive", "multi_technique", "ambiguous", "negative")
@@ -245,10 +305,12 @@ def create_report(
             "dependency_versions": dict(sorted((d.metadata["Name"], d.version) for d in distributions())),
             "prompt_sha256": {str(p.relative_to(PROJECT_ROOT)): _hash(p) for p in sorted((PROJECT_ROOT / "prompts").rglob("*.txt"))},
             "snapshot_sha256": hashlib.sha256(json.dumps(retriever.snapshot, sort_keys=True).encode()).hexdigest() if retriever else None,
-            "top_k": top_k if mode == "runtime" else None,
+            "top_k": top_k if mode in {"runtime", "llm"} else None,
             "parent_match_credit": PARENT_MATCH_CREDIT,
             "grounding_kind": "exact_substring_only",
-            "additional_grounding_kind": "clause_behavior_rules" if mode == "runtime" else None,
+            "additional_grounding_kind": ("llm_semantic_judge_with_deterministic_guards"
+                                          if mode == "llm" else
+                                          "clause_behavior_rules" if mode == "runtime" else None),
         },
         "metrics": metrics,
         "quality_gates": gates,
@@ -263,7 +325,7 @@ def create_report(
         # Safe UI summary: no narratives or evidence text leave the evaluator.
         "case_results": case_results,
     }
-    if diagnostics and mode == "runtime":
+    if diagnostics and mode in {"runtime", "llm"}:
         from eval.diagnostics import analyze
         report["diagnostics"] = analyze(records, traces, retriever)
     return report

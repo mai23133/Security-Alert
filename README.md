@@ -46,7 +46,13 @@ GOOGLE_API_KEY='' GEMINI_API_KEY='' python -m uvicorn src.api.main:app --host 12
 
 เปิด http://127.0.0.1:8000/ui สำหรับกรอก alert เดี่ยว หรือ http://127.0.0.1:8000/docs สำหรับ API docs
 
-API ไม่โหลด .env โดยอัตโนมัติและใช้ offline pipeline เสมอ แม้ process จะมี Gemini key; parser คง narrative และ router ค้นสาม tactics ส่วน BM25 กับ behavior inferencer ทำงานในเครื่อง การทดลอง provider โดยตรงนอก API ต้องมี consent สำหรับข้อมูลจำลองที่ตรวจแล้วตามคู่มือ privacy
+เลือกโหมดได้แยกกัน: `Offline / Rules`, `Gemini 3.5 Flash-Lite` (`gemini-3.5-flash-lite`) และ `OpenRouter` (`OPENROUTER_MODEL` ค่าเริ่มต้น `openrouter/free`) แต่ละโหมดออนไลน์ใช้เฉพาะ provider ที่เลือก หากเกิดปัญหาจะ fallback เป็น local rules โดยไม่สลับไป provider อื่น เมื่อ LLM Judge ล้มเหลว UI จะแสดงหมายเหตุสาเหตุ เช่น โควตาหมด, timeout หรือคำตอบผิดรูปแบบ พร้อมให้มนุษย์ตรวจสอบ สำหรับ AI demo ให้คัดลอกค่าจาก `.env.example` ไป `.env`, ใส่ `GOOGLE_API_KEY` หรือ `OPENROUTER_API_KEY` ตามโหมดที่ใช้, ตั้ง `PROVIDER_CONSENT=reviewed-synthetic-only` และเปิด server ด้วย `--env-file .env` ใช้เฉพาะข้อมูลจำลองที่ตรวจแล้วตามคู่มือ privacy โหมด Offline ไม่เรียก provider แม้ process จะมี key
+
+โหมดออนไลน์ใช้ LLM ใน Parser → Router → **Technique Inferencer** → Grounding Judge โดย Inferencer อ่าน log และ retrieved candidates เพื่อเลือก ID, คะแนน และหมายเลขช่วงหลักฐาน ระบบเชื่อมหลักฐานกลับข้อความต้นฉบับและตรวจ ID/บริบทก่อน Judge จึงไม่จำเป็นต้องตรง positive keyword ของกฎออฟไลน์ คะแนนแสดงเป็น `LLM SUPPORT SCORE` หรือ `RULE SUPPORT SCORE` บนสเกล 0–100 และยังไม่ใช่ความน่าจะเป็นที่สอบเทียบแล้ว หาก Inferencer หรือ Judge ล้มเหลว จะระบุเหตุผลและใช้ผล/คะแนนจากกฎออฟไลน์ พร้อมบังคับ human review การประเมิน `/evaluate` ยังเป็น offline baseline ไม่ใช่ผลประเมินคุณภาพ LLM
+
+~~~bash
+.venv/bin/python -m uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --no-access-log --env-file .env
+~~~
 
 ## ระบบทำอะไรได้
 

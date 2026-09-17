@@ -113,6 +113,15 @@ def clauses(narrative: str) -> list[str]:
 def safe_clause(span: str) -> bool:
     # 'without preauthentication' describes AS-REP roasting, not negation.
     checked = re.sub(r"without pre.?authentication", "preauthentication disabled", span, flags=re.I)
+    # Negated authorization is suspicious context, not evidence that an action
+    # was benign: "no approved deployment" and "not authorized" must not be
+    # classified like "approved deployment" or "authorized activity".
+    checked = re.sub(
+        r"\b(?:no|not|without)\s+(?:an?\s+)?(?:approved|authorized)\b",
+        "unapproved",
+        checked,
+        flags=re.I,
+    )
     return not (INJECTION.search(checked) or BENIGN.search(checked) or NEGATED.search(checked))
 
 

@@ -17,6 +17,15 @@ def test_context_rejects_mention_negation_benign_and_instruction(text):
     assert not evidence(text, "T1059.001")
 
 
+def test_negated_authorization_is_suspicious_not_benign():
+    from src.agents.behavior import safe_clause
+    assert safe_clause("No approved software deployment was scheduled at the time.")
+    assert safe_clause("The PowerShell execution was not authorized by an administrator.")
+    assert safe_clause("PowerShell ran without an approved change request.")
+    assert not safe_clause("An approved software deployment executed PowerShell.")
+    assert not safe_clause("An authorized administrator executed PowerShell.")
+
+
 def test_partial_span_cannot_remove_negation():
     assert not contextual_span_valid("The host never executed PowerShell.", "executed PowerShell", "T1059.001", "PowerShell")
 

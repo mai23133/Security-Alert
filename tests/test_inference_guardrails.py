@@ -129,3 +129,19 @@ def test_router_escapes_user_controlled_prompt_delimiters():
 
     assert prompts[0].count("</untrusted_alert>") == 1
     assert "\\u003c/untrusted_alert>" in prompts[0]
+
+
+def test_parser_and_router_report_provider_success_or_fallback():
+    parser_trace = {}
+    router_trace = {}
+    failed_trace = {}
+    parsed = parse_alert(
+        "Host executed PowerShell", trace=parser_trace,
+        generate=lambda _prompt: '{"assets":[],"observed_actions":["executed PowerShell"],"iocs":[]}',
+    )
+    route_tactics(parsed, trace=router_trace, generate=lambda _prompt: '["execution"]')
+    parse_alert("alert", trace=failed_trace, generate=lambda _prompt: "not json")
+
+    assert parser_trace == {"provider_succeeded": True}
+    assert router_trace == {"provider_succeeded": True}
+    assert failed_trace == {"provider_succeeded": False}

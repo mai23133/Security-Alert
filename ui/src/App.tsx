@@ -64,6 +64,40 @@ interface InferenceResult {
   disclaimer: string;
 }
 
+interface ProviderStatus {
+  inferencer: string;
+  inferencerProvider: string;
+  inferencerModel: string;
+  inferencerFallbackReason: string;
+  confidenceSource: string;
+  parser: string;
+  router: string;
+  judge: string;
+  parserProvider: string;
+  routerProvider: string;
+  judgeProvider: string;
+  parserModel: string;
+  routerModel: string;
+  judgeModel: string;
+  fallbackUsed: boolean;
+  fallbackReason: string;
+  judgeFallbackReason: string;
+}
+
+function fallbackExplanation(reason: string): string {
+  return ({
+    "rate-limited": "ผู้ให้บริการจำกัดคำขอหรือโควตาหมด",
+    "timeout": "ผู้ให้บริการตอบกลับเกินเวลาที่กำหนด",
+    "network-error": "เชื่อมต่อผู้ให้บริการไม่ได้",
+    "temporary-error": "ผู้ให้บริการขัดข้องชั่วคราว",
+    "configuration-error": "การตั้งค่าโมเดลหรือสิทธิ์เข้าถึงไม่ถูกต้อง",
+    "missing-key": "ยังไม่ได้ตั้ง API key ของผู้ให้บริการ",
+    "consent-required": "ยังไม่ได้เปิดอนุญาตส่งข้อมูลจำลองไปยังผู้ให้บริการ",
+    "invalid-response": "คำตอบผิดรูปแบบ หรือมี ID/คะแนน/หลักฐานไม่ถูกต้อง",
+    "guardrail-rejected": "หลักฐานไม่ผ่านการตรวจบริบทหรือพบคำสั่งแทรกแซง",
+  } as Record<string, string>)[reason] || "เกิดข้อผิดพลาดจากผู้ให้บริการ";
+}
+
 // ─── Main App ───────────────────────────────────────────────────────────────
 export default function App() {
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
@@ -157,8 +191,10 @@ export default function App() {
 // ─── Tab 1: Analyst Workspace ───────────────────────────────────────────────
 function AnalystWorkspace() {
   const [text, setText] = useState("");
+  const [inferenceMode, setInferenceMode] = useState<"offline" | "gemini" | "openrouter">("offline");
   const [sampleIdx, setSampleIdx] = useState<number | null>(null);
   const [result, setResult] = useState<InferenceResult | null>(null);
+  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [candidatesOpen, setCandidatesOpen] = useState(false);
   const active = useRef<AbortController | null>(null);
@@ -169,6 +205,7 @@ function AnalystWorkspace() {
     active.current = null;
     setLoading(false);
     setResult(null);
+    setProviderStatus(null);
   }
 
   function handleClear() {
@@ -202,6 +239,7 @@ function AnalystWorkspace() {
         },
         body: JSON.stringify({
           narrative: alertText.trim(),
+          inference_mode: inferenceMode,
         }),
         signal: controller.signal,
       });
@@ -212,7 +250,28 @@ function AnalystWorkspace() {
         throw new Error(data.detail?.message || "ไม่สามารถวิเคราะห์ Alert ได้");
       }
 
-      if (!controller.signal.aborted) setResult(data);
+      if (!controller.signal.aborted) {
+        setProviderStatus({
+          parser: response.headers.get("X-AI-Parser-Status") || "unknown",
+          router: response.headers.get("X-AI-Router-Status") || "unknown",
+          judge: response.headers.get("X-AI-Judge-Status") || "unknown",
+          parserProvider: response.headers.get("X-AI-Parser-Provider") || "unknown",
+          routerProvider: response.headers.get("X-AI-Router-Provider") || "unknown",
+          judgeProvider: response.headers.get("X-AI-Judge-Provider") || "unknown",
+          parserModel: response.headers.get("X-AI-Parser-Model") || "none",
+          routerModel: response.headers.get("X-AI-Router-Model") || "none",
+          judgeModel: response.headers.get("X-AI-Judge-Model") || "none",
+          fallbackUsed: response.headers.get("X-AI-Fallback-Used") === "true",
+          fallbackReason: response.headers.get("X-AI-Fallback-Reason") || "none",
+          judgeFallbackReason: response.headers.get("X-AI-Judge-Fallback-Reason") || "none",
+          inferencer: response.headers.get("X-AI-Inferencer-Status") || "unknown",
+          inferencerProvider: response.headers.get("X-AI-Inferencer-Provider") || "unknown",
+          inferencerModel: response.headers.get("X-AI-Inferencer-Model") || "none",
+          inferencerFallbackReason: response.headers.get("X-AI-Inferencer-Fallback-Reason") || "none",
+          confidenceSource: response.headers.get("X-AI-Confidence-Source") || "unknown",
+        });
+        setResult(data);
+      }
     } catch (error) {
       if (!controller.signal.aborted) alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     } finally {
@@ -291,7 +350,26 @@ function AnalystWorkspace() {
         {/* Textarea */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: 20 }}>
           <div className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", letterSpacing: "0.08em", marginBottom: 8 }}>RAW ALERT / LOG NARRATIVE</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            {(["offline", "gemini", "openrouter"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => { clearResult(); setInferenceMode(mode); }}
+                disabled={loading}
+                style={{
+                  background: inferenceMode === mode ? "var(--primary)" : "var(--secondary)",
+                  color: inferenceMode === mode ? "var(--primary-foreground)" : "var(--foreground)",
+                  border: "1px solid var(--border)", borderRadius: "var(--radius)",
+                  padding: "6px 12px", cursor: loading ? "not-allowed" : "pointer",
+                  fontFamily: "inherit", fontSize: 11, fontWeight: 600,
+                }}
+              >
+                {mode === "offline" ? "Offline / Rules" : mode === "gemini" ? "Gemini 3.5 Flash-Lite" : "OpenRouter"}
+              </button>
+            ))}
+          </div>
           <textarea
+            id="narrative-input"
             value={text}
             onChange={(e) => { clearResult(); setSampleIdx(null); setText(e.target.value); }}
             placeholder={"Paste security alert, SIEM log, or incident narrative here...\n\nSupports: Syslog, Windows Event Log, EDR telemetry, SOC narrative reports."}
@@ -315,6 +393,7 @@ function AnalystWorkspace() {
 
           {/* Action Button */}
           <button
+            id="analyze-button"
             onClick={runInference}
             disabled={loading || !text.trim()}
             style={{
@@ -391,6 +470,43 @@ function AnalystWorkspace() {
 
           {result && !loading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {providerStatus && (
+                <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "10px 14px" }}>
+                  <div className="mono" style={{ fontSize: 9, letterSpacing: "0.08em", color: "var(--muted-foreground)", marginBottom: 8 }}>PROVIDER EXECUTION STATUS</div>
+                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                    {[
+                      ["Parser", providerStatus.parser, providerStatus.parserProvider, providerStatus.parserModel],
+                      ["Router", providerStatus.router, providerStatus.routerProvider, providerStatus.routerModel],
+                      ["Inferencer", providerStatus.inferencer, providerStatus.inferencerProvider, providerStatus.inferencerModel],
+                      ["Judge", providerStatus.judge, providerStatus.judgeProvider, providerStatus.judgeModel],
+                    ].map(([label, status, provider, model]) => (
+                      <span key={label} className="mono" style={{ fontSize: 10, color: status === "success" ? "var(--green)" : status === "fallback" ? "var(--red)" : "var(--orange)" }}>
+                        {label}: {status} · {provider}{model !== "none" ? ` · ${model}` : ""}
+                      </span>
+                    ))}
+                    <span className="mono" style={{ fontSize: 10, color: providerStatus.fallbackUsed ? "var(--red)" : "var(--green)" }}>
+                      Fallback: {providerStatus.fallbackUsed ? "YES" : "NO"}
+                    </span>
+                    {providerStatus.fallbackReason !== "none" && (
+                      <span className="mono" style={{ fontSize: 10, color: "var(--orange)" }}>
+                        Reason: {providerStatus.fallbackReason}
+                      </span>
+                    )}
+                  </div>
+                  {providerStatus.inferencer === "fallback" && (
+                    <p role="status" style={{ color: "var(--orange)", fontSize: 12, marginBottom: 0 }}>
+                      หมายเหตุ: LLM Inferencer ใช้งานไม่ได้ — {fallbackExplanation(providerStatus.inferencerFallbackReason)}
+                      {" จึงใช้กฎออฟไลน์เลือก Technique และให้คะแนนแทน ต้องให้มนุษย์ตรวจสอบ"}
+                    </p>
+                  )}
+                  {providerStatus.judge === "fallback" && (
+                    <p role="status" style={{ color: "var(--orange)", fontSize: 12, marginBottom: 0 }}>
+                      หมายเหตุ: LLM Judge ใช้งานไม่ได้ — {fallbackExplanation(providerStatus.judgeFallbackReason)}
+                      {" จึงแสดงผลและคะแนนจากกฎออฟไลน์ ผลนี้ยังไม่ผ่านการตรวจโดย LLM และต้องให้มนุษย์ตรวจสอบ"}
+                    </p>
+                  )}
+                </div>
+              )}
               {/* Review Flag */}
               <div style={{
                 background: result.needs_human_review ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
@@ -423,7 +539,7 @@ function AnalystWorkspace() {
                   <span className="mono" style={{ fontSize: 12, color: "var(--muted-foreground)" }}>No techniques with sufficient evidence inferred. This does not confirm benign activity.</span>
                 </div>
               ) : (
-                result.inferred_techniques.map((t) => <TechniqueCard key={t.technique_id} technique={t} />)
+                result.inferred_techniques.map((t) => <TechniqueCard key={t.technique_id} technique={t} confidenceSource={providerStatus?.confidenceSource || "unknown"} />)
               )}
 
               {/* Candidate Drawer */}
@@ -502,7 +618,7 @@ const TACTIC_COLORS: Record<string, string> = {
 
 type InferredTechnique = InferenceResult["inferred_techniques"][number];
 
-function TechniqueCard({ technique: t }: { technique: InferredTechnique }) {
+function TechniqueCard({ technique: t, confidenceSource }: { technique: InferredTechnique; confidenceSource: string }) {
   const tacticColor = TACTIC_COLORS[t.tactic] || "#94a3b8";
 
   return (
@@ -535,16 +651,22 @@ function TechniqueCard({ technique: t }: { technique: InferredTechnique }) {
         const confidencePercent = Math.round(t.confidence * 100);
         return (
           <div style={{ padding: "10px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12 }}>
-            <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", minWidth: 120 }}>CONFIDENCE</span>
+            <span className="mono" style={{ fontSize: 10, color: "var(--muted-foreground)", minWidth: 120 }}>
+              {confidenceSource === "llm-self-assessed" ? "LLM SUPPORT SCORE" : confidenceSource === "rule-score" ? "RULE SUPPORT SCORE" : "SUPPORT SCORE (SOURCE UNKNOWN)"}
+            </span>
             <div className="progress-bar" style={{ flex: 1 }}>
               <div className="progress-fill" style={{ width: `${confidencePercent}%`, background: scoreColor(confidencePercent / 100) }} />
             </div>
             <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: scoreColor(confidencePercent / 100), minWidth: 40, textAlign: "right" }}>
-              {confidencePercent}%
+              {confidencePercent}/100
             </span>
           </div>
         );
       })()}
+      <p style={{ padding: "0 16px", fontSize: 11, color: "var(--muted-foreground)" }}>
+        {confidenceSource === "llm-self-assessed" ? "คะแนนประเมินหลักฐานจาก LLM" : confidenceSource === "rule-score" ? "คะแนนจากกฎที่กำหนดไว้ (อาจซ้ำกันหลายรายการ)" : "ไม่ทราบแหล่งที่มาของคะแนน"}
+        {" — ยังไม่ผ่านการสอบเทียบ ไม่ใช่เปอร์เซ็นต์โอกาสที่คำตอบถูก"}
+      </p>
 
       {/* Evidence Spans */}
       <div style={{ padding: "12px 16px" }}>

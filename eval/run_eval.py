@@ -177,7 +177,11 @@ def main() -> int:
     from eval.evaluator import create_report
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["fixture", "runtime"], default="fixture")
+    parser.add_argument("--mode", choices=["fixture", "runtime", "llm"], default="fixture")
+    parser.add_argument(
+        "--provider", choices=["gemini", "openrouter"],
+        help="Required only for --mode llm; sends the bundled synthetic dataset to that provider.",
+    )
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--predictions", type=Path, default=DEFAULT_PREDICTIONS)
     parser.add_argument("--allowlist", type=Path, default=DEFAULT_ALLOWLIST)
@@ -193,12 +197,17 @@ def main() -> int:
     args = parser.parse_args()
     if args.require_quality_gates and args.mode != "runtime":
         parser.error("--require-quality-gates requires --mode runtime")
+    if args.mode == "llm" and args.provider is None:
+        parser.error("--mode llm requires --provider")
+    if args.mode != "llm" and args.provider is not None:
+        parser.error("--provider requires --mode llm")
     try:
         report = create_report(
             mode=args.mode, top_k=args.top_k,
             dataset_path=PROJECT_ROOT / "data/dev/alerts.json" if args.development else args.dataset,
             predictions_path=args.predictions, allowlist_path=args.allowlist,
             development=args.development, diagnostics=args.diagnostics,
+            provider=args.provider,
             subset_path=(
                 PROJECT_ROOT / "data/eval/iteration-2-v0.2.0-subset.json"
                 if args.subset == "iteration-2" and not args.development else None

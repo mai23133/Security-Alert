@@ -37,7 +37,7 @@ def create_app(*, snapshot_path=None, api_key=None, rate_limit=None, request_tim
     deployment = os.getenv("APP_ENV", "sandbox") == "deployment"
     key = api_key if api_key is not None else os.getenv("SECURITY_ALERT_API_KEY", "")
     limit = rate_limit if rate_limit is not None else int(os.getenv("RATE_LIMIT_PER_MINUTE", "120"))
-    deadline = request_timeout if request_timeout is not None else float(os.getenv("REQUEST_TIMEOUT_SECONDS", "15"))
+    deadline = request_timeout if request_timeout is not None else float(os.getenv("REQUEST_TIMEOUT_SECONDS", "60"))
     origins = [o.strip() for o in os.getenv("CORS_ALLOWED_ORIGINS",
         "http://127.0.0.1:8000,http://localhost:8000").split(",") if o.strip()]
     if "*" in origins or any(not o.startswith(("http://", "https://")) for o in origins):
@@ -138,7 +138,14 @@ def create_app(*, snapshot_path=None, api_key=None, rate_limit=None, request_tim
 
     application.add_middleware(CORSMiddleware, allow_origins=origins,
         allow_methods=["GET", "POST"], allow_headers=["Content-Type", "X-Request-ID", "X-API-Key"],
-        expose_headers=["X-Request-ID", "X-Server-Trace-ID", "X-MITRE-ATTaCK-Version", "Retry-After"])
+        expose_headers=["X-Request-ID", "X-Server-Trace-ID", "X-MITRE-ATTaCK-Version", "Retry-After",
+                        "X-AI-Parser-Status", "X-AI-Router-Status", "X-AI-Judge-Status",
+                        "X-AI-Fallback-Used", "X-AI-Parser-Provider", "X-AI-Router-Provider",
+                        "X-AI-Judge-Provider", "X-AI-Parser-Model", "X-AI-Router-Model",
+                        "X-AI-Judge-Model", "X-AI-Fallback-Reason", "X-AI-Judge-Fallback-Reason",
+                        "X-AI-Inferencer-Status", "X-AI-Inferencer-Provider", "X-AI-Inferencer-Model",
+                        "X-AI-Inferencer-Fallback-Reason", "X-AI-Confidence-Source",
+                        "X-AI-Inference-Prompt-Version"])
     application.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
     application.include_router(evaluate_router, tags=["evaluation"])
     application.include_router(rag_router, prefix="/rag", tags=["rag"])
@@ -150,7 +157,7 @@ def create_app(*, snapshot_path=None, api_key=None, rate_limit=None, request_tim
 
     @application.get("/ready")
     async def readiness(request: Request):
-        retriever = runtime.get_retriever(request)
+        retriever = await runtime.get_retriever(request)
         return {"status": "ready", "stix_version": "19.1",
                 "subset_status": retriever.snapshot["subset_status"]}
 

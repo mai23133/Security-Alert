@@ -15,6 +15,7 @@ def judge_result(
     candidates: list[TechniqueCandidate],
     *,
     low_confidence_threshold: float = LOW_CONFIDENCE_THRESHOLD,
+    require_behavior: bool = True,
 ) -> bool:
     """Return whether the result requires human review.
 
@@ -30,7 +31,7 @@ def judge_result(
     if AMBIGUOUS.search(narrative) or INJECTION.search(narrative):
         return True
     chosen_ids = {item.technique_id for item in inferred}
-    for candidate in candidates:
+    for candidate in candidates if require_behavior else []:
         spans = evidence(narrative, candidate.technique_id, candidate.technique_name)
         if spans and candidate.technique_id not in chosen_ids and not any(
             t.startswith(candidate.technique_id + ".") for t in chosen_ids
@@ -38,7 +39,7 @@ def judge_result(
             return True
 
     candidate_by_id = {candidate.technique_id: candidate for candidate in candidates}
-    grounded_ids = {item.technique_id for item in link_evidence(narrative, inferred)}
+    grounded_ids = {item.technique_id for item in link_evidence(narrative, inferred, require_behavior=require_behavior)}
     seen_ids: set[str] = set()
     for technique in inferred:
         candidate = candidate_by_id.get(technique.technique_id)

@@ -31,7 +31,8 @@ def load_knowledge_base(snapshot_path: Path) -> BaselineRetriever:
     return retriever
 
 
-def get_retriever(request: Request) -> BaselineRetriever:
+async def get_retriever(request: Request) -> BaselineRetriever:
+    """Return the loaded snapshot without dispatching a trivial dependency to a worker."""
     retriever = getattr(request.app.state, "retriever", None)
     if retriever is None:
         raise HTTPException(503, detail={"code": "KNOWLEDGE_BASE_UNAVAILABLE", "message": "Pinned ATT&CK knowledge base is unavailable."})
@@ -50,13 +51,21 @@ async def run_bounded(request: Request, function, *args):
         await asyncio.wait_for(slots.acquire(), timeout=remaining())
     except TimeoutError:
         raise HTTPException(504, detail={"code": "INFERENCE_TIMEOUT", "message": "Inference timed out. Human review is required."}) from None
+    loop = asyncio.get_running_loop()
     try:
-        future = asyncio.get_running_loop().run_in_executor(request.app.state.executor, function, *args)
+        future = request.app.state.executor.submit(function, *args)
     except BaseException:
         slots.release()
         raise
-    future.add_done_callback(lambda done: (slots.release(), done.exception() if not done.cancelled() else None))
-    try:
-        return await asyncio.wait_for(asyncio.shield(future), timeout=remaining())
-    except TimeoutError:
-        raise HTTPException(504, detail={"code": "INFERENCE_TIMEOUT", "message": "Inference timed out. Human review is required."}) from None
+
+    def release_slot(done):
+        slots.release()
+        if not done.cancelled():
+            done.exception()
+
+    future.add_done_callback(lambda done: loop.call_soon_threadsafe(release_slot, done))
+    while not future.done():
+        if time.monotonic() >= request.state.deadline - 0.01:
+            raise HTTPException(504, detail={"code": "INFERENCE_TIMEOUT", "message": "Inference timed out. Human review is required."}) from None
+        await asyncio.sleep(min(0.01, remaining()))
+    return future.result()
