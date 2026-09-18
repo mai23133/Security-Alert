@@ -218,7 +218,9 @@ UI อ่านผลลัพธ์จาก response body และอ่า�
 1. `src/agents/alert_parser.py` เพื่อสร้าง `ParsedAlert` ซึ่งมี narrative, assets, observed actions และ IOCs
 2. `src/agents/tactic_router.py` เพื่อจำกัด tactics ที่ Retriever ควรค้น
 
-Offline mode ไม่เรียก external model ส่วน Online mode ส่งงานให้ provider ที่เลือก หาก Parser หรือ Router ล้มเหลว ระบบจะเก็บสถานะ fallback และยังดำเนินงานอย่าง conservative จาก narrative เดิม
+Offline mode ไม่เรียก external model และไม่ได้พยายามเดา assets/IOCs ด้วย heuristic: pipeline ส่ง generator ที่ raise ว่า provider ถูกปิดให้ Parser จึงคืน `ParsedAlert` ที่คง `narrative` ต้นฉบับไว้ แต่ให้ `assets`, `observed_actions` และ `iocs` เป็น list ว่างอย่างปลอดภัย จากนั้น Router จะคืนทั้ง 3 tactics ในขอบเขต คือ `initial-access`, `execution` และ `credential-access` นี่ทำให้ Offline mode ยัง retrieval ได้จากข้อความจริงครบ subset โดยไม่แต่ง enrichment ที่ตรวจสอบไม่ได้
+
+Online mode จึงค่อยส่งงานให้ provider ที่เลือก Parser และ Router รับเฉพาะ JSON ที่ validate ได้เท่านั้น โดย alert ถูก serialize เป็น JSON ภายใน `<untrusted_alert>` และอักขระ `<` ถูก escape เพื่อไม่ให้ปิด delimiter ได้เอง หาก output ไม่ใช่ JSON, รูปแบบผิด, tactic อยู่นอก allowlist หรือ provider ล้มเหลว ระบบไม่ใช้ค่าที่ผิดนั้น แต่กลับไปใช้ empty parse หรือทั้ง 3 tactics ตามลำดับ พร้อมบันทึกสถานะ `fallback` ใน trace
 
 ### 5. Retriever ค้นจาก pinned knowledge base
 
@@ -287,6 +289,60 @@ UI แสดงข้อมูลนี้ใน `PROVIDER EXECUTION STATUS` ห
 ### 10. Privacy ของ Online mode
 
 `src/agents/provider_safety.py` บังคับ `PROVIDER_CONSENT=reviewed-synthetic-only` และทำ redaction ขั้นต้นกับ IP, email และข้อความลักษณะ secret ก่อนส่ง prompt ออกไป อย่างไรก็ตาม redaction ไม่ได้ครอบคลุม PII ทุกชนิด จึงต้องใช้ Online mode กับ reviewed synthetic alerts เท่านั้น
+
+### 11. ลำดับการทำงานเชิงลึก: จากปุ่มกดถึงผลบนจอ
+
+ส่วนนี้ใช้ตอบเมื่อผู้ชมถามว่า “กดหนึ่งครั้ง โค้ดทำอะไรบ้าง” ให้ไล่ตามลำดับนี้ได้
+
+1. UI ตรวจเบื้องต้นว่า textarea ไม่ว่าง, ความยาวไม่เกิน 20,000 ตัวอักษร และหน้าไม่ได้ถูกเปิดด้วย `file:` จากนั้นสร้าง `AbortController` เพื่อให้การกด Clear, เปลี่ยน sample, เปลี่ยน mode หรือ unmount หน้า สามารถยกเลิก request เดิมได้
+2. UI ส่ง `POST /alerts/infer` พร้อม JSON เพียง `narrative` และ `inference_mode`; ไม่ส่งผล Technique ที่ client คิดเอง และ backend เป็นผู้สร้าง `alert_id` แบบ UUID หากไม่ระบุมา
+3. `AlertRequest` ทำ Pydantic validation อีกครั้ง: ตัด whitespace, ห้ามฟิลด์เกิน, จำกัด `alert_id` 128 ตัวอักษร, จำกัด narrative 1–20,000 ตัวอักษร และรับ mode เฉพาะ 3 ค่า ดังนั้น validation ของหน้าเว็บไม่ใช่ด่านความปลอดภัยเพียงด่านเดียว
+4. Endpoint เรียกงานผ่าน `run_bounded()` แล้วเข้าสู่ `run_inference()` พร้อม retriever ที่โหลด knowledge-base snapshot ไว้แล้ว กรณี timeout, knowledge base ใช้ไม่ได้ หรือ error ภายใน จะคืน HTTP error แบบไม่สะท้อนข้อความ Alert กลับไป
+5. preflight เรียก `prompt_injection_detected()` เป็นจุดแรกของ pipeline ก่อน Parser, Router, Retriever หรือ provider ใด ๆ หาก match รูปแบบ เช่น ignore/override instructions, ขอ system prompt, `assistant:` หรือบังคับให้คืน ID ระบบคืน no-match ทันทีและตั้ง header `X-Security-Guardrail: prompt-injection-blocked`
+6. request ปกติจะไป Parser → Router → Retriever → Inferencer → Evidence Linker → Judge ตามลำดับ ผลของแต่ละขั้นไม่ถูกเชื่อโดยอัตโนมัติ: provider output, retrieved candidate และ prediction ต่างถูกตรวจด้วยกฎหรือ schema ในขั้นถัดไป
+7. Endpoint serialize `ATTACKInferenceResult` เป็น JSON แล้วแนบ trace ที่ปลอดภัยไว้ใน response headers UI จึงแสดงทั้ง result และที่มาของ execution โดยไม่ต้องเผย prompt, API key หรือ alert text ใน status panel
+
+### 12. Retriever: สิ่งที่คำว่า “top-5 candidates” หมายถึงจริง
+
+`BaselineRetriever` โหลด `TechniqueCandidate` จาก snapshot (ถ้ามี) หรือไฟล์ processed candidates พร้อม allowlist แยกต่างหาก ตอนเริ่มต้นมีการปฏิเสธ allowlist ที่ไม่ใช่ list ของ ID, ID ซ้ำ, candidate ID ซ้ำ และ candidate ที่ไม่ใช่ STIX version `19.1` ก่อนสร้าง BM25 index
+
+เมื่อค้นหา retriever จะ tokenize narrative ด้วย `TextEmbedder` และสร้าง corpus จาก Technique ID, ชื่อที่ซ้ำเพื่อเพิ่มน้ำหนัก และ description จาก metadata หาก Parser ให้ `observed_actions` หรือ IOC มา ระบบจะเพิ่มน้ำหนักเฉพาะค่าที่พบเป็นข้อความ verbatim ใน narrative เท่านั้น จึงไม่ยอมให้ annotation จาก provider ใส่คำค้นใหม่หรือทิ้งข้อความต้นฉบับ
+
+จากนั้นระบบคำนวณ BM25, กรอง ID ที่อยู่นอก allowlist, กรอง tactic ตาม Router และเพิ่มคะแนน `100` เฉพาะ candidate ที่ behavior rule พบหลักฐานใน narrative จริง การเพิ่มคะแนนนี้เป็น rerank ภายใน candidate ที่ผ่าน filter แล้ว ไม่สามารถสร้าง ID ใหม่ได้ สุดท้ายเรียงด้วย score จากมากไปน้อย แล้วใช้ Technique ID เป็น tie-breaker เพื่อให้ผลทำซ้ำได้ และตัดไว้ที่ `top_k=5`
+
+หาก candidate มีหลาย tactic ใน metadata แต่ tactic หลักไม่ใช่ tactic ที่ Router เลือก โค้ดสร้าง copy ของ candidate โดยแสดง tactic ที่ตัดกันได้แทน จึงต้องอธิบายว่า tactic ใน drawer คือ context ของการค้นหาครั้งนั้น ไม่ใช่การขยาย ATT&CK subset
+
+### 13. Offline inference: คะแนนและหลักฐานเกิดจากอะไร
+
+`technique_inferencer.py` วนเฉพาะ candidates ที่ Retriever ส่งมาและ deduplicate ID ก่อนเรียก `evidence()` ใน `behavior.py` ฟังก์ชันนี้แบ่ง narrative เป็น clause จากจุด `.`, `!`, `?`, `;`, `but` และ `however` แล้วตรวจแต่ละ clause ด้วย rule ของ Technique นั้น เช่น T1110 ต้องมีสัญญาณ failed attempts จำนวนมากร่วมกับ authentication/login/RDP/SSH; T1059.001 ต้องพบ PowerShell ร่วมกับกริยาที่บอกว่ามีการทำงานจริง
+
+ก่อนให้คะแนน `safe_clause()` จะคัด clause ที่เป็น prompt injection, benign/authorized maintenance หรือเป็นการปฏิเสธการเกิดเหตุ เช่น “never executed PowerShell” ออก เพื่อไม่หยิบคำสั้น ๆ จากบริบทที่กลับความหมายเป็น evidence คะแนน rule ปกติเป็น `0.82`; ถ้าคำใน clause บอกความไม่แน่ชัด เช่น `may`, `suspected`, `insufficient telemetry` จะลดเป็น `0.60`; fallback ที่พบเพียงชื่อ canonical ร่วมกับ action ได้ `0.55` จึงถูกส่งต่อให้ Judge ติด human review ได้ง่าย
+
+Inferencer จะสร้าง MITRE URL จาก ID โดยแทนจุดด้วย `/`, เลือก score ที่ต่ำที่สุดของ spans ที่รองรับ Technique เดียวกัน และตัด parent ที่ซ้ำซ้อนเมื่อ sub-technique มี evidence span เดียวกัน ก่อน sort ด้วย score และ ID แล้วจำกัดไม่เกิน 3 ผล นี่คือเหตุผลที่ UI ต้องเรียกค่า `confidence` ว่า Rule Support Score: มันเป็นคะแนนจากกฎ ไม่ใช่ calibrated probability
+
+### 14. Validation หลัง inference และเหตุผลที่ต้องมีหลายชั้น
+
+แม้ Inferencer จะ candidate-bounded อยู่แล้ว `run_inference()` ตรวจ prediction ซ้ำก่อน link evidence โดยต้องผ่านครบทุกข้อ: ID อยู่ใน candidate map, ID ไม่ซ้ำ, ชื่อและ tactic ตรงกับ candidate, URL เท่ากับ URL ที่สร้างจาก ID และจำนวนผลยังไม่เกิน 3 รายการ รายการที่ผิดถูกทิ้งและตัวแปร `rejected` จะทำให้ต้อง human review
+
+`link_evidence()` ไม่รับ span ที่เป็นเพียงอักขระสั้น ๆ; span ต้องมีตัวอักษร/ตัวเลขอย่างน้อย 4 ตัว, พบ verbatim ใน narrative และอยู่ใน clause ที่ context ปลอดภัย สำหรับ Offline ยังต้องผ่าน behavior rule ของ Technique เดียวกันด้วย จึงไม่สามารถนำ evidence ของ T1110 มาอ้างให้ T1059.001 หรือยกวลีจากประโยคปฏิเสธมาใช้ได้
+
+`judge_result()` ตั้ง review เป็น `true` เมื่อ no-match, เกิน 3 predictions, narrative กำกวมหรือมี injection, candidate ที่มี behavior evidence แต่ไม่ถูกเลือก, candidate/prediction ไม่ตรงกัน, ไม่มี grounded span หรือ confidence ต่ำกว่า `0.80` ด้วยเหตุนี้ “มีการ์ด Technique” กับ “ผ่านการตรวจโครงสร้าง” เป็นคนละระดับ และแม้สถานะบนจอเป็น structural check passed ก็ยังต้องให้นักวิเคราะห์ตัดสินความถูกต้องเชิงความหมาย
+
+### 15. Online path, fallback และ status ที่ UI แปลผล
+
+เมื่อ mode เป็น `gemini` หรือ `openrouter` pipeline สร้าง `ProviderChain` หนึ่งชุด แล้วใช้กับ Parser, Router, LLM Inferencer และ LLM Grounding Judge แต่แต่ละ stage เก็บ trace ของตัวเอง หาก LLM Inferencer สำเร็จ `confidence_source` จะเป็น `llm-self-assessed`; ถ้าล้มเหลว pipeline กลับไปใช้ Offline rules, เปลี่ยน status เป็น `fallback`, เปลี่ยนคะแนนเป็น `rule-score` และบังคับ human review
+
+สำหรับ LLM Judge ถ้า semantic judge ล้มเหลว โค้ดจะเปิดเผย fallback reason และ—หาก LLM Inferencer เคยสำเร็จ—คำนวณผลจาก rule inferencer ใหม่ก่อนแสดง เพื่อไม่ปล่อย LLM proposal ที่ยังไม่ได้ semantic judgment ออกมาเป็นผลเงียบ ๆ ระบบไม่ fail over ไปหา provider อื่นเอง
+
+UI อ่าน headers ต่อไปนี้เพื่อทำให้เส้นทางนี้ตรวจสอบได้: สถานะ Parser/Router/Inferencer/Judge, provider และ model ของแต่ละ stage, `X-AI-Fallback-Used`, fallback reason, confidence source และ `X-Security-Guardrail` กล่อง `PROVIDER EXECUTION STATUS` จึงเป็น telemetry ของการประมวลผล ไม่ใช่หลักฐานว่า prediction ถูกต้อง และไม่ได้แสดง response ดิบของ provider
+
+### 16. ขอบเขตที่ควรพูดอย่างแม่นยำ
+
+- ระบบรองรับเฉพาะ Enterprise ATT&CK subset ที่อนุญาตและ STIX `19.1`; candidate drawer ไม่ใช่การค้นหา ATT&CK ทั้งหมด
+- Offline path ทำซ้ำได้เพราะไม่เรียก provider แต่ผลขึ้นกับ pinned knowledge-base และ behavior rules ที่อยู่ใน repository เวอร์ชันนั้น
+- Prompt-injection guard เป็น pattern-based preflight guard ที่ fail closed เมื่อ match ไม่ใช่คำกล่าวว่าตรวจจับ injection ได้ทุกชนิด
+- Redaction ก่อนส่ง provider ครอบคลุม IP, email และ secret แบบ pattern ที่กำหนดเท่านั้น จึงยังจำกัด Online mode ไว้ที่ reviewed synthetic alerts
+- ไม่มี branch ใดใน UI หรือ pipeline ที่บล็อกบัญชี, kill process, ปิด network หรือทำ automated response; output ทั้งหมดเป็น advisory tagging เพื่อการตรวจโดยมนุษย์
 
 ## คำตอบสั้นสำหรับคำถามที่อาจถูกถาม
 
